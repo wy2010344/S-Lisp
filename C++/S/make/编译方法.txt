@@ -1,0 +1,9 @@
+windows:
+因为vs-C++不支持UTF-8?所以要先将源文件转成UTF-8。
+进入vs命令提示
+cl –GX ../main.cpp /DWIN32
+测试 main.exe ../test/t.lisp
+
+linux:
+g++ -o main ../main.cpp -std=c++0x
+
