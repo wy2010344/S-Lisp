@@ -3,6 +3,7 @@
 ## 项目介绍
 一种Lisp脚本方言，主要是自己构思的一套语法方案。
 
+貌似大家都没有gitter的账号，看来只有转到[github](https://github.com/wangyang2010344/S-Lisp)。
 
 大家好
 
