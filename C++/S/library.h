@@ -148,7 +148,7 @@ namespace s{
                 for (Node * tmp=args; tmp!=NULL; tmp=tmp->Rest()) {
                     Base * v=tmp->First();
                     if(v==NULL){
-                        cout<<"null";
+                        cout<<"[]";
                     }else{
                         cout<<v->toString();
                     }
@@ -432,7 +432,9 @@ namespace s{
             m=kvs::extend("charAt",new CharAtFunc(),m);
             m=kvs::extend("str-eq",new StrEqualFunc(),m);
             m=kvs::extend("list",new ListFunc(),m);
-            m=kvs::extend("toString",new ToStringFunc(),m);
+            ToStringFunc * tf=new ToStringFunc();
+            m=kvs::extend("toString",tf,m);
+            m=kvs::extend("stringify",tf,m);
             m=kvs::extend("list?",new IsListFunc(),m);
             m=kvs::extend("function?",new IsFuncFunc(),m);
             m=kvs::extend("cache",new CacheFunc(),m);

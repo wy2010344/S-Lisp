@@ -1,22 +1,5 @@
 windows:
 因为vs-C++不支持UTF-8?所以要先将源文件转成UTF-8。
-toGBK.js和toUTF8.js是自己用node.js写的文件转编码的脚本，只要先配置好lib.js中的
-//设置被转的文件尾缀
-var white_suffixs=[
-	".h",
-	".lisp",
-	".txt",
-	".js",
-	".cpp"
-];
-module.exports={
-	gitPath:"",//UTF-8文件目录，即git项目目录
-	vsPath:"",//生成供vs调用的C++文件目录
-    ...
-}
-node.js要先npm iconv-lite
-
-
 进入vs命令提示
 cl –GX ../main.cpp /DWIN32
 测试 main.exe ../test/t.lisp
