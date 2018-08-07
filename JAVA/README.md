@@ -4,7 +4,8 @@
 eclipse下的maven项目，用JS做桥，启动会比较慢，因为每次都要对js打包。
 
 使用方法：最好将整个项目clone下来再打包（如果是eclipse，选择Open Projects form File System...)，因为依赖config文件夹在项目下（无法很好地打包进jar）在控制台下进入生成的target目录
-1. 控制台交互：输入java -jar ./s-0.0.1-SNAPSHOT.jar
+1. 控制台交互：输入java -jar ./s-0.0.1-SNAPSHOT.jar 换行并输入``执行前面的语句
+![示例1](./demo1.png)
 2. 执行文件，比如:java -jar ./s-0.0.1-SNAPSHOT.jar ../deom/x.lisp
 
 实现得很粗糙，可能没达到你的预期，但Java实现简单很多，不用管理内存。
