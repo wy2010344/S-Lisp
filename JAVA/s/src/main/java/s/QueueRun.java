@@ -135,6 +135,11 @@ public class QueueRun {
 				// TODO Auto-generated method stub
 				return Library.kvs_find1st(svk, key_prefix);
 			}
+			@Override
+			public String toString() {
+				//其中kvs为何？依赖闭包，在列表中会被转成'xx
+				return null;//"kvs-match";//"{ (kvs-find1st kvs (first args)) }";
+			}
 		},scope);
 		Node tmp_svk=svk;
 		while(tmp_svk!=null) {

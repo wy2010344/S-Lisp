@@ -50,7 +50,15 @@ public class Node {
 				sb.append("\"").append(Exp.replaceQuote(t.value.toString())).append("\"");
 			}else
 			{
-				sb.append(t.value.toString());
+				String sx=t.value.toString();
+				if(sx==null) {
+					//某些内置库无法被序列化，比如match/cache-run
+					sb.append("[]");
+				}else {
+					//js的toString只有字面值，在列表中需要转义，虽然用'比较有意义。
+					//比如内置库
+					sb.append("'").append(sx);
+				}
 			}
 			sb.append(" ");
 		}

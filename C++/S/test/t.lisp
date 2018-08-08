@@ -7,7 +7,7 @@
 		(run)
 	}
 )
-(if-run (empty [9 8])
+(if-run (empty? [9 8])
 	{}
 	{
 		(log "测试if-run")
@@ -18,7 +18,7 @@
 	(let (x ...xs ) (first args) k this)
 	(log x)
 	(if-run
-		(empty xs)
+		(empty? xs)
 		{(log "结束")}
 		{
 			(k xs)
@@ -27,7 +27,7 @@
 })
 (xp [1 2 39 4 56 21])
 
-(log (if (empty [9 8]) 9 8) "ool")
+(log (if (empty? [9 8]) 9 8) "ool")
 
 `测试字典匹配`
 (log "测试字典匹配")

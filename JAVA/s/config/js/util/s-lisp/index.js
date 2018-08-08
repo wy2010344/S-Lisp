@@ -31,6 +31,7 @@
 	                library.kvs_extend(
 	                    "log",
 	                    library.buildFunc(
+                            "log",
 	                        library.log_factory(log)
 	                    ),
                         scope

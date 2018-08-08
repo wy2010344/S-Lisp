@@ -46,6 +46,9 @@
             "false":false,
             "true":true,
             log:log_factory(function(v){
+                if(v==null){
+                    v="[]";
+                }
                 System.out.print(v);
             }),
             reverse:function(node){
@@ -304,17 +307,6 @@
                 var func=node.First();
                 var args=node.Rest().First();
                 return func.exec(args);
-            },
-            cache:function(node){
-                var init=node.First();  
-                return function(node){
-                    if(node==null){
-                        return init;
-                    }else{
-                        init=node.First();
-                        return null;
-                    }
-                };
             }
         };
         var exec=function(params,ps,ps_name){
@@ -332,9 +324,14 @@
             str=str+");";
             return str;
         };
-        var buildFunc=function(v){
+        var buildFunc=function(k,v){
             if(typeof(v)=='function'){
-                return mb.Java_new(Fun,[],{exec:v});
+                return mb.Java_new(Fun,[],{
+                    exec:v,
+                    toString:function(){
+                        return k;
+                    }
+                });
             }else{
                 return v;
             }
@@ -344,12 +341,12 @@
         };
         var r=null;
         mb.Object.forEach(library,function(v,k){
-            r=kvs_extend(k,buildFunc(v),r);
+            r=kvs_extend(k,buildFunc(k,v),r);
         });
         var library=r;
         r=kvs_extend(
             "parse",
-            buildFunc(function(node){
+            buildFunc("parse",function(node){
 	            var str=node.First();
 	            node=node.Rest();
 	            if(node){
@@ -361,6 +358,20 @@
 	        }),
         r);
         r=kvs_extend("library",r,r);
+        r=kvs_extend(
+            "cache",
+            buildFunc("cache",function(node){
+                var v=node.First();
+                return buildFunc(null,function(node){
+                    if(node==null){
+                        return v;
+                    }else{
+                        v=node.First();
+                    }
+                });
+            }),
+        r);
+        
         return {
             library:r,
             buildFunc:buildFunc,

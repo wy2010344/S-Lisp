@@ -148,12 +148,12 @@ namespace s{
             for(Node *t=rest;t!=NULL;t=t->Rest())
             {
                 Base * k=t->First();
-                if(k!=NULL)
+                if(k==NULL)
                 {
-                    r=r+k->toString();
+                    r=r+"[]";
                 }else
                 {
-                    r=r+"null";
+                    r=r+k->toString();
                 }
                 r=r+" ";
             }

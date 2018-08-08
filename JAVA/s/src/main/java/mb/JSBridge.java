@@ -15,8 +15,8 @@ import javax.script.ScriptException;
 import org.apache.log4j.Logger;
 
 public class JSBridge {
-    static ScriptEngine engine;
-    static CompiledScript cScript=null;
+    protected static ScriptEngine engine;
+    protected static CompiledScript cScript=null;
     static boolean first_run=true;//编译事件
     static String server_path;
     
@@ -57,6 +57,10 @@ public class JSBridge {
             ini.put("response",response);
             param(ini);
             run("".equals(act),ini);
+            if("".equals(act)) {
+                response.put("code", 0);
+                response.put("description","刷新成功");
+            }
         } catch (Exception e) {
             response.put("code", -2);
             response.put("description",Util.loadAllErr(e));

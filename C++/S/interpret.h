@@ -1,6 +1,7 @@
 #pragma once
 #include "./library.h"
 namespace s{
+    Base *interpret(Exp* e,Node * scope);
     //为了支持控制台
     class QueueRun{
         bool iswait(const string & x){
@@ -221,9 +222,20 @@ namespace s{
         msg=msg+"\n"+exp->toString()+"\n"+result->toString()+"\n";
         cout<<"出现异常:"<<msg<<"在位置:"<<exp->Index()<<endl;
         result->release();
+        /*
         scope->retain();
         scope->release();
+        */
         return LocationException(msg,exp->Index());
+    }
+    Base * exec(Function* func,Node *rst,Node *children){
+        Base *b=func->exec(rst);
+        children->release();
+        if (b!=NULL) {
+            //在计算结果时伪销毁。
+            b->eval_release();
+        }
+        return b;
     }
     Base *interpret(Exp* e,Node * scope)
     {
@@ -243,23 +255,28 @@ namespace s{
                 Base* first=children->First();
                 Function * func=static_cast<Function*>(first);
                 Node * rst=children->Rest();
+#ifdef _DEBUG
+                /*
+                    深思熟虑，能正常执行，
+                    不处理异常，测试时有异常有内存泄漏，
+                    测试过了是没有的，
+                    异常处理方方面面，比较麻烦
+                */
                 if(func==NULL)
                 {
                     //没法销毁函数内的引用计数
                     throw call_exception("未找到函数定义",be,children,scope);
                 }
                 try{
-                    b=func->exec(rst);
-                    children->release();
-                    if (b!=NULL) {
-                        //在计算结果时伪销毁。
-                        b->eval_release();
-                    }
+                    b=exec(func,rst,children);
                 }catch(...)
                 {
                     //无法捕获到，怎么处理？
                     throw call_exception("调用出错",be,children,scope);
                 }
+#else
+                b=exec(func,rst,children);
+#endif
             }else
             if(be->Type()==parse::Type::Medium)
             {

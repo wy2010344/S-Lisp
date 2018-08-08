@@ -60,7 +60,7 @@ namespace s{
         string base_path;
         Node *baseScope;
     public:
-        LoadFunc(string path,Node *scope):LibFunction(){
+        LoadFunc(string path,Node *scope):LibFunction("load"){
             base_path=path;
             baseScope=scope;
         }
