@@ -26,7 +26,13 @@
             },
             kvs_find1st:function(kvs,key){
                 return Library.kvs_find1st(kvs,key);
-            }   
+            },
+            kvs_extend:function(k,v,scope){
+	            return new Node(k,new Node(v,scope));
+	        },
+            extend:function(v,vs){
+                return new Node(v,vs);
+            }
         }
     }
 });

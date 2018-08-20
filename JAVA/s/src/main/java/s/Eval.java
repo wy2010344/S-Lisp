@@ -205,9 +205,49 @@ public class Eval {
 		 public Object result;
 	 }
 	 static HashMap<String,Result> files_defs=new HashMap<String,Result>();
+	 
+	 /*计算绝对路径*/
+	 static String calculate_path(String path,String c_path) {
+			if(c_path.startsWith(".")) {
+				//相对路径
+				String current_path=path;//按理说应该有闭包，但这里没有。
+				String[] pnodes=current_path.split("/");
+				String[] cpnodes=c_path.split("/");
+				ArrayList<String> n_nodes=new ArrayList<String>();
+				for(int i=0;i<pnodes.length-1;i++) {
+					n_nodes.add(pnodes[i]);
+				}
+				for(int i=0;i<cpnodes.length;i++) {
+					String cpnode=cpnodes[i];
+					if("..".equals(cpnode)) {
+						//回到上级
+						n_nodes.remove(n_nodes.size()-1);
+					}else
+					if(".".equals(cpnode)) {
+						//不处理
+					}else
+					{
+						n_nodes.add(cpnode);
+					}
+				}
+				StringBuilder sb=new StringBuilder();
+				for(int i=0;i<n_nodes.size();i++) {
+					sb.append(n_nodes.get(i)).append("/");
+				}
+				sb.setLength(sb.length()-"/".length());
+				c_path=sb.toString();
+			}
+			return c_path;
+	 }
 	 public static Object run(final String path,final Node library) throws Exception{
 		 String codes=mb.Util.readTxt(path, "\n", "UTF-8");
-		 Node pkg=Library.kvs_extend("current_path",path,library);
+		 Node pkg=Library.kvs_extend("calculate-path", new Function() {
+			@Override
+			public Object exec(Node node) throws Exception {
+				// TODO Auto-generated method stub
+				return calculate_path(path,(String)node.First());
+			}
+		 },library);
 		 pkg=Library.kvs_extend("load", new Function() {
 			@Override
 			public Object exec(Node node) throws Exception{
@@ -217,35 +257,7 @@ public class Eval {
 					System.out.println("路径参数为空？");
 					return null;
 				}
-				if(c_path.startsWith(".")) {
-					//相对路径
-					String current_path=path;//按理说应该有闭包，但这里没有。
-					String[] pnodes=current_path.split("/");
-					String[] cpnodes=c_path.split("/");
-					ArrayList<String> n_nodes=new ArrayList<String>();
-					for(int i=0;i<pnodes.length-1;i++) {
-						n_nodes.add(pnodes[i]);
-					}
-					for(int i=0;i<cpnodes.length;i++) {
-						String cpnode=cpnodes[i];
-						if("..".equals(cpnode)) {
-							//回到上级
-							n_nodes.remove(n_nodes.size()-1);
-						}else
-						if(".".equals(cpnode)) {
-							//不处理
-						}else
-						{
-							n_nodes.add(cpnode);
-						}
-					}
-					StringBuilder sb=new StringBuilder();
-					for(int i=0;i<n_nodes.size();i++) {
-						sb.append(n_nodes.get(i)).append("/");
-					}
-					sb.setLength(sb.length()-"/".length());
-					c_path=sb.toString();
-				}
+				c_path=calculate_path(path,c_path);
 				//绝对路径
 				Result file_def=files_defs.get(c_path);
 				if(file_def==null) {
@@ -257,13 +269,14 @@ public class Eval {
 						file_def.result=Eval.run(c_path,library);
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
+						System.out.println(c_path);
 						e.printStackTrace();
 					}
 					files_defs.put(c_path, file_def);
 				}
 				return file_def.result;
 			}
-		 },library);
+		 },pkg);
 		 try {
 			return run(codes,pkg,'\n');
 		} catch (LocationException e) {

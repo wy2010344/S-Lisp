@@ -60,7 +60,13 @@ namespace s{
         string base_path;
         Node *baseScope;
     public:
-        LoadFunc(string path,Node *scope):LibFunction("load"){
+        string toString(){
+            return "load";
+        }
+        Function_type ftype(){
+            return Function_type::fBuildIn;
+        }
+        LoadFunc(string path,Node *scope){
             base_path=path;
             baseScope=scope;
         }
@@ -86,6 +92,7 @@ namespace s{
                     sb+=tmp;
                     sb+="\n";
                 }
+                myfile.close();
                 Node* scope=kvs::extend(new String("load"),new LoadFunc(file,baseScope),baseScope);
                 //cout<<sb<<endl;
                 //cout<<tokens->Length()<<endl;
@@ -107,7 +114,8 @@ namespace s{
                     base=f->exec(NULL);
                 }catch(LocationException & ex)
                 {
-                    cout<<ex.Msg()<<endl;
+                    ex.Msg(file+":"+ex.Msg());
+                    throw ex;
                 }
                 core=kvs::extend(new String(file),new Node(base,NULL),core);
                 if(base!=NULL){
@@ -168,7 +176,10 @@ namespace s{
         Node *defaultScope;
     public:
         string toString(){
-            return "$function:parse";
+            return "parse";
+        }
+        Function_type ftype(){
+            return Function_type::fBuildIn;
         }
         ParseFunc(Node *defaultScope):Function(){
             this->defaultScope=defaultScope;
@@ -200,12 +211,9 @@ namespace s{
             //return str;
         }
     };
-    void terminal_exception(){
-        cout<<"失败"<<endl;
-    }
     Node * LoadFunc::core=NULL;
     void run(const char * _file){
-        set_terminate(terminal_exception);
+        //set_terminate(terminal_exception);
         string file=_file;
 #ifdef WIN32
         string pwd=_getcwd(NULL,0);
@@ -228,7 +236,13 @@ namespace s{
         Node *baseScope=library::library();
         baseScope=kvs::extend("core-library",baseScope,baseScope);//parse默认的作用域，可手动扩展
         baseScope=kvs::extend("parse",new ParseFunc(baseScope),baseScope);
-        LoadFunc::run_e(file,baseScope);
+        try{
+            LoadFunc::run_e(file,baseScope);
+        }catch(LocationException& e){
+            cout<<"出现异常"<<e.Msg()<<"在位置"<<e.Index()<<endl;
+        }catch(...){
+            cout<<"出现未能捕获异常"<<endl;
+        }
         //delete r;
         /*
         cout<<"请等待"<<endl;
@@ -247,6 +261,9 @@ namespace s{
             t->retain();
             t->release();
         }
-        cout<<Base::addsize<<"  "<<Base::subsize<<endl;
+        Base::print_node();
+        cout<<"开始回收"<<endl;
+        Base::clear();
+        Base::print_node();
     }
 };

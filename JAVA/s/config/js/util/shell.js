@@ -3,33 +3,39 @@
         var Scanner=Java.type("java.util.Scanner");
         var System=Java.type("java.lang.System");
         var console=new Scanner(System["in"]);
-        var str_out="";
-        var str_in="";
         var shell=p.shell(function(v){
-            str_out+=v;
+            System.out.print(v);
         });
+        var in_sym="<=";
+        var out_sym="=>";
         var circle=function(){
-            str_out="";
-            str_in="";
-            System.out.println(">>");
-            var tmp="";
-            while(tmp!=p.end){
-                tmp=console.next();
-                str_in+=tmp+"\n";
+            var str_in="";
+            System.out.print(in_sym);
+            var tmp=console.nextLine();
+            if(tmp==p.end){
+                //多行
+                tmp="";
+	            while(tmp!=p.end){
+	                tmp=console.nextLine();
+	                str_in+=tmp+"\n";
+	            }
+            }else{
+                //单行
+                str_in=tmp;
             }
-            str_out+="\n";
+            var str_out="";
             try{
                 var obj=shell(str_in,"\n");
-                str_out+=p.toString(obj);
+                str_out=p.toString(obj);
             }catch(e){
                 if(e.getMessage){
-                    str_out+=e.getMessage();
+                    str_out=e.getMessage();
                 }else{
-                   str_out+=e.toString();
+                    str_out=e.toString();
                 }
             }
-            System.out.println("<<");
-            System.out.println(str_out);
+            System.out.println(out_sym+str_out);
+            System.out.println("");
             circle();
         };
         return circle;

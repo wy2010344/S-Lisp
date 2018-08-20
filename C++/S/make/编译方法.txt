@@ -1,9 +1,16 @@
 windows:
-因为vs-C++不支持UTF-8?所以要先将源文件转成UTF-8。
+因为vs-C++不支持UTF-8?所以要先将源文件转成UTF-8。C++目录下有lib.js/toGBK.js/toUTF8.js，只要在lib.js里配置好路径，vsPath是转成GBK的目标文件夹，gitPath即git目录，调用node.js ./toGBK.js，即可转成。
+
+增加宏DEBUG,如果DEBUG时，内部会有一个回收池，帮助回收因意外而无法收集的内存。（似乎不能捕获所有异常）
+windows下需要宏WIN32，但MinGW编译似乎总有问题。
+
 进入vs命令提示
-cl –GX ../main.cpp /DWIN32
+cl –GX ../main.cpp /DWIN32 /DDEBUG
 测试 main.exe ../test/t.lisp
 
 linux:
-g++ -o main ../main.cpp -std=c++0x
+g++ -o main -D DEBUG  ../main.cpp -std=c++0x
+g++ -o main -D DEBUG -D WIN32 ../main.cpp -std=c++0x
+其中 -D
+g++ 增加宏定义，
 

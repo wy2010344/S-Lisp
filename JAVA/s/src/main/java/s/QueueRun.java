@@ -69,16 +69,20 @@ public class QueueRun {
 	 */
 	boolean isValidKey(String key) {
 		boolean r=true;
-		for(int i=0;i<key.length();i++) {
-			char c=key.charAt(i);
-			if(c=='.' || c =='*') {
-				r=false;
-			}else
-			if(Character.isWhitespace(c)) {
-				r=false;
+		if(key.charAt(0)=='.' || key.charAt(key.length()-1)=='.') {
+			return false;
+		}else {
+			for(int i=0;i<key.length();i++) {
+				char c=key.charAt(i);
+				if(c =='*') {
+					r=false;
+				}else
+				if(Character.isWhitespace(c)) {
+					r=false;
+				}
 			}
+			return r;
 		}
-		return r;
 	}
 	/**
 	 * 匹配括号

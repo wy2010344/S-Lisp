@@ -49,6 +49,9 @@ public class Node {
 			if(t.value instanceof String){
 				sb.append("\"").append(Exp.replaceQuote(t.value.toString())).append("\"");
 			}else
+			if(t.value instanceof Integer){				
+				sb.append(t.value);
+			}else
 			{
 				String sx=t.value.toString();
 				if(sx==null) {
@@ -84,6 +87,10 @@ public class Node {
 			if(t.value instanceof String){
 				Exp.repeat(sb,indent+1);
 				sb.append("\"").append(Exp.replaceQuote(t.value.toString())).append("\"");
+			}else
+			if(t.value instanceof Integer){		
+				Exp.repeat(sb, indent+1);
+				sb.append(t.value);
 			}else
 			{
 				Exp.repeat(sb,indent+1);

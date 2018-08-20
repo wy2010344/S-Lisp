@@ -7,6 +7,7 @@
         var Fun=Java.type("s.Function");
         var Eval=Java.type("s.Eval");
         var System=Java.type("java.lang.System");
+        var mb_Util=Java.type("mb.Util");
         var reduce=function(node,init,func){
             for(var t=node;t!=null;t=t.Rest()){
                 init=func(init,t.First());
@@ -20,13 +21,18 @@
         var and=function(a,b){
             return a&&b;
         };
-        var compare=function(node,func,is_or){
+        var reduce=function(node,func,init) {
+            for(var t=node;t!=null;t=t.Rest()){
+                init=func(init,t.First());
+            }
+            return init;
+        };
+        var compare=function(node,func){
             var last=node.First();
             var init=true;
-            var c=is_or?or:and;
             for(var t=node.Rest();t!=null;t=t.Rest()){
                 var now=t.First();
-                init=c(init,func(last,now));
+                init=and(init,func(last,now));
                 last=now;
             }
             return init;
@@ -41,8 +47,7 @@
                 return null;
             };
         };
-        var library={
-            //"null":null,//舍弃null，内部用[]表示null，使用范围更广
+		var library={
             "false":false,
             "true":true,
             log:log_factory(function(v){
@@ -85,36 +90,13 @@
                 return node.First().Length();
             },
             extend:function(node){
-                return new Node(node.First(),node.Rest().First());
+            	return lib.util.extend(node.First(),node.Rest().First());
             },
 			quote:function(node){
 				return node.First();
 			},
             "parseInt":function(node){
                 return parseInt(node.First());
-            },
-            join:function(node){
-                var array=node.First();
-                var split=null;
-                var has_split=false;
-                if(node.Rest()!=null){
-                    has_split=true;
-                    split=node.Rest().First();
-                }
-                var r=null;
-                for(var t=array;t!=null;t=t.Rest()){
-                    var cs=t.First();
-                    for(var x=cs;x!=null;x=x.Rest()){
-                        r=new Node(x.First(),r);
-                    }
-                    if(has_split){
-                        r=new Node(split,r);
-                    }
-                }
-                if(has_split && ret!=null){
-                    ret=ret.Rest();
-                }
-                return reverse(ret);
             },
             "kvs-find1st":function(node){
                 var kvs=node.First();
@@ -128,7 +110,7 @@
                 var value=node.First();
                 node=node.Rest();
                 var kvs=node.First();
-                return kvs_extend(key,value,kvs);
+                return lib.util.kvs_extend(key,value,kvs);
             },
             //a?b:default(null)
             "if":function(node){
@@ -156,6 +138,29 @@
                 }
                 return r.substr(0,r.length-split.length);
             },
+            "char-at":function(node){
+                var str=node.First();
+                node=node.Rest();
+                var index=node.First();
+                return str.charAt(index);
+            },
+            "str-split":function(node){
+                var str=node.First();
+                node=node.Rest();
+                var split=node.First();
+                var array=str.split(split);
+                var r=null;
+                for(var i=array.length-1;i>-1;i--){
+                    r=lib.util.extend(array[i],r);
+                }
+                return r;
+            },
+            "str-upper":function(node){
+                return node.First().toUpperCase();
+            },
+            "str-lower":function(node){
+                return node.First().toLowerCase();
+            },
             toString:function(node){
                 return node.First().toString();  
             },
@@ -163,27 +168,35 @@
                 //类似于JSON.stringify，没想好用toString还是stringify;
                 return node.First().toString();  
             },
+            "str-trim":function(node) {
+                var str=node.First();
+                return str.trim();
+            },
+            "str-length":function(node) {
+                var str=node.First();
+                return str.length;
+            },
 			"+":function(node){
-                return reduce(node,0,function(last,now){
+                return reduce(node,function(last,now){
                     return last+now;
-                });
+                },0);
 			},
 			"-":function(node){
                 var r=node.First();
-                return reduce(node.Rest(),r,function(last,now){
+                return reduce(node.Rest(),function(last,now){
                     return last-now;
-                });
+                },r);
 			},
             "*":function(node){
-                return reduce(node,1,function(last,now){
+                return reduce(node,function(last,now){
                     return last*now;
-                });
+                },1);
             },
             "/":function(node){
                 var r=node.First();
-                return reduce(node.Rest(),r,function(last,now){
+                return reduce(node.Rest(),function(last,now){
                     return last/now;
-                });
+                },r);
             },
             ">":function(node){
                 //数字
@@ -204,17 +217,42 @@
                 });
             },
             and:function(node){
-                return compare(node,function(last,now){
-                    return (last && now);
-                });
+                return reduce(node,function(init,v) {
+                    return and(init,v);
+                },true);
             },
             or:function(node){
-                return compare(node,function(last,now){
-                    return (last || now);
-                },true);
+                return reduce(node,function(init,v) {
+                    return or(init,v);
+                },false);
             },
             not:function(node){
                 return !node.First();
+            },
+            read:function(node){
+                var path=node.First();
+                node=node.Rest();
+                var lineSplit="\n";
+                var charsetName="UTF-8";
+                if(node){
+                    lineSplit=node.First()||lineSplit;
+                    node=node.Rest();
+                    if(node){
+                        charsetName=node.First()||charsetName;
+                    }
+                }
+                return mb_Util.readTxt(path,lineSplit,charsetName);  
+            },
+            write:function(node){
+                var path=node.First();
+                node=node.Rest();
+                var content=node.First();
+                node=node.Rest();
+                var charsetName="UTF-8";
+                if(node){
+                    charsetName=node.First();
+                }
+                return mb_Util.saveTxt(path,content,charsetName);
             },
             /**
              * 返回类型
@@ -336,15 +374,12 @@
                 return v;
             }
         };
-        var kvs_extend=function(k,v,scope){
-            return new Node(k,new Node(v,scope));
-        };
         var r=null;
         mb.Object.forEach(library,function(v,k){
-            r=kvs_extend(k,buildFunc(k,v),r);
+            r=lib.util.kvs_extend(k,buildFunc(k,v),r);
         });
         var library=r;
-        r=kvs_extend(
+        r=lib.util.kvs_extend(
             "parse",
             buildFunc("parse",function(node){
 	            var str=node.First();
@@ -357,8 +392,8 @@
 	            return Eval.run(str,scope,'\n');
 	        }),
         r);
-        r=kvs_extend("library",r,r);
-        r=kvs_extend(
+        r=lib.util.kvs_extend("library",r,r);
+        r=lib.util.kvs_extend(
             "cache",
             buildFunc("cache",function(node){
                 var v=node.First();
@@ -375,7 +410,6 @@
         return {
             library:r,
             buildFunc:buildFunc,
-            kvs_extend:kvs_extend,
             log_factory:log_factory
         };
     }

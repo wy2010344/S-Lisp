@@ -16,7 +16,7 @@
             var value=t.First();
             t=t.Rest();
             var key=t.First();
-            scope=library.kvs_extend(key,value,scope);
+            scope=lib.util.kvs_extend(key,value,scope);
         }
         
         return {
@@ -28,7 +28,7 @@
             },
             shell:function(log,split){
                 var qr=new QueueRun(
-	                library.kvs_extend(
+	                lib.util.kvs_extend(
 	                    "log",
 	                    library.buildFunc(
                             "log",

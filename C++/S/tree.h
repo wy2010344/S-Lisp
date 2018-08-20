@@ -46,6 +46,9 @@ namespace s{
                 return value;
             }
         }
+        Base_type xtype(){
+            return Base_type::xExp;
+        }
     };
     class BracketExp:public Exp{
     private:

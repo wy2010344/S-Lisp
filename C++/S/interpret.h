@@ -1,5 +1,5 @@
 #pragma once
-#include "./library.h"
+#include "./library/system.h"
 namespace s{
     Base *interpret(Exp* e,Node * scope);
     //为了支持控制台
@@ -71,20 +71,25 @@ namespace s{
         }
         bool isValidKey(const string & key)
         {
-            bool ret=true;
-            for(int i=0;i<key.size();i++)
-            {
-                char c=key[i];
-                if(c=='.' || c=='*')
+            if(key[0]=='.' || key[key.size()-1]=='.'){
+                //为了模拟js中多层字典，第一与最后不能是.
+                return false;
+            }else{
+                bool ret=true;
+                for(int i=0;i<key.size();i++)
                 {
-                    ret=false;
-                }else
-                if(token::isBlank(c))
-                {
-                    ret=false;
+                    char c=key[i];
+                    if(c=='*')//c=='.' || 为了模拟js中多层字典访问，还是把.这个限制给去掉了。
+                    {
+                        ret=false;
+                    }else
+                    if(token::isBlank(c))
+                    {
+                        ret=false;
+                    }
                 }
+                return ret;
             }
-            return ret;
         }
         Node * & scope;
     public:
@@ -183,7 +188,9 @@ namespace s{
             this->exp->release();
             this->parentScope->release();
         }
-
+        Function_type ftype(){
+            return Function_type::fUser;
+        }
         string toString(){
             return exp->toString();
         }
@@ -217,11 +224,11 @@ namespace s{
         }
         return list::reverseAndDelete(r);
     }
-    LocationException call_exception(string msg,BracketExp * exp,Node * result,Node * scope)
+    LocationException call_exception(string msg,BracketExp * exp,Node * children,Node * scope)
     {
-        msg=msg+"\n"+exp->toString()+"\n"+result->toString()+"\n";
-        cout<<"出现异常:"<<msg<<"在位置:"<<exp->Index()<<endl;
-        result->release();
+        msg=msg+"\n"+exp->toString()+"\n"+children->toString()+"\n";
+        //cout<<"出现异常:"<<msg<<"在位置:"<<exp->Index()<<endl;
+        children->release();
         /*
         scope->retain();
         scope->release();
@@ -255,7 +262,7 @@ namespace s{
                 Base* first=children->First();
                 Function * func=static_cast<Function*>(first);
                 Node * rst=children->Rest();
-#ifdef _DEBUG
+#ifdef DEBUG
                 /*
                     深思熟虑，能正常执行，
                     不处理异常，测试时有异常有内存泄漏，

@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
-
+#include <sstream>
+#include "gc.h"
 using namespace std;
 
 namespace s{
@@ -14,6 +15,10 @@ namespace s{
             this->msg=msg;
             this->index=index;
         }
+        void Msg(string _msg)
+        {
+            msg=_msg;
+        }
         string& Msg(){
             return msg;
         }
@@ -21,42 +26,184 @@ namespace s{
             return index;
         }
     };
-    string stringToEscape(string& v)
-    {
-        string r="\"";
-        for(int i=0;i<v.size();i++)
-        {
-            char c=v[i];
-            if(c=='\\')
-            {
-                r=r+"\\\\";
-            }else
-            if(c=='"')
-            {
-                r=r+"\\\"";
-            }else
-            {
-                r=r+c;
+    char trans_map[]={'n','\n','r','\r','t','\t'};
+    char trans_from_char(char c,bool & unfind){
+        char x=' ';
+        for(int i=0;i<sizeof(trans_map);i++){
+            char key=trans_map[i];
+            i++;
+            char value=trans_map[i];
+            if(key==c){
+                unfind=false;
+                x=value;
             }
         }
-        r=r+"\"";
+        return x;
+    }
+    char trans_to_char(char c,bool & unfind){
+        char x=' ';
+        for(int i=0;i<sizeof(trans_map);i++){
+            char value=trans_map[i];
+            i++;
+            char key=trans_map[i];
+            if(key==c){
+                unfind=false;
+                x=value;
+            }
+        }
+        return x;
+    }
+    string stringToEscape(string& v)
+    {
+        int size=v.size();
+        for(int i=0;i<v.size();i++){
+            char c=v[i];
+            if(c=='\\'){
+                size+=1;
+            }else
+            if(c=='"'){
+                size+=1;
+            }else
+            {
+                bool unfind=true;
+                trans_to_char(c,unfind);
+                if(unfind){
+                    size+=1;
+                }else{
+                    size+=2;
+                }
+            }
+        }
+        int ref=1;
+        int i=0;
+        char* buff=new char[size+3];
+        buff[0]='"';
+        while(i<v.size())
+        {
+            char c=v[i];
+            if(c=='\\'){
+                buff[ref]='\\';
+                ref++;
+                buff[ref]='\\';
+            }else
+            if(c=='"'){
+                buff[ref]='\\';
+                ref++;
+                buff[ref]='"';
+            }else
+            {
+                bool unfind=true;
+                char x=trans_to_char(c,unfind);
+                if(unfind){
+                    buff[ref]=c;
+                }else{
+                    buff[ref]='\\';
+                    ref++;
+                    buff[ref]=x;
+                }
+            }
+            i++;
+            ref++;
+        }
+        buff[size+1]='"';
+        buff[size+2]='\0';
+        string r(buff);
+        delete[] buff;
         return r;
     }
+    /*
+    对base进行区分
+    */
+    enum Base_type{
+        xList,
+        xInt,
+        xChar,
+        xString,
+        xBool,
+        xToken,
+        xExp,
+        xFunction
+    };
     class Base{
-    public:
+#ifdef DEBUG
+    private:
         static int addsize;//增加的
         static int subsize;//减少的
-        int id;
-        int count;
-        virtual string toString(){
-            return "$Base";
+    public:
+        static gc::LNode* lnode;
+        /*回收*/
+        static void clear(){
+            while(lnode!=NULL)
+            {
+                Base * b=lnode->value;
+                b->retain();
+                while(b->_ref_()!=1){
+                    b->release();
+                }
+                b->release();
+            }
         }
+        static void print_node(){
+            cout<<"合计新增:"<<Base::addsize<<"  合计减少:"<<Base::subsize<<"  生存数量:"<<(Base::addsize-Base::subsize)<<endl;
+        }
+        int id;
+        static void add_to_link(Base * b){
+            addsize++;
+            b->id=addsize;
+            gc::LNode *n=new gc::LNode();
+            n->value=b;
+            n->next=lnode;
+            lnode=n;
+        }
+        static void remove_on_link(Base *b){
+            subsize++;
+
+            if(lnode!=NULL){
+                //有可能在链上找不到
+                gc::LNode *t=lnode;
+                if(t->value==b)
+                {
+                    lnode=t->next;
+                    delete t;
+                }else{
+                    gc::LNode *pre=t;
+                    t=t->next;
+                    bool will=true;
+                    while(t!=NULL && will)
+                    {
+                        if(t->value==b)
+                        {
+                            pre->next=t->next;
+                            delete t;
+                            will=false;
+                        }else{
+                            pre=t;
+                            t=t->next;
+                        }
+                    }
+                }
+            }
+        }
+#else
+    public:
+        static void clear(){
+        }
+        static void eval_clear(){
+        }
+        static void print_node(){
+        }
+        static void add_to_link(Base * b){
+        }
+        static void remove_on_link(Base *b){
+        }
+#endif
+        int count;
+        virtual string toString()=0;
     public:
         Base(){
             count=0;
-            id=addsize;
             //cout<<"正在生成:"<<id<<endl;
-            addsize++;
+            add_to_link(this);
         }
         /**
         retain与release是替代new与delete
@@ -94,12 +241,50 @@ namespace s{
             return count;
         }
         virtual ~Base(){
-            subsize++;
+            remove_on_link(this);
             //cout<<"销毁:"<<id<<endl;
         }
+        virtual Base_type xtype()=0;
     };
+#ifdef DEBUG
     int Base::addsize=0;
     int Base::subsize=0;
+    gc::LNode* Base::lnode=NULL;
+#endif
+    enum Function_type{
+        fBuildIn,//内置函数
+        fBetter,//迁移到C++优化函数
+        fUser,//用户函数
+        fCache//cache函数
+    };
+    class Node;
+    class Function:public Base{
+    public:
+        Function():Base(){}
+        virtual Base * exec(Node * args)=0;
+        Base_type xtype(){
+            return Base_type::xFunction;
+        }
+        virtual Function_type ftype()=0;
+    };
+    class String:public Base{
+    public:
+        String(string str):Base()
+        {
+            this->str=str;
+        }
+        string & StdStr(){
+            return str;
+        }
+        string toString(){
+            return stringToEscape(str);
+        }
+        Base_type xtype(){
+            return Base_type::xString;
+        }
+    private:
+        string str;
+    };
     class Node:public Base{
     public:
         Node(Base * first,Node *rest):Base()
@@ -135,30 +320,41 @@ namespace s{
                 rest->release();
             }
         }
+        Base_type xtype(){
+            return Base_type::xList;
+        }
         string toString(){
-            string r="[";
-            if(first!=NULL)
-            {
-                r=r+first->toString();
-            }else
-            {
-                r=r+"null";
-            }
-            r=r+" ";
+            string r="["+toString(first)+" ";
             for(Node *t=rest;t!=NULL;t=t->Rest())
             {
                 Base * k=t->First();
-                if(k==NULL)
-                {
-                    r=r+"[]";
-                }else
-                {
-                    r=r+k->toString();
-                }
-                r=r+" ";
+                r=r+toString(k)+" ";
             }
             r=r+"]";
             return r;//"$Node";//"$Node:"+First()->toString()+","+Rest()->toString();
+        }
+        static string toString(Base * b)
+        {
+            if(b==NULL){
+                return "[]";
+            }else{
+                if(b->xtype()==Base_type::xFunction)
+                {
+                    Function *f=static_cast<Function*>(b);
+                    if(f->ftype()==Function_type::fBuildIn)
+                    {
+                        return "'"+f->toString();
+                    }else{
+                        return f->toString();
+                    }
+                }else
+                if(b->xtype()==Base_type::xBool){
+                    return "'"+b->toString();
+                }else
+                {
+                    return b->toString();
+                }
+            }
         }
     private:
         int length;
@@ -174,26 +370,81 @@ namespace s{
             return c;
         }
         string toString(){
+            return toString(c);
+        }
+        Base_type xtype(){
+            return Base_type::xChar;
+        }
+        static string toString(char c){
             char cs[2]={c,'\0'};
             return string(cs);
         }
     private:
         char c;
     };
-    class String:public Base{
+    class Int:public Base{
+    private:
+        int value;
+        string cache;
     public:
-        String(string str):Base()
-        {
-            this->str=str;
+        Int(string & k):Base(){
+            this->value=atoi(k.c_str());
+            this->cache=k;
         }
-        string & StdStr(){
-            return str;
+        Int(int k):Base(){
+            this->value=k;
+            stringstream stream;
+            stream<<k;
+            this->cache=stream.str();
+        }
+        virtual string toString(){
+            return cache;
+        }
+        int Value(){
+            return value;
+        }
+        Base_type xtype(){
+            return Base_type::xInt;
+        }
+    };
+    class Bool:public Base{
+    private:
+        bool value;
+        Bool(bool v):Base(){
+            this->value=v;
+        }
+    public:
+        bool Value(){
+            return value;
         }
         string toString(){
-            return stringToEscape(str);
+            if(value){
+                return "true";
+            }else{
+                return "false";
+            }
         }
-    private:
-        string str;
+        Base_type xtype(){
+            return Base_type::xBool;
+        }
+        static Bool * True;
+        static Bool * False;
+    };
+    Bool * Bool::True=new Bool(true);
+    Bool * Bool::False=new Bool(false);
+    class LibFunction:public Function{
+    public:
+        Base * exec(Node* args)
+        {
+            Base* ret=run(args);
+            if(ret!=NULL)
+            {
+                ret->retain();
+            }
+            return ret;
+        }
+    protected:
+        virtual Base * run(Node * args)=0;
     };
     namespace list{
         string toStringAndDelete(Node * node)

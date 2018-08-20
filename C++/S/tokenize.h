@@ -45,6 +45,12 @@ namespace s{
         int Index(){
             return this->index;
         }
+        Base_type xtype(){
+            return Base_type::xToken;
+        }
+        string toString(){
+            return "$Token";
+        }
     private:
         int index;
         string value;
@@ -63,66 +69,55 @@ namespace s{
         char split,
         token::Types type,
         Node *rest,
-        Node * cache,
-        const bool trans)
+        Node * cache)
     {
         if(flag<length)
         {
             char c=txt[flag];
             if(c==split)
             {
-                if(!trans)
+                string str;
+                if(cache!=NULL)
                 {
-                    if(cache!=NULL)
-                    {
-                        string str=list::toStringAndDelete(cache);
-                        return tokenize(
-                            txt,
-                            length,
-                            flag+1,
-                            new Node(
-                            new Token(str,type,flag-str.size()-2),
-                                rest
-                            )
-                        );
-                    }else{
-                        throw "提前结束"+flag;
-                    }
+                    str=list::toStringAndDelete(cache);
                 }else{
-                    return tokenize_split(
-                        txt,
-                        length,
-                        flag+1,
-                        split,
-                        type,
-                        rest,
-                        new Node(new Char(c),cache),
-                        false
-                     );
+                    str="";
                 }
-            }
-            //
+                return tokenize(
+                    txt,
+                    length,
+                    flag+1,
+                    new Node(
+                        new Token(str,type,flag-str.size()-2),
+                        rest
+                    )
+                );
+            }else
             if(c=='\\')
             {
                 Node *ck=NULL;
-                if(trans)
+                c=txt[flag+1];
+                if(c==split || c=='\\')
                 {
-                    //上次转义，本次不转义
+                    //只进一个
                     ck=new Node(new Char(c),cache);
-                }else
-                {
-                    //本次转义
-                    ck=cache;
+                }else{
+                    bool unfind=true;
+                    char x=trans_from_char(c,unfind);
+                    if(unfind){
+                        throw "未识别转义字符"+c;
+                    }else{
+                        ck=new Node(new Char(x),cache);
+                    }
                 }
                 return tokenize_split(
                     txt,
                     length,
-                    flag+1,
+                    flag+2,//因为跳过了转义
                     split,
                     type,
                     rest,
-                    ck,//是否应该记录其中？
-                    !trans
+                    ck//是否应该记录其中？
                  );
             }else
             {
@@ -133,8 +128,7 @@ namespace s{
                     split,
                     type,
                     rest,
-                    new Node(new Char(c),cache),
-                    false
+                    new Node(new Char(c),cache)
                  );
             }
         }else{
@@ -152,6 +146,32 @@ namespace s{
             }
         }
         return ret;
+    }
+
+    Token* deal_id(
+        Node * cache,
+        int flag){
+        string Id=list::toStringAndDelete(cache);
+        int index=flag-Id.size()-1;//减去当前不属于
+        Token *token;
+        /*
+          各种自定义类型，未来如果支持负数、小数，从这里扩展，乃至如red语言中支持邮箱、路径等类型。
+          但数值计算始终是属于函数对字符串的处理。宿主语言库提供优化的数值计算函数。
+          因为s-lisp无强类型，只有运行时动态检查出类型，跟动态用字符串转化为特定类型一样的报错体验。
+        */
+        if (Id[0]=='\'') {
+            //阻止求值
+            token=new Token(Id.substr(1,Id.size()-1),token::Types::Prevent,index);
+        }else
+        if (isInt(Id)){
+            //转成Int，方便数值计算
+            token=new Token(Id,token::Types::Num,index);
+        }else
+        {
+            //ID类型
+            token=new Token(Id,token::Types::Id,index);
+        }
+        return token;
     }
     Node * tokenize_id(
         const string & txt,
@@ -174,26 +194,7 @@ namespace s{
                      );
                 }else
                 {
-                    string Id=list::toStringAndDelete(cache);
-                    int index=flag-Id.size()-1;//减去当前不属于
-                    Token *token;
-                    /*
-                      各种自定义类型，未来如果支持负数、小数，从这里扩展，乃至如red语言中支持邮箱、路径等类型。
-                      但数值计算始终是属于函数对字符串的处理。宿主语言库提供优化的数值计算函数。
-                      因为s-lisp无强类型，只有运行时动态检查出类型，跟动态用字符串转化为特定类型一样的报错体验。
-                    */
-                    if (Id[0]=='\'') {
-                        //阻止求值
-                        token=new Token(Id.substr(1,Id.size()-1),token::Types::Prevent,index);
-                    }else
-                    if (isInt(Id)){
-                        //转成Int，方便数值计算
-                        token=new Token(Id,token::Types::Num,index);
-                    }else
-                    {
-                        //ID类型
-                        token=new Token(Id,token::Types::Id,index);
-                    }
+                    Token *token=deal_id(cache,flag);
                     return tokenize(
                         txt,
                         length,
@@ -202,7 +203,8 @@ namespace s{
                      );
                 }
             }else{
-                throw "超出范围";
+                Token *token=deal_id(cache,flag);
+                return new Node(token,rest);
             }
     }
     /*
@@ -264,8 +266,7 @@ namespace s{
                     '"',
                     token::Types::Str,
                     rest,
-                    NULL,
-                    false
+                    NULL
                 );
             }
             else
@@ -279,8 +280,7 @@ namespace s{
                     '`',
                     token::Types::Comment,
                     rest,
-                    NULL,
-                    false
+                    NULL
                 );
             }else
             {

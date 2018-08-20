@@ -1,6 +1,7 @@
 package s.util.threeQuote;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import s.LocationException;
@@ -9,6 +10,12 @@ import s.util.Location;
 
 public class Eval {
 
+	static HashMap<Character,Character> trans_map=new HashMap<Character,Character>();
+	static {
+		trans_map.put('n', '\n');//换行
+		trans_map.put('r', '\r');//回车
+		trans_map.put('t', '\t');//制表
+	}
     /**
      * 解析字符串、注释
      * @param code
@@ -19,24 +26,30 @@ public class Eval {
     static String parseStr(Code code,char end) throws LocationException{
         code.shift();
         boolean nobreak=true;
-        boolean notrans=true;
         StringBuilder sb=new StringBuilder();
         while(code.current()!=null && nobreak){
-            if(code.current()==end && notrans){
+            if(code.current()==end){
                 nobreak=false;
             }else{
-            	boolean add=true;
                 if(code.current()=='\\'){
-                	if(notrans) {
-                		//需要转义时，不添加进去
-                		add=false;
+                	code.shift();
+                	if(code.current()==end) {
+                		//添加普通转义符
+                		sb.append(end);
+                	}else 
+                	if(code.current()=='\\'){
+                		sb.append("\\");
+                	}else {
+                		Character c=trans_map.get(code.current());
+                		if(c!=null) {
+                			sb.append(c);
+                		}else {
+                    		System.out.println(sb.toString());
+                			throw code.msgThrow(code.current());
+                		}
                 	}
-                    notrans=!notrans;
                 }else{
-                    notrans=true;
-                }
-                if(add) {
-                    sb.append(code.current());
+                	sb.append(code.current());
                 }
                 code.shift();
             }

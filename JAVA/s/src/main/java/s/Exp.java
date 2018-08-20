@@ -10,7 +10,11 @@ public abstract class Exp {
         }
     }
     public static String replaceQuote(String v) {
-    	String x=v.replace("\\", "\\\\").replace("\"", "\\\"");
+    	String x=v.replace("\\", "\\\\")
+    			  .replace("\"", "\\\"")
+    			  .replace("\r", "\\r")
+    			  .replace("\t", "\\t")
+    			  .replace("\n", "\\n");
     	/*
     	System.out.println(v);
     	System.out.println(x);

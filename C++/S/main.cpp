@@ -1,5 +1,6 @@
 #include <iostream>
 #include "./run.h"
+#include "./shell.h"
 using namespace std;
 int main(int argc,char* argv[])
 {
@@ -13,7 +14,7 @@ int main(int argc,char* argv[])
 		/**
 		按理说应该做控制台，但cin效果似乎不好还是我测试问题？总之先做了文件的
 		*/
-		cout<<"需要一个文件参数"<<endl;
+        s::shell::run();
 	}
 	return 0;
 }
