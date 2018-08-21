@@ -1,6 +1,6 @@
 #pragma once
 namespace s{
-    
+
     namespace parse{
         enum Type{
             Large,
@@ -41,7 +41,7 @@ namespace s{
             }else
             if(type==parse::Type::String)
             {
-                return stringToEscape(value);
+                return str::stringToEscape(value);
             }else{
                 return value;
             }
@@ -75,7 +75,7 @@ namespace s{
                 cache->release();
             }
         }
-        
+
         virtual string toString(){
             char a[2]={Value()[0],'\0'};
             string x=string(a);
@@ -104,7 +104,7 @@ namespace s{
         {
             //解析完成
             rest=list::reverseAndDelete(rest);
-            
+
             return new BracketExp(parse::Type::Large,"{}",rest,0);
         }
         else
@@ -213,7 +213,7 @@ namespace s{
             }
         }
     }
-    
+
 
     BracketExp* Parse(Node* tokens){
         BracketExp *exp=new BracketExp(parse::Type::Large,"{}",NULL,0);//缓存子列表

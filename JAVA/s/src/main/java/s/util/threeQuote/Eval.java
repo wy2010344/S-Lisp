@@ -1,7 +1,6 @@
 package s.util.threeQuote;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import s.LocationException;
@@ -9,13 +8,6 @@ import s.util.Code;
 import s.util.Location;
 
 public class Eval {
-
-	static HashMap<Character,Character> trans_map=new HashMap<Character,Character>();
-	static {
-		trans_map.put('n', '\n');//换行
-		trans_map.put('r', '\r');//回车
-		trans_map.put('t', '\t');//制表
-	}
     /**
      * 解析字符串、注释
      * @param code
@@ -40,12 +32,12 @@ public class Eval {
                 	if(code.current()=='\\'){
                 		sb.append("\\");
                 	}else {
-                		Character c=trans_map.get(code.current());
+                		Character c=mb.Util.trans_from_char(code.current());
                 		if(c!=null) {
                 			sb.append(c);
                 		}else {
                     		System.out.println(sb.toString());
-                			throw code.msgThrow(code.current());
+                    		throw new LocationException("非法转义字符"+code.current()+"在位置:"+code.currentLoc().toString(),code.currentLoc());
                 		}
                 	}
                 }else{

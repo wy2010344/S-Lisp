@@ -11,16 +11,13 @@
             shell:function(log){
                 return s_lisp.shell(
 		            function(v){
-		                if(v==null){
-		                    v="[]";
-		                }
                         log(v);
 		            },
 		            '\n'
                 );
             },
             toString:function(obj){
-                return (obj?obj.toString():"[]");
+                return s_lisp.s_trans(obj).toString();
             }
         });
     }

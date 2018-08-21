@@ -2,7 +2,6 @@
 #pragma once
 #include "./buildIn.h"
 #include "./better.h"
-#include<fstream>
 namespace s{
     namespace library{
             
@@ -21,9 +20,7 @@ namespace s{
                 String * path=static_cast<String*>(args->First());
                 args=args->Rest();
                 String * content=static_cast<String*>(args->First());
-                ofstream f1(path->StdStr().c_str());
-                f1<<content->StdStr()<<endl;
-                f1.close();
+                file::write(path->StdStr(),content->StdStr());
                 return NULL;
             
             }
@@ -41,16 +38,7 @@ namespace s{
             Base * run(Node * args){
                 
                 String * path=static_cast<String*>(args->First());
-                ifstream myfile(path->StdStr().c_str());
-                string sb;
-                string tmp;
-                while(getline(myfile,tmp))
-                {
-                    sb+=tmp;
-                    sb+="\n";
-                }
-                myfile.close();
-                return new String(sb);
+                return new String(file::read(path->StdStr()));
             
             }
         };
@@ -255,7 +243,7 @@ namespace s{
                 for(Node *t=vs;t!=NULL;t=t->Rest())
                 {
                     String * s=static_cast<String*>(t->First());
-                    for(int i=0;i<s->StdStr().size();i++)
+                    for(unsigned i=0;i<s->StdStr().size();i++)
                     {
                         cs[d]=s->StdStr()[i];
                         d++;

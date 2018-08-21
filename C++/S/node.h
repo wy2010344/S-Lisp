@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <sstream>
+#include <fstream>/*file*/
 #include "gc.h"
 using namespace std;
 
@@ -26,91 +27,102 @@ namespace s{
             return index;
         }
     };
-    char trans_map[]={'n','\n','r','\r','t','\t'};
-    char trans_from_char(char c,bool & unfind){
-        char x=' ';
-        for(int i=0;i<sizeof(trans_map);i++){
-            char key=trans_map[i];
-            i++;
-            char value=trans_map[i];
-            if(key==c){
-                unfind=false;
-                x=value;
-            }
+    class DefinedException{
+    private:
+        string msg;
+    public:
+        DefinedException(string msg){
+            this->msg=msg;
         }
-        return x;
-    }
-    char trans_to_char(char c,bool & unfind){
-        char x=' ';
-        for(int i=0;i<sizeof(trans_map);i++){
-            char value=trans_map[i];
-            i++;
-            char key=trans_map[i];
-            if(key==c){
-                unfind=false;
-                x=value;
-            }
+        string& Msg(){
+            return msg;
         }
-        return x;
-    }
-    string stringToEscape(string& v)
-    {
-        int size=v.size();
-        for(int i=0;i<v.size();i++){
-            char c=v[i];
-            if(c=='\\'){
-                size+=1;
-            }else
-            if(c=='"'){
-                size+=1;
-            }else
-            {
-                bool unfind=true;
-                trans_to_char(c,unfind);
-                if(unfind){
-                    size+=1;
-                }else{
-                    size+=2;
+    };
+    namespace str{
+        char trans_map[]={'n','\n','r','\r','t','\t'};
+        char trans_from_char(char c,bool & unfind){
+            char x=' ';
+            for(unsigned i=0;i<sizeof(trans_map);i++){
+                char key=trans_map[i];
+                i++;
+                char value=trans_map[i];
+                if(key==c){
+                    unfind=false;
+                    x=value;
                 }
             }
+            return x;
         }
-        int ref=1;
-        int i=0;
-        char* buff=new char[size+3];
-        buff[0]='"';
-        while(i<v.size())
+        char trans_to_char(char c,bool & unfind){
+            char x=' ';
+            for(unsigned i=0;i<sizeof(trans_map);i++){
+                char value=trans_map[i];
+                i++;
+                char key=trans_map[i];
+                if(key==c){
+                    unfind=false;
+                    x=value;
+                }
+            }
+            return x;
+        }
+        string stringToEscape(string& v)
         {
-            char c=v[i];
-            if(c=='\\'){
-                buff[ref]='\\';
-                ref++;
-                buff[ref]='\\';
-            }else
-            if(c=='"'){
-                buff[ref]='\\';
-                ref++;
-                buff[ref]='"';
-            }else
+            unsigned size=v.size();
+            for(unsigned i=0;i<v.size();i++){
+                char c=v[i];
+                if(c=='\\'){
+                    size+=1;
+                }else
+                if(c=='"'){
+                    size+=1;
+                }else
+                {
+                    bool unfind=true;
+                    trans_to_char(c,unfind);
+                    if(!unfind){
+                        size+=1;
+                    }
+                }
+            }
+            int ref=1;
+            unsigned i=0;
+            char* buff=new char[size+3];
+            buff[0]='"';
+            while(i<v.size())
             {
-                bool unfind=true;
-                char x=trans_to_char(c,unfind);
-                if(unfind){
-                    buff[ref]=c;
-                }else{
+                char c=v[i];
+                if(c=='\\'){
                     buff[ref]='\\';
                     ref++;
-                    buff[ref]=x;
+                    buff[ref]='\\';
+                }else
+                if(c=='"'){
+                    buff[ref]='\\';
+                    ref++;
+                    buff[ref]='"';
+                }else
+                {
+                    bool unfind=true;
+                    char x=trans_to_char(c,unfind);
+                    if(unfind){
+                        buff[ref]=c;
+                    }else{
+                        buff[ref]='\\';
+                        ref++;
+                        buff[ref]=x;
+                    }
                 }
+                i++;
+                ref++;
             }
-            i++;
-            ref++;
+            buff[size+1]='"';
+            buff[size+2]='\0';
+            string r(buff);
+            delete[] buff;
+            return r;
         }
-        buff[size+1]='"';
-        buff[size+2]='\0';
-        string r(buff);
-        delete[] buff;
-        return r;
-    }
+    };
     /*
     对base进行区分
     */
@@ -254,8 +266,8 @@ namespace s{
     enum Function_type{
         fBuildIn,//内置函数
         fBetter,//迁移到C++优化函数
-        fUser,//用户函数
-        fCache//cache函数
+        fUser,//用户函数，只有一个
+        fCache//cache函数，只有一个
     };
     class Node;
     class Function:public Base{
@@ -269,21 +281,21 @@ namespace s{
     };
     class String:public Base{
     public:
-        String(string str):Base()
+        String(string std_str):Base()
         {
-            this->str=str;
+            this->std_str=std_str;
         }
         string & StdStr(){
-            return str;
+            return std_str;
         }
         string toString(){
-            return stringToEscape(str);
+            return str::stringToEscape(std_str);
         }
         Base_type xtype(){
             return Base_type::xString;
         }
     private:
-        string str;
+        string std_str;
     };
     class Node:public Base{
     public:
@@ -512,28 +524,28 @@ namespace s{
             }
         }
     };
-    /*
-     2166
-    namespace map{
-        Node * extend(Node * map,string key,Base * value)
-        {
-            Node * kv=new Node(new String(key),new Node(value,NULL));
-            return new Node(kv,map);
-        }
-        Base * find1st(Node * map,string & key)
-        {
-            if(map==NULL){
+    namespace file{
+        string read(string & path){
+            ifstream myfile(path.c_str());
+            string tmp;
+            if (!myfile.is_open())  
+            {  
+                cout << "未成功打开文件:"<<path << endl;
                 return NULL;
-            }else{
-                Node * kv=(Node*)map->First();
-                String * k=static_cast<String *>(kv->First());
-                if(k->StdStr()==key){
-                    return kv->Rest()->First();
-                }else{
-                    return find1st(map->Rest(),key);
-                }
+            }  
+            string sb;
+            while(getline(myfile,tmp))
+            {
+                sb+=tmp;
+                sb+="\n";
             }
+            myfile.close();
+            return sb;
         }
-    };
-     */
+        void write(string & path,string & content){
+            ofstream f1(path.c_str());
+            f1<<content;
+            f1.close();
+        }
+    }
 };

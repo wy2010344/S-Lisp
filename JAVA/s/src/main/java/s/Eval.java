@@ -247,6 +247,12 @@ public class Eval {
 				// TODO Auto-generated method stub
 				return calculate_path(path,(String)node.First());
 			}
+
+			@Override
+			public Type ftype() {
+				// TODO Auto-generated method stub
+				return Function.Type.buildIn;
+			}
 		 },library);
 		 pkg=Library.kvs_extend("load", new Function() {
 			@Override
@@ -275,6 +281,12 @@ public class Eval {
 					files_defs.put(c_path, file_def);
 				}
 				return file_def.result;
+			}
+
+			@Override
+			public Type ftype() {
+				// TODO Auto-generated method stub
+				return Function.Type.buildIn;
 			}
 		 },pkg);
 		 try {

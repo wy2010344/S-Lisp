@@ -1,6 +1,11 @@
 package s;
 
 public interface Function {
+	public static enum Type{
+		buildIn,//内置函数，toString返回名字
+		user,//用户函数，toString返回定义，可能是优化函数
+		cache
+	}
 	/**
 	 * 外部调用的方法
 	 * @param node
@@ -8,6 +13,7 @@ public interface Function {
 	 * @throws Exception
 	 */
 	public Object exec(Node node) throws Exception;
+	public Type ftype();
 	public static class UserFunction implements Function{
 		
 		public UserFunction(Exp.LBracketsExp exp,Node parentScope) {
@@ -46,6 +52,11 @@ public interface Function {
 		//嵌套换行
 		public void toString(StringBuilder sb,int indent) {
 			exp.toString(sb, indent);
+		}
+		@Override
+		public Type ftype() {
+			// TODO Auto-generated method stub
+			return Type.user;
 		}
 	}
 }

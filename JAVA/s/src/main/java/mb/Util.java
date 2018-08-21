@@ -177,4 +177,39 @@ public class Util {
 		// 目录此时为空，可以删除
 		return dir.delete();
 	}
+
+	
+	static char[] trans_map= {
+			'n','\n',
+			'r','\r',
+			't','\t'
+	};
+	public static Character trans_from_char(char c) {
+		Character x=null;
+		int i=0;
+		while(i<trans_map.length) {
+			char key=trans_map[i];
+			i++;
+			char value=trans_map[i];
+			i++;
+			if(key==c) {
+				x=value;
+			}
+		}
+		return x;
+	}
+	public static Character trans_to_char(char c) {
+		Character x=null;
+		int i=0;
+		while(i<trans_map.length) {
+			char value=trans_map[i];
+			i++;
+			char key=trans_map[i];
+			i++;
+			if(key==c) {
+				x=value;
+			}
+		}
+		return x;
+	}
 }

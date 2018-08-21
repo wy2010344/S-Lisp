@@ -1,4 +1,4 @@
-windows:
+﻿windows:
 因为vs-C++不支持UTF-8?所以要先将源文件转成UTF-8。C++目录下有lib.js/toGBK.js/toUTF8.js，只要在lib.js里配置好路径，vsPath是转成GBK的目标文件夹，gitPath即git目录，调用node.js ./toGBK.js，即可转成。
 
 增加宏DEBUG,如果DEBUG时，内部会有一个回收池，帮助回收因意外而无法收集的内存。（似乎不能捕获所有异常）
@@ -10,7 +10,15 @@ cl –GX ../main.cpp /DWIN32 /DDEBUG
 
 linux:
 g++ -o main -D DEBUG  ../main.cpp -std=c++0x
-g++ -o main -D DEBUG -D WIN32 ../main.cpp -std=c++0x
 其中 -D
 g++ 增加宏定义，
 
+
+如果使用code::blocks
+我是这样配置的
+1. setting->editor->General settings->Encoding settings->Encoding:改成UTF-8
+2. setting->compiler->GNU GCC Compiler(我使用的是MinGW)->Compiler settings->Other compiler options:添加
+-finput-charset=UTF-8
+-fexec-charset=GBK
+同一tab页下，#defines下添加DEBUG
+3. setting->Debugger下配置的是D:\MinGW\bin\gdb.exe

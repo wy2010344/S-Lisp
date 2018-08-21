@@ -8,6 +8,19 @@
         var Eval=Java.type("s.Eval");
         var System=Java.type("java.lang.System");
         var mb_Util=Java.type("mb.Util");
+        var Java_String=Java.type("java.lang.String");
+        var Exp=Java.type("s.Exp");
+        var s_trans=function(v){
+            if(v==null){
+                v="[]";
+            }else
+            if(v instanceof Java_String){
+                v=Exp.replaceQuote(v);
+            }
+            return v;
+        };
+        
+        
         var reduce=function(node,init,func){
             for(var t=node;t!=null;t=t.Rest()){
                 init=func(init,t.First());
@@ -40,7 +53,7 @@
         var log_factory=function(append){
             return function(node){
 	            for(var t=node;t!=null;t=t.Rest()){
-	                append(t.First());
+	                append(s_trans(t.First()));
 	                append("\t");
 	            }
 	            append("\n");
@@ -51,9 +64,6 @@
             "false":false,
             "true":true,
             log:log_factory(function(v){
-                if(v==null){
-                    v="[]";
-                }
                 System.out.print(v);
             }),
             reverse:function(node){
@@ -368,6 +378,9 @@
                     exec:v,
                     toString:function(){
                         return k;
+                    },
+                    ftype:function(){
+                        return Fun.Type.buildIn;
                     }
                 });
             }else{
@@ -397,11 +410,20 @@
             "cache",
             buildFunc("cache",function(node){
                 var v=node.First();
-                return buildFunc(null,function(node){
-                    if(node==null){
-                        return v;
-                    }else{
-                        v=node.First();
+                /*cache返回这个函数是特殊的*/
+                return mb.Java_new(Fun,[],{
+                    exec:function(node){
+	                    if(node==null){
+	                        return v;
+	                    }else{
+	                        v=node.First();
+	                    }
+	                },
+                    toString:function(){
+                        return "[]";
+                    },
+                    ftype:function(){
+                        return Fun.Type.cache;
                     }
                 });
             }),
@@ -410,7 +432,8 @@
         return {
             library:r,
             buildFunc:buildFunc,
-            log_factory:log_factory
+            log_factory:log_factory,
+            s_trans:s_trans
         };
     }
 });

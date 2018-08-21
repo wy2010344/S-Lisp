@@ -103,9 +103,9 @@ namespace s{
                     ck=new Node(new Char(c),cache);
                 }else{
                     bool unfind=true;
-                    char x=trans_from_char(c,unfind);
+                    char x=str::trans_from_char(c,unfind);
                     if(unfind){
-                        throw "未识别转义字符"+c;
+                        throw DefinedException("未识别转义字符"+c);
                     }else{
                         ck=new Node(new Char(x),cache);
                     }
@@ -132,13 +132,13 @@ namespace s{
                  );
             }
         }else{
-            throw "超出范围";
+            throw DefinedException("超出范围");
         }
     }
     bool isInt(string & id)
     {
         bool ret=true;
-        for(int i=0;i<id.size();i++)
+        for(unsigned i=0;i<id.size();i++)
         {
             char c=id[0];
             if(token::notNumber(c)){

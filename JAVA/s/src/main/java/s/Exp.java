@@ -10,16 +10,27 @@ public abstract class Exp {
         }
     }
     public static String replaceQuote(String v) {
-    	String x=v.replace("\\", "\\\\")
-    			  .replace("\"", "\\\"")
-    			  .replace("\r", "\\r")
-    			  .replace("\t", "\\t")
-    			  .replace("\n", "\\n");
-    	/*
-    	System.out.println(v);
-    	System.out.println(x);
-    	*/
-    	return x;
+    	StringBuilder sb=new StringBuilder();
+    	sb.append("\"");
+    	for(int i=0;i<v.length();i++) {
+    		char c=v.charAt(i);
+    		if(c=='\\') {
+    			sb.append("\\\\");
+    		}else
+    		if(c=='"') {
+    			sb.append("\\\"");
+    		}else
+    		{
+    			Character x=mb.Util.trans_to_char(c);
+    			if(x!=null) {
+    				sb.append("\\").append(x);
+    			}else {
+    				sb.append(c);
+    			}
+    		}
+    	}
+    	sb.append("\"");
+    	return sb.toString();
     }
     public BracketsExp parent;
     //不换行，组合
@@ -28,6 +39,7 @@ public abstract class Exp {
     public abstract String toString(int indent);
     //换行，组合
 	protected abstract void toString(StringBuilder sb,int indent);
+	public abstract String to_value();
 	
 	
 	 //括号
@@ -94,12 +106,23 @@ public abstract class Exp {
         public SBracketsExp() {
 			super("(", ")");
 		}
+
+		@Override
+		public String to_value() {
+			// TODO Auto-generated method stub
+			return "()";
+		}
     }
     
     //中括号
     public static class MBracketsExp extends BracketsExp{
 		public MBracketsExp() {
 			super("[","]");
+		}
+		@Override
+		public String to_value() {
+			// TODO Auto-generated method stub
+			return "[]";
 		}
     }
     
@@ -108,6 +131,11 @@ public abstract class Exp {
 		public LBracketsExp() {
 			super("{", "}");
 			// TODO Auto-generated constructor stub
+		}
+		@Override
+		public String to_value() {
+			// TODO Auto-generated method stub
+			return "{}";
 		}
     }
     
@@ -143,6 +171,11 @@ public abstract class Exp {
 			// TODO Auto-generated method stub
 			toString(sb,value,"","");
 		}
+		@Override
+		public String to_value() {
+			// TODO Auto-generated method stub
+			return Integer.toString(value);
+		}
     }
     
     /*
@@ -175,6 +208,11 @@ public abstract class Exp {
     			toString(sb,value,"","");
     		}
 		}
+		@Override
+		public String to_value() {
+			// TODO Auto-generated method stub
+			return value;
+		}
     }
     
     //字符串
@@ -196,8 +234,13 @@ public abstract class Exp {
     			toString(sb,value,"","");
     		}else{
     			//默认字符串
-            	toString(sb,Exp.replaceQuote(value),"\"","\"");
+            	toString(sb,Exp.replaceQuote(value),"","");
     		}
+		}
+		@Override
+		public String to_value() {
+			// TODO Auto-generated method stub
+			return value;
 		}
     }
 }

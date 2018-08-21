@@ -15,22 +15,46 @@ namespace s{
                 return false;
             }
         }
+        bool isValidKey(const string & key)
+        {
+            if(key[0]=='.' || key[key.size()-1]=='.'){
+                //为了模拟js中多层字典，第一与最后不能是.
+                return false;
+            }else{
+                bool ret=true;
+                for(unsigned i=0;i<key.size();i++)
+                {
+                    char c=key[i];
+                    if(c=='*')//c=='.' || 为了模拟js中多层字典访问，还是把.这个限制给去掉了。
+                    {
+                        ret=false;
+                    }else
+                    if(token::isBlank(c))
+                    {
+                        ret=false;
+                    }
+                }
+                return ret;
+            }
+        }
         Node* bracket_match(Node * scope,Exp * key,Node *vas){
             BracketExp * sq=static_cast<BracketExp *>(key);
             Node *xs=sq->Cache();
             while (xs!=NULL) {
                 Exp * x=static_cast<Exp *>(xs->First());
-                //必须是ID类型的
-                Base *v=NULL;
                 const string &vk=x->Value();
+                Base *v=NULL;
                 if (xs->Rest()==NULL && iswait(vk))
                 {
+                    /*
+                    最后一个是匹配(可能还是kvs_match匹配，但不是bracket_match)
+                    */
                     string subvk=vk.substr(3,vk.size());//不能是引用，只能是复制
-                    if(isValidKey(subvk))
-                    {
-                        scope=kvs::extend(subvk,vas,scope);
+                    if(subvk[subvk.size()-1]=='*'){
+                        scope=when_kvs_match(scope,subvk,vas);
                     }else{
-                        throw subvk+"不是合法的key";
+                        //普通匹配
+                        scope=when_normal_match(scope,subvk,vas);
                     }
                 }else
                 {
@@ -38,16 +62,13 @@ namespace s{
                         v=vas->First();
                         vas=vas->Rest();
                     }
-                    if(isValidKey(vk)){
-                        scope=kvs::extend(vk,v,scope);
-                    }else{
-                        throw vk+"不是合法的key";
-                    }
+                    scope=match(scope,x,v);
                 }
                 xs=xs->Rest();
             }
             return scope;
         }
+#ifdef WITH_KVS_MATCH
         /*如果要考虑性能，可能这里，酌情添加*/
         Node* kvs_match(Node *scope,string & id,Node *kvs)
         {
@@ -69,88 +90,109 @@ namespace s{
             svk->release();
             return scope;
         }
-        bool isValidKey(const string & key)
-        {
-            if(key[0]=='.' || key[key.size()-1]=='.'){
-                //为了模拟js中多层字典，第一与最后不能是.
-                return false;
+        /*感觉kvs-match问题越来越多，不好用！vas可为空*/
+        Node *when_kvs_match(Node* scope,string & id,Base *vas){
+            id=id.substr(0,id.size()-1);//去掉星号
+            if(isValidKey(id)){
+                //字典增加前缀
+                if(vas!=NULL){
+                    vas->retain();
+                    scope=kvs_match(scope,id,(Node*)vas);
+                    vas->release();
+                }else{
+                    scope=kvs_match(scope,id,NULL);
+                }
             }else{
-                bool ret=true;
-                for(int i=0;i<key.size();i++)
-                {
-                    char c=key[i];
-                    if(c=='*')//c=='.' || 为了模拟js中多层字典访问，还是把.这个限制给去掉了。
-                    {
-                        ret=false;
-                    }else
-                    if(token::isBlank(c))
-                    {
-                        ret=false;
+                throw DefinedException(id+"不是合法的key");
+            }
+            return scope;
+        }
+#else
+        Node *when_kvs_match(Node* scope,string &id,Base *vas){
+            throw DefinedException("为了雪藏的kvs-math，暂时不支持以*号结尾");
+            return scope;
+        }
+#endif
+        Node * match(Node *scope,Exp *key,Base *vas){
+            if(vas!=NULL){
+                //值为空，无法增加任何定义
+                if (key->Type()==parse::Type::Id) {
+                    string id=key->Value();
+                    if(id[id.size()-1]=='*') {
+                        scope=when_kvs_match(scope,id,vas);
+                    }else{
+                        //单值匹配
+                        scope=when_normal_match(scope,id,vas);
+                    }
+                }else{
+                    if (key->Type()==parse::Type::Small) {
+                        //括号匹配
+                        if(vas!=NULL){
+                            vas->retain();
+                            scope=bracket_match(scope,key,static_cast<Node *>(vas));
+                            vas->release();
+                        }else{
+                            scope=bracket_match(scope,key,NULL);
+                        }
+                    }else{
+                        throw DefinedException(key->Value()+"不是合法的类型");
                     }
                 }
-                return ret;
             }
+            return scope;
+        }
+        /*vas可为空*/
+        Node *when_normal_match(Node *scope,string & id,Base *vas){
+            if(isValidKey(id)){
+                scope=kvs::extend(id,vas,scope);
+            }else{
+                throw DefinedException(id+"不是合法的key");
+            }
+            return scope;
         }
         Node * & scope;
-    public:
-        QueueRun(Node * & scope):scope(scope){}
         Base* run(Exp * e){
             if(e->Type()==parse::Type::Small){
                 BracketExp *be=static_cast<BracketExp *>(e);
                 if (be->Cache()!=NULL) {
                     Exp *t=static_cast<Exp *>(be->Cache()->First());
                     if (t->Type()==parse::Type::Id && t->Value()=="let") {
+                        //let表达式
                         Node *rst=be->Cache()->Rest();
                         while (rst!=NULL) {
                             Exp *key=static_cast<Exp*>(rst->First());
                             rst=rst->Rest();
                             Exp *value=static_cast<Exp*>(rst->First());
                             rst=rst->Rest();
-                            
                             Base * vas=interpret(value, scope);
-                            if (key->Type()==parse::Type::Id) {
-                                string id=key->Value();
-                                if (id[id.size()-1]=='*') {
-                                    id=id.substr(0,id.size()-1);//去掉星号
-                                    if(isValidKey(id)){
-                                        //字典增加前缀
-                                        vas->retain();
-                                        scope=kvs_match(scope,id,(Node*)vas);
-                                        vas->release();
-                                    }else{
-                                        throw id+"不是合法的key";
-                                    }
-                                }else{
-                                    //单值匹配
-                                    if(isValidKey(id)){
-                                        scope=kvs::extend(key->Value(),vas,scope);
-                                    }else{
-                                        throw id+"不是合法的key";
-                                    }
-                                }
-                            }else{
-                                if (key->Type()==parse::Type::Small) {
-                                    //括号匹配
-                                    vas->retain();
-                                    scope=bracket_match(scope,key,static_cast<Node *>(vas));
-                                    vas->release();
-                                }
-                            }
+                            scope=match(scope,key,vas);
                         }
                         return NULL;
-                    }
-                    else{
+                    }else{
                         return interpret(e, scope);
                     }
-                }
-                else{
+                }else{
                     return interpret(e, scope);
                 }
-                
-            }
-            else{
+            }else{
                 return interpret(e, scope);
             }
+        }
+    public:
+        QueueRun(Node * & scope):scope(scope){}
+        Base * exec(BracketExp *exp){
+            Base * ret=NULL;
+            for (Node * tmp=exp->Cache(); tmp!=NULL; tmp=tmp->Rest()) {
+                if(ret!=NULL)
+                {
+                    //上一次的计算结果，未加到作用域
+                    ret->retain();
+                    ret->release();
+                }
+                Exp *e=static_cast<Exp *>(tmp->First());
+                ret=this->run(e);
+            }
+            return ret;
         }
     };
     class UserFunction:public Function{
@@ -166,14 +208,6 @@ namespace s{
         {
             Node * scope=kvs::extend("args",args,parentScope);
             scope=kvs::extend("this",this,scope);
-            /*
-            Base *ret;
-            try {
-                ret=run(args,scope);
-            } catch (...) {
-                cout<<"出现异常"<<endl;
-            }
-             */
             Base *ret=run(args, scope);
             if (ret!=NULL) {
                 ret->retain();
@@ -198,19 +232,8 @@ namespace s{
         Node * parentScope;
         BracketExp * exp;
         Base * run(Node * args,Node * & scope){
-            Base * ret=NULL;
             QueueRun qr(scope);
-            for (Node * tmp=exp->Cache(); tmp!=NULL; tmp=tmp->Rest()) {
-                if(ret!=NULL)
-                {
-                    //上一次的计算结果，未加到作用域
-                    ret->retain();
-                    ret->release();
-                }
-                Exp *e=static_cast<Exp *>(tmp->First());
-                ret=qr.run(e);
-            }
-            return ret;
+            return qr.exec(exp);
         }
     };
     Node * calNode(Node * list,Node * scope)
@@ -289,7 +312,7 @@ namespace s{
             {
                 //中括号
                 b=calNode(be->Cache(),scope);
-            }else 
+            }else
             if(be->Type()==parse::Type::Large)
             {
                 //大括号

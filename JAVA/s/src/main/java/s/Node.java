@@ -42,12 +42,27 @@ public class Node {
 			}else
 			if(t.value instanceof Node) {
 				((Node)t.value).toString(sb);
-			}else 
-			if(t.value instanceof Function.UserFunction){
-				((Function.UserFunction)t.value).toString(sb);
+			}else
+			if(t.value instanceof Function) {
+				Function f=(Function) t.value;
+				if(f instanceof Function.UserFunction) {
+					((Function.UserFunction)f).toString(sb);
+				}else
+				if(f.ftype()==Function.Type.user) {
+					/*优化但并非用户函数*/
+					sb.append(f.toString());
+				}else
+				if(f.ftype()==Function.Type.buildIn) {
+					/*内置函数*/
+					sb.append("'").append(f.toString());
+				}else
+				if(f.ftype()==Function.Type.cache) {
+					/*cache函数*/
+					sb.append("[]");
+				}
 			}else
 			if(t.value instanceof String){
-				sb.append("\"").append(Exp.replaceQuote(t.value.toString())).append("\"");
+				sb.append(Exp.replaceQuote(t.value.toString()));
 			}else
 			if(t.value instanceof Integer){				
 				sb.append(t.value);
@@ -86,7 +101,7 @@ public class Node {
 			}else
 			if(t.value instanceof String){
 				Exp.repeat(sb,indent+1);
-				sb.append("\"").append(Exp.replaceQuote(t.value.toString())).append("\"");
+				sb.append(Exp.replaceQuote(t.value.toString()));
 			}else
 			if(t.value instanceof Integer){		
 				Exp.repeat(sb, indent+1);

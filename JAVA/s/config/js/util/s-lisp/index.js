@@ -40,7 +40,8 @@
                 return function(str){
                     return Eval.run(str,qr,split);
                 }
-            }
+            },
+            s_trans:library.s_trans
         }
     }
 })

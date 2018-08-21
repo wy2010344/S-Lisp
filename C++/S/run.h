@@ -6,8 +6,6 @@
 #else
 #include <unistd.h>
 #endif
-
-#include <fstream> 
 #include<string>
 #include"./tokenize.h"
 #include"./tree.h"
@@ -71,38 +69,15 @@ namespace s{
             baseScope=scope;
         }
         static Node * core;
-        static Base *run_e(string file,Node *baseScope)
+        static Base *run_e(string file_path,Node *baseScope)
         {
-            Node * x=static_cast<Node*>(kvs::find1st(core,file));
+            Node * x=static_cast<Node*>(kvs::find1st(core,file_path));
             if(x!=NULL)
             {
                 return x->First();
             }else{
-                ifstream myfile(file.c_str());
-                string tmp;
-                if (!myfile.is_open())  
-                {  
-                    cout << "未成功打开文件:"<<file << endl;
-                    return NULL;
-                }  
-
-                string sb;
-                while(getline(myfile,tmp))
-                {
-                    sb+=tmp;
-                    sb+="\n";
-                }
-                myfile.close();
-                Node* scope=kvs::extend(new String("load"),new LoadFunc(file,baseScope),baseScope);
-                //cout<<sb<<endl;
-                //cout<<tokens->Length()<<endl;
-                /*
-                for(Node * tmp=tokens;tmp!=NULL;tmp=tmp->Rest())
-                {
-                    Token *t=static_cast<Token*>(tmp->First());
-                    cout<<t->Value()<<"  "<<t->Type()<<endl;
-                }
-                */           
+                string sb=file::read(file_path);
+                Node* scope=kvs::extend(new String("load"),new LoadFunc(file_path,baseScope),baseScope);       
                 Node *tokens=tokenize(sb);
                 tokens->retain();
                 BracketExp *exp=Parse(tokens);
@@ -112,12 +87,15 @@ namespace s{
                 Base * base=NULL;
                 try{
                     base=f->exec(NULL);
-                }catch(LocationException & ex)
+                }catch(LocationException & ex){
+                    ex.Msg(file_path+":"+ex.Msg());
+                    throw ex;
+                }catch(DefinedException & ex)
                 {
-                    ex.Msg(file+":"+ex.Msg());
+                    ex.Msg(file_path+":"+ex.Msg());
                     throw ex;
                 }
-                core=kvs::extend(new String(file),new Node(base,NULL),core);
+                core=kvs::extend(new String(file_path),new Node(base,NULL),core);
                 if(base!=NULL){
                     base->release();
                 }

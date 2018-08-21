@@ -18,28 +18,7 @@ public class QueueRun {
 				for(Node y=sbe.Children().Rest();y!=null;y=y.Rest().Rest()) {
 					Exp val=(Exp)y.Rest().First();
 					Object values=Eval.interpret(val, scope);
-					if(y.First() instanceof Exp.SBracketsExp) {
-						//小括号，多匹配
-						scope=bracket_match(scope,((Exp.SBracketsExp)y.First()).Children(),(Node)values);
-					}else {
-						String key=((Exp.IdExp)y.First()).value;
-						if(key.endsWith("*")) {
-							//匹配kvs字典，添加前缀
-							key=key.substring(0, key.length()-1);
-							if(isValidKey(key)) {
-								scope=kvs_match(scope,key,values);
-							}else {
-								throw new Exception(key+"不是合法的id");
-							}
-						}else {
-							if(isValidKey(key)) {
-								//单值
-								scope=Library.kvs_extend(key,values,scope);
-							}else {
-								throw new Exception(key+"不是合法的id");
-							}
-						}
-					}
+					scope=match(scope,(Exp)y.First(),values);
 				}
 				return null;
 			}else {
@@ -49,7 +28,24 @@ public class QueueRun {
 			return Eval.interpret(x, scope);
 		}
 	}
-	
+
+	Node match(Node scope,Exp y,Object values) throws Exception {
+		if(y instanceof Exp.SBracketsExp) {
+			//小括号，多匹配
+			scope=bracket_match(scope,((Exp.SBracketsExp)y).Children(),(Node)values);
+		}else 
+		if(y instanceof Exp.IdExp){
+			String key=((Exp.IdExp)y).value;
+			if(key.endsWith("*")) {
+				scope=when_kvs_match(scope,key,values);
+			}else {
+				scope=when_normal_match(scope,key,values);
+			}
+		}else{
+			throw new Exception("类型不正确");
+		}
+		return scope;
+	}
 	boolean isLet(Exp.SBracketsExp sbe) {
 		boolean ret=false;
 		Exp sbec=(Exp)sbe.Children().First();
@@ -95,15 +91,17 @@ public class QueueRun {
 	Node bracket_match(Node scope,Node key_nodes,Node val_nodes) throws Exception {
 		Node kv=val_nodes;
 		for(Node kt=key_nodes;kt!=null;kt=kt.Rest()) {
-			String key=((Exp.IdExp)kt.First()).value;
-
-			//以...xx结尾，匹配后续的列表
+			Exp key_exp=(Exp)kt.First();
+			String key=key_exp.to_value();
 			if(key.startsWith("...") && kt.Rest()==null) {
+				//以...xx结尾，匹配后续的列表
 				key=key.substring(3);
-				if(isValidKey(key)) {
-					scope=Library.kvs_extend(key, kv,scope);
+				if(key.endsWith("*")) {
+					//字典匹配
+					scope=when_kvs_match(scope,key,kv);
 				}else {
-					throw new Exception(key+"不是合法的id");
+					//普通匹配
+					scope=when_normal_match(scope,key,kv);
 				}
 			}else {
 				Object value=null;
@@ -111,14 +109,50 @@ public class QueueRun {
 					value=kv.First();
 					kv=kv.Rest();
 				}
-				if(isValidKey(key)) {
-					scope=Library.kvs_extend(key,value,scope);
-				}else {
-					throw new Exception(key+"不是合法的id");
-				}
+				scope=match(scope,key_exp,value);
 			}
 		}
 		return scope;
+	}
+	
+	/**
+	 * 普通匹配
+	 * @param scope
+	 * @param key
+	 * @param kv ?
+	 * @return
+	 * @throws Exception
+	 */
+	Node when_normal_match(Node scope,String key,Object kv) throws Exception {
+		if(isValidKey(key)) {
+			scope=Library.kvs_extend(key, kv,scope);
+		}else {
+			throw new Exception(key+"不是合法的id");
+		}
+		return scope;
+	}
+	
+	final boolean WITH_KVS_MATCH=false;
+	/**
+	 * kvs-match匹配
+	 * @param scope
+	 * @param key
+	 * @param values
+	 * @return
+	 * @throws Exception
+	 */
+	Node when_kvs_match(Node scope,String key,Object values) throws Exception {
+		if(WITH_KVS_MATCH) {
+			key=key.substring(0, key.length()-1);
+			if(isValidKey(key)) {
+				scope=kvs_match(scope,key,values);
+			}else {
+				throw new Exception(key+"不是合法的id");
+			}
+			return scope;
+		}else {
+			throw new Exception("为了雪藏的kvs-match，暂时不允许以*号结尾");
+		}
 	}
 	/**
 	 * 匹配字典
@@ -129,7 +163,7 @@ public class QueueRun {
 	 * @throws Exception
 	 */
 	Node kvs_match(Node scope,final String key_prefix,Object values) throws Exception {
-		final Node svk=Library.reverse((Node)values);
+		final Node kvs=(Node)values;
 		/**
 		 * 附加一个查询字典的函数
 		 */
@@ -137,14 +171,20 @@ public class QueueRun {
 			@Override
 			public Object exec(Node node)throws Exception {
 				// TODO Auto-generated method stub
-				return Library.kvs_find1st(svk, key_prefix);
+				return Library.kvs_find1st(kvs, (String)node.First());
 			}
 			@Override
 			public String toString() {
 				//其中kvs为何？依赖闭包，在列表中会被转成'xx
-				return null;//"kvs-match";//"{ (kvs-find1st kvs (first args)) }";
+				return "{ (kvs-find1st kvs (first args)) }";
+			}
+			@Override
+			public Type ftype() {
+				// TODO Auto-generated method stub
+				return Function.Type.user;
 			}
 		},scope);
+		final Node svk=Library.reverse((Node)values);
 		Node tmp_svk=svk;
 		while(tmp_svk!=null) {
 			Object vk=tmp_svk.First();
