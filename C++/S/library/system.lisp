@@ -143,7 +143,8 @@
 			run "
                 String *str=static_cast<String*>(args->First());
                 Int * i=static_cast<Int*>(args->Rest()->First());
-                return new String(Char::toString(str->StdStr()[i->Value()]));
+                char x[]={str->StdStr()[i->Value()],'\\0'};
+                return new String(x);
 			"
 		]
 	]

@@ -87,11 +87,7 @@ namespace s{
                 Base * base=NULL;
                 try{
                     base=f->exec(NULL);
-                }catch(LocationException & ex){
-                    ex.Msg(file_path+":"+ex.Msg());
-                    throw ex;
-                }catch(DefinedException & ex)
-                {
+                }catch(Exception & ex){
                     ex.Msg(file_path+":"+ex.Msg());
                     throw ex;
                 }
@@ -218,17 +214,11 @@ namespace s{
             LoadFunc::run_e(file,baseScope);
         }catch(LocationException& e){
             cout<<"出现异常"<<e.Msg()<<"在位置"<<e.Index()<<endl;
+        }catch(DefinedException& e){
+            cout<<"出现异常"<<e.Msg()<<endl;
         }catch(...){
             cout<<"出现未能捕获异常"<<endl;
         }
-        //delete r;
-        /*
-        cout<<"请等待"<<endl;
-        print(x,0);
-        cout<<"已经结束"<<endl;
-        delete tokens;
-        delete x;
-         */
         Node *t=LoadFunc::core;
         
         if(t==NULL)

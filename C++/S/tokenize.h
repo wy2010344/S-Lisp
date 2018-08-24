@@ -69,47 +69,26 @@ namespace s{
         char split,
         token::Types type,
         Node *rest,
-        Node * cache)
+        const int start)
     {
         if(flag<length)
         {
             char c=txt[flag];
             if(c==split)
             {
-                string str;
-                if(cache!=NULL)
-                {
-                    str=list::toStringAndDelete(cache);
-                }else{
-                    str="";
-                }
+                string stre=str::stringFromEscape(txt.substr(start,flag-start),split);
                 return tokenize(
                     txt,
                     length,
                     flag+1,
                     new Node(
-                        new Token(str,type,flag-str.size()-2),
+                        new Token(stre,type,flag-stre.size()-2),
                         rest
                     )
                 );
             }else
             if(c=='\\')
             {
-                Node *ck=NULL;
-                c=txt[flag+1];
-                if(c==split || c=='\\')
-                {
-                    //只进一个
-                    ck=new Node(new Char(c),cache);
-                }else{
-                    bool unfind=true;
-                    char x=str::trans_from_char(c,unfind);
-                    if(unfind){
-                        throw DefinedException("未识别转义字符"+c);
-                    }else{
-                        ck=new Node(new Char(x),cache);
-                    }
-                }
                 return tokenize_split(
                     txt,
                     length,
@@ -117,7 +96,7 @@ namespace s{
                     split,
                     type,
                     rest,
-                    ck//是否应该记录其中？
+                    start
                  );
             }else
             {
@@ -128,7 +107,7 @@ namespace s{
                     split,
                     type,
                     rest,
-                    new Node(new Char(c),cache)
+                    start
                  );
             }
         }else{
@@ -148,17 +127,18 @@ namespace s{
         return ret;
     }
 
+    /*
+      各种自定义类型，未来如果支持负数、小数，从这里扩展，乃至如red语言中支持邮箱、路径等类型。
+      但数值计算始终是属于函数对字符串的处理。宿主语言库提供优化的数值计算函数。
+      因为s-lisp无强类型，只有运行时动态检查出类型，跟动态用字符串转化为特定类型一样的报错体验。
+    */
     Token* deal_id(
-        Node * cache,
-        int flag){
-        string Id=list::toStringAndDelete(cache);
+        const string & txt,
+        const int start,
+        const int flag){
+        string Id=txt.substr(start,flag-start);
         int index=flag-Id.size()-1;//减去当前不属于
         Token *token;
-        /*
-          各种自定义类型，未来如果支持负数、小数，从这里扩展，乃至如red语言中支持邮箱、路径等类型。
-          但数值计算始终是属于函数对字符串的处理。宿主语言库提供优化的数值计算函数。
-          因为s-lisp无强类型，只有运行时动态检查出类型，跟动态用字符串转化为特定类型一样的报错体验。
-        */
         if (Id[0]=='\'') {
             //阻止求值
             token=new Token(Id.substr(1,Id.size()-1),token::Types::Prevent,index);
@@ -178,7 +158,7 @@ namespace s{
         const int length,
         const int flag,
         Node * rest,
-        Node * cache
+        const int start
         ){
             if(flag<length)
             {
@@ -190,11 +170,11 @@ namespace s{
                         length,
                         flag+1,
                         rest,
-                        new Node(new Char(c),cache)
+                        start
                      );
                 }else
                 {
-                    Token *token=deal_id(cache,flag);
+                    Token *token=deal_id(txt,start,flag);
                     return tokenize(
                         txt,
                         length,
@@ -203,7 +183,7 @@ namespace s{
                      );
                 }
             }else{
-                Token *token=deal_id(cache,flag);
+                Token *token=deal_id(txt,start,flag);
                 return new Node(token,rest);
             }
     }
@@ -266,7 +246,7 @@ namespace s{
                     '"',
                     token::Types::Str,
                     rest,
-                    NULL
+                    flag+1
                 );
             }
             else
@@ -280,7 +260,7 @@ namespace s{
                     '`',
                     token::Types::Comment,
                     rest,
-                    NULL
+                    flag+1
                 );
             }else
             {
@@ -291,7 +271,7 @@ namespace s{
                     length,
                     flag+1,
                     rest,
-                    new Node(new Char(c),NULL)
+                    flag
                 );
             }
         }else{

@@ -6,37 +6,36 @@
 using namespace std;
 
 namespace s{
-    class LocationException{
+    class Exception{
     private:
         string msg;
-        int index;
     public:
-        LocationException(string msg,int index)
-        {
+        Exception(string msg){
             this->msg=msg;
-            this->index=index;
+        }
+        string& Msg(){
+            return msg;
         }
         void Msg(string _msg)
         {
             msg=_msg;
         }
-        string& Msg(){
-            return msg;
+    };
+    class LocationException:public Exception{
+    private:
+        int index;
+    public:
+        LocationException(string msg,int index):Exception(msg)
+        {
+            this->index=index;
         }
         int Index(){
             return index;
         }
     };
-    class DefinedException{
-    private:
-        string msg;
+    class DefinedException:public Exception{
     public:
-        DefinedException(string msg){
-            this->msg=msg;
-        }
-        string& Msg(){
-            return msg;
-        }
+        DefinedException(string msg):Exception(msg){}
     };
     namespace str{
         char trans_map[]={'n','\n','r','\r','t','\t'};
@@ -66,10 +65,63 @@ namespace s{
             }
             return x;
         }
-        string stringToEscape(string& v)
+        string stringFromEscape(const string& v,const char split){
+            const unsigned old_size=v.size();
+            unsigned size=old_size;
+            unsigned i=0;
+            while(i<old_size){
+                char c=v[i];
+                if(c=='\\'){
+                    size--;
+                    i++;
+                }
+                i++;
+            }
+            if(size!=old_size){
+                char *buff=new char[size+1];
+                i=0;
+                unsigned ref=0;
+                while(ref<size){
+                    char c=v[i];
+                    if(c=='\\'){
+                        i++;
+                        c=v[i];
+                        if(c=='\\'){
+                            buff[ref]='\\';
+                        }else
+                        if(c==split){
+                            buff[ref]=split;
+                        }else{
+                            bool unfind=true;
+                            char x=trans_from_char(c,unfind);
+                            if(unfind){
+                                throw DefinedException("非法转义"+v);
+                            }else{
+                                buff[ref]=x;
+                            }
+                        }
+                    }else{
+                        buff[ref]=c;
+                    }
+                    ref++;
+                    i++;
+                }
+                buff[size]='\0';
+                string r(buff);
+                delete [] buff;
+                return r;
+            }else{
+                return v;
+            }
+        }
+        /*
+        其实在S-Lisp中，只需要处理斜线转义和双引号转义，其它正常输入即可。
+        */
+        string stringToEscape(const string& v,bool trans_other=true)
         {
+            const unsigned old_size=v.size();
             unsigned size=v.size();
-            for(unsigned i=0;i<v.size();i++){
+            for(unsigned i=0;i<old_size;i++){
                 char c=v[i];
                 if(c=='\\'){
                     size+=1;
@@ -78,18 +130,20 @@ namespace s{
                     size+=1;
                 }else
                 {
-                    bool unfind=true;
-                    trans_to_char(c,unfind);
-                    if(!unfind){
-                        size+=1;
+                    if(trans_other){
+                        bool unfind=true;
+                        trans_to_char(c,unfind);
+                        if(!unfind){
+                            size+=1;
+                        }
                     }
                 }
             }
-            int ref=1;
-            unsigned i=0;
-            char* buff=new char[size+3];
+            char *buff=new char[size+3];
             buff[0]='"';
-            while(i<v.size())
+            unsigned ref=1;
+            unsigned i=0;
+            while(i<old_size)
             {
                 char c=v[i];
                 if(c=='\\'){
@@ -103,14 +157,18 @@ namespace s{
                     buff[ref]='"';
                 }else
                 {
-                    bool unfind=true;
-                    char x=trans_to_char(c,unfind);
-                    if(unfind){
-                        buff[ref]=c;
+                    if(trans_other){
+                        bool unfind=true;
+                        char x=trans_to_char(c,unfind);
+                        if(unfind){
+                            buff[ref]=c;
+                        }else{
+                            buff[ref]='\\';
+                            ref++;
+                            buff[ref]=x;
+                        }
                     }else{
-                        buff[ref]='\\';
-                        ref++;
-                        buff[ref]=x;
+                        buff[ref]=c;
                     }
                 }
                 i++;
@@ -119,7 +177,7 @@ namespace s{
             buff[size+1]='"';
             buff[size+2]='\0';
             string r(buff);
-            delete[] buff;
+            delete [] buff;
             return r;
         }
     };
@@ -373,27 +431,6 @@ namespace s{
         Base* first;
         Node *rest;
     };
-    class Char:public Base{
-    public:
-        Char(char c):Base(){
-            this->c=c;
-        }
-        char Value(){
-            return c;
-        }
-        string toString(){
-            return toString(c);
-        }
-        Base_type xtype(){
-            return Base_type::xChar;
-        }
-        static string toString(char c){
-            char cs[2]={c,'\0'};
-            return string(cs);
-        }
-    private:
-        char c;
-    };
     class Int:public Base{
     private:
         int value;
@@ -459,23 +496,6 @@ namespace s{
         virtual Base * run(Node * args)=0;
     };
     namespace list{
-        string toStringAndDelete(Node * node)
-        {
-            char* cs=new char[node->Length()+1];
-            Node *tmp=node;
-            for(int i=node->Length();i!=0;i--)
-            {
-                char c=static_cast<Char *>(tmp->First())->Value();
-                cs[i-1]=c;
-                tmp=tmp->Rest();
-            }
-            cs[node->Length()]='\0';
-            string str=string(cs);
-            delete [] cs;
-            delete node;
-            //cout<<"N"<<node->id<<"v"<<node->_ref_()<<endl;
-            return str;
-        }
         Node * reverse(Node * node)
         {
             Node* r=NULL;
@@ -528,11 +548,11 @@ namespace s{
         string read(string & path){
             ifstream myfile(path.c_str());
             string tmp;
-            if (!myfile.is_open())  
-            {  
+            if (!myfile.is_open())
+            {
                 cout << "未成功打开文件:"<<path << endl;
                 return NULL;
-            }  
+            }
             string sb;
             while(getline(myfile,tmp))
             {

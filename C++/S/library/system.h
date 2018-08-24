@@ -4,10 +4,10 @@
 #include "./better.h"
 namespace s{
     namespace library{
-            
+
 
         class WriteFunc: public LibFunction {
-        public:    
+        public:
             string toString(){
                 return "write";
             }
@@ -16,18 +16,18 @@ namespace s{
             }
         protected:
             Base * run(Node * args){
-                
+
                 String * path=static_cast<String*>(args->First());
                 args=args->Rest();
                 String * content=static_cast<String*>(args->First());
                 file::write(path->StdStr(),content->StdStr());
                 return NULL;
-            
+
             }
         };
 
         class ReadFunc: public LibFunction {
-        public:    
+        public:
             string toString(){
                 return "read";
             }
@@ -36,15 +36,15 @@ namespace s{
             }
         protected:
             Base * run(Node * args){
-                
+
                 String * path=static_cast<String*>(args->First());
                 return new String(file::read(path->StdStr()));
-            
+
             }
         };
 
         class IsfunctionFunc: public LibFunction {
-        public:    
+        public:
             string toString(){
                 return "function?";
             }
@@ -53,7 +53,7 @@ namespace s{
             }
         protected:
             Base * run(Node * args){
-                
+
                 Base * f=args->First();
                 if(f==NULL){
                     return Bool::False;
@@ -65,12 +65,12 @@ namespace s{
                         return Bool::True;
                     }
                 }
-			
+
             }
         };
 
         class IslistFunc: public LibFunction {
-        public:    
+        public:
             string toString(){
                 return "list?";
             }
@@ -79,7 +79,7 @@ namespace s{
             }
         protected:
             Base * run(Node * args){
-                
+
                 Base * f=args->First();
                 if(f==NULL){
                     return Bool::False;
@@ -91,12 +91,12 @@ namespace s{
                         return Bool::True;
                     }
                 }
-			
+
             }
         };
 
         class StringifyFunc: public LibFunction {
-        public:    
+        public:
             string toString(){
                 return "stringify";
             }
@@ -105,14 +105,14 @@ namespace s{
             }
         protected:
             Base * run(Node * args){
-                
+
                 return new String(args->First()->toString());
-			
+
             }
         };
 
         class ApplyFunc: public LibFunction {
-        public:    
+        public:
             string toString(){
                 return "apply";
             }
@@ -121,16 +121,16 @@ namespace s{
             }
         protected:
             Base * run(Node * args){
-                
+
                 Function *f=static_cast<Function*>(args->First());
                 Node *f_args=static_cast<Node*>(args->Rest()->First());
                 return f->exec(f_args);
-            
+
             }
         };
 
         class Str_eqFunc: public LibFunction {
-        public:    
+        public:
             string toString(){
                 return "str-eq";
             }
@@ -139,7 +139,7 @@ namespace s{
             }
         protected:
             Base * run(Node * args){
-                
+
                 String *s1=static_cast<String*>(args->First());
                 args=args->Rest();
                 String *s2=static_cast<String*>(args->First());
@@ -149,12 +149,12 @@ namespace s{
                 }else{
                     return Bool::False;
                 }
-			
+
             }
         };
 
         class EqFunc: public LibFunction {
-        public:    
+        public:
             string toString(){
                 return "eq";
             }
@@ -163,7 +163,7 @@ namespace s{
             }
         protected:
             Base * run(Node * args){
-                
+
                 Base * a=args->First();
                 Base * b=args->Rest()->First();
                 if(a==b){
@@ -171,12 +171,12 @@ namespace s{
                 }else{
                     return Bool::False;
                 }
-            
+
             }
         };
 
         class Char_atFunc: public LibFunction {
-        public:    
+        public:
             string toString(){
                 return "char-at";
             }
@@ -185,16 +185,17 @@ namespace s{
             }
         protected:
             Base * run(Node * args){
-                
+
                 String *str=static_cast<String*>(args->First());
                 Int * i=static_cast<Int*>(args->Rest()->First());
-                return new String(Char::toString(str->StdStr()[i->Value()]));
-			
+                char x[]={str->StdStr()[i->Value()],'\0'};
+                return new String(x);
+
             }
         };
 
         class Str_lengthFunc: public LibFunction {
-        public:    
+        public:
             string toString(){
                 return "str-length";
             }
@@ -203,15 +204,15 @@ namespace s{
             }
         protected:
             Base * run(Node * args){
-                
+
                 String *str=static_cast<String*>(args->First());
                 return new Int(str->StdStr().size());
-			
+
             }
         };
 
         class Str_joinFunc: public LibFunction {
-        public:    
+        public:
             string toString(){
                 return "str-join";
             }
@@ -220,7 +221,7 @@ namespace s{
             }
         protected:
             Base * run(Node * args){
-                
+
                 Node * vs=static_cast<Node*>(args->First());
                 Node * split_base=args->Rest();
                 int split_size=0;
@@ -260,12 +261,12 @@ namespace s{
                 string str(cs);
                 delete [] cs;
                 return new String(str);
-			
+
             }
         };
 
         class IfFunc: public LibFunction {
-        public:    
+        public:
             string toString(){
                 return "if";
             }
@@ -274,7 +275,7 @@ namespace s{
             }
         protected:
             Base * run(Node * args){
-                
+
                 Bool * cond=static_cast<Bool*>(args->First());
                 Base * ret=NULL;
                 if (cond==Bool::True) {
@@ -286,12 +287,12 @@ namespace s{
                     }
                 }
                 return ret;
-			
+
             }
         };
 
         class LogFunc: public LibFunction {
-        public:    
+        public:
             string toString(){
                 return "log";
             }
@@ -300,7 +301,7 @@ namespace s{
             }
         protected:
             Base * run(Node * args){
-                
+
                 for (Node * tmp=args; tmp!=NULL; tmp=tmp->Rest()) {
                     Base * v=tmp->First();
                     if(v==NULL){
@@ -312,12 +313,12 @@ namespace s{
                 }
                 cout<<endl;
                 return NULL;
-			
+
             }
         };
 
         class IsexistFunc: public LibFunction {
-        public:    
+        public:
             string toString(){
                 return "exist?";
             }
@@ -326,18 +327,18 @@ namespace s{
             }
         protected:
             Base * run(Node * args){
-                
+
                 if(args->First()==NULL){
                     return Bool::False;
                 }else{
                     return Bool::True;
                 }
-			
+
             }
         };
 
         class IsemptyFunc: public LibFunction {
-        public:    
+        public:
             string toString(){
                 return "empty?";
             }
@@ -346,18 +347,18 @@ namespace s{
             }
         protected:
             Base * run(Node * args){
-                
+
                 if(args->First()==NULL){
                     return Bool::True;
                 }else{
                     return Bool::False;
                 }
-			
+
             }
         };
 
         class LengthFunc: public LibFunction {
-        public:    
+        public:
             string toString(){
                 return "length";
             }
@@ -366,14 +367,14 @@ namespace s{
             }
         protected:
             Base * run(Node * args){
-                
+
                 return new Int(((Node *)args->First())->Length());
-			
+
             }
         };
 
         class ExtendFunc: public LibFunction {
-        public:    
+        public:
             string toString(){
                 return "extend";
             }
@@ -382,14 +383,14 @@ namespace s{
             }
         protected:
             Base * run(Node * args){
-                
+
 				return new Node(args->First(),static_cast<Node*>(args->Rest()->First()));
-			
+
             }
         };
 
         class RestFunc: public LibFunction {
-        public:    
+        public:
             string toString(){
                 return "rest";
             }
@@ -398,14 +399,14 @@ namespace s{
             }
         protected:
             Base * run(Node * args){
-                
+
 				return (static_cast<Node *>(args->First()))->First();
-			
+
             }
         };
 
         class FirstFunc: public LibFunction {
-        public:    
+        public:
             string toString(){
                 return "first";
             }
@@ -414,14 +415,14 @@ namespace s{
             }
         protected:
             Base * run(Node * args){
-                
+
                 return (static_cast<Node *>(args->First()))->First();
-			
+
             }
         };
         Node * library(){
             Node * m=buildIn();
-            
+
             m=kvs::extend("write",new WriteFunc(),m);
             m=kvs::extend("read",new ReadFunc(),m);
             m=kvs::extend("function?",new IsfunctionFunc(),m);

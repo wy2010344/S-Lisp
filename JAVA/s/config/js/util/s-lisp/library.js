@@ -16,6 +16,8 @@
             }else
             if(v instanceof Java_String){
                 v=Exp.replaceQuote(v);
+            }else{
+                v=v.toString();
             }
             return v;
         };

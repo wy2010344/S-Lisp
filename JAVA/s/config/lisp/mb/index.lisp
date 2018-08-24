@@ -206,7 +206,7 @@
 			}
 		)
 	})
-	`map，可以用reduce实现`
+	`map，可以用reduce-right实现，其实reverse就是reduce-left的极端，什么也不处理，就遍历翻转一下`
 	map {
 		(let (xs run) args)
 		(reduce-right xs {
