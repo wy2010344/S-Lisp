@@ -20,15 +20,46 @@
 		}
 	]
     empty-fun [
+        cpp [
+            run "
+                return NULL;
+            "
+        ]
         lisp {}
     ]
     default [
+        cpp [
+            run "
+                Base * v=args->First();
+                if(v!=NULL){
+                    return v;
+                }else{
+                    args=args->Rest();
+                    Base * d=args->First();
+                    return d;
+                }
+            "
+        ]
         lisp {
             (let (a d) args)
             (if (exist? a) a d)
         }
     ]   
     if-run [
+        cpp [
+            run "
+                Function * If=IfFunc::instance();
+                Base*  run=If->exec(args);
+                if(run!=NULL){
+                    Base * b=(static_cast<Function*>(run))->exec(NULL);
+                    run->release();/*从函数出来都加了1，release*/
+                    b->eval_release();/*从函数出来都加了1*/
+                    return b;
+                }else{
+                    return NULL;
+                }
+            "
+        ]
         lisp {
             (let (a b c) args)
             (let x (default (if a b c)))

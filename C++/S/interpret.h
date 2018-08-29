@@ -1,5 +1,5 @@
 #pragma once
-#include "./library/system.h"
+#include "./library/better.h"
 namespace s{
     Base *interpret(Exp* e,Node * scope);
     //为了支持控制台
@@ -103,40 +103,38 @@ namespace s{
                     scope=kvs_match(scope,id,NULL);
                 }
             }else{
-                throw DefinedException(id+"不是合法的key");
+                throw new DefinedException(id+"不是合法的key");
             }
             return scope;
         }
 #else
         Node *when_kvs_match(Node* scope,string &id,Base *vas){
-            throw DefinedException("为了雪藏的kvs-math，暂时不支持以*号结尾");
+            throw new DefinedException("为了雪藏的kvs-math，暂时不支持以*号结尾");
             return scope;
         }
 #endif
         Node * match(Node *scope,Exp *key,Base *vas){
-            if(vas!=NULL){
-                //值为空，无法增加任何定义
-                if (key->Type()==parse::Type::Id) {
-                    string id=key->Value();
-                    if(id[id.size()-1]=='*') {
-                        scope=when_kvs_match(scope,id,vas);
+            //值为空，仍然需要增加定义
+            if (key->Type()==parse::Type::Id) {
+                string id=key->Value();
+                if(id[id.size()-1]=='*') {
+                    scope=when_kvs_match(scope,id,vas);
+                }else{
+                    //单值匹配
+                    scope=when_normal_match(scope,id,vas);
+                }
+            }else{
+                if (key->Type()==parse::Type::Small) {
+                    //括号匹配
+                    if(vas!=NULL){
+                        vas->retain();
+                        scope=bracket_match(scope,key,static_cast<Node *>(vas));
+                        vas->release();
                     }else{
-                        //单值匹配
-                        scope=when_normal_match(scope,id,vas);
+                        scope=bracket_match(scope,key,NULL);
                     }
                 }else{
-                    if (key->Type()==parse::Type::Small) {
-                        //括号匹配
-                        if(vas!=NULL){
-                            vas->retain();
-                            scope=bracket_match(scope,key,static_cast<Node *>(vas));
-                            vas->release();
-                        }else{
-                            scope=bracket_match(scope,key,NULL);
-                        }
-                    }else{
-                        throw DefinedException(key->Value()+"不是合法的类型");
-                    }
+                    throw new DefinedException(key->Value()+"不是合法的类型");
                 }
             }
             return scope;
@@ -146,7 +144,7 @@ namespace s{
             if(isValidKey(id)){
                 scope=kvs::extend(id,vas,scope);
             }else{
-                throw DefinedException(id+"不是合法的key");
+                throw new DefinedException(id+"不是合法的key");
             }
             return scope;
         }
@@ -247,7 +245,7 @@ namespace s{
         }
         return list::reverseAndDelete(r);
     }
-    LocationException call_exception(string msg,BracketExp * exp,Node * children,Node * scope)
+    LocationException* call_exception(string msg,BracketExp * exp,Node * children,Node * scope)
     {
         msg=msg+"\n"+exp->toString()+"\n"+children->toString()+"\n";
         //cout<<"出现异常:"<<msg<<"在位置:"<<exp->Index()<<endl;
@@ -256,9 +254,10 @@ namespace s{
         scope->retain();
         scope->release();
         */
-        return LocationException(msg,exp->Index());
+        return new LocationException(msg,exp->Index());
     }
     Base * exec(Function* func,Node *rst,Node *children){
+        /*函数的计算结果默认是+1的*/
         Base *b=func->exec(rst);
         children->release();
         if (b!=NULL) {
@@ -299,8 +298,9 @@ namespace s{
                 }
                 try{
                     b=exec(func,rst,children);
-                }catch(...)
-                {
+                }catch(Exception *e){
+                    throw e;
+                }catch(...){
                     //无法捕获到，怎么处理？
                     throw call_exception("调用出错",be,children,scope);
                 }

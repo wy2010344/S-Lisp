@@ -28,6 +28,43 @@
 			"
 		]
 	]
+
+    retain-count [
+        cpp [
+            run "
+            Base *b=args->First();
+            return new Int(b->count);
+            "
+        ]
+    ]
+    
+    + [
+        alias AddFunc
+        cpp [
+            run "
+                int all=0;
+                for(Node * t=args;t!=NULL;t=t->Rest()){
+                    Int * it=static_cast<Int*>(t->First());
+                    all=all+it->Value();
+                }
+                return new Int(all);
+            "
+        ]
+    ]
+    - [
+        alias SubFunc
+        cpp [
+            run "
+                int all=static_cast<Int*>(args->First())->Value();
+                args=args->Rest();
+                for(Node * t=args;t!=NULL;t=t->Rest()){
+                    Int * it=static_cast<Int*>(t->First());
+                    all=all-it->Value();
+                }
+                return new Int(all);
+            "
+        ]
+    ]
 	`判断列表为空，应该只支持列表和空才对`
 	empty? [
 		cpp [
@@ -183,7 +220,11 @@
             run "
                 Function *f=static_cast<Function*>(args->First());
                 Node *f_args=static_cast<Node*>(args->Rest()->First());
-                return f->exec(f_args);
+                Base* b=f->exec(f_args);
+                if(b!=NULL){
+                    b->eval_release();/*从函数出来都默认加了1，故需要eval_release再传递给下一个表达式*/
+                }
+                return b;
             "
         ]
     ]

@@ -7,9 +7,10 @@
 #include <signal.h>
 #endif
 
-#include"./tokenize.h"
+#include"./tokenize/tokenize.h"
 #include"./tree.h"
 #include "./interpret.h"
+#include "./load.h"
 namespace s{
     namespace shell{
         bool come;
@@ -17,13 +18,18 @@ namespace s{
         QueueRun *qr;
         char buff[500];
         void init(){
-            baseScope=library::library();
+            baseScope=load();
             qr=new QueueRun(baseScope);
             come=true;
         }
         void destroy(){
             baseScope->retain();
             baseScope->release();
+            Node *t=LoadFunc::core;
+            if(t!=NULL){
+                t->retain();
+                t->release();
+            }
             Base::print_node();
             cout<<"开始回收"<<endl;
             Base::clear();
@@ -57,7 +63,7 @@ namespace s{
                 if(cache=="exit"){
                     come=false;
                 }else{
-                    Node * tokens=tokenize(cache);
+                    Node * tokens=Tokenize().run(cache);
                     if(tokens!=NULL){
                         tokens->retain();
                         BracketExp * exp=Parse(tokens);
@@ -67,10 +73,8 @@ namespace s{
                         /*想要每次回收，似乎并不容易*/
                         try{
                             r=qr->exec(exp);
-                        }catch(LocationException& e){
-                            cout<<"出现异常："<<e.Msg()<<"在位置"<<e.Index()<<endl;
-                        }catch(DefinedException& e){
-                            cout<<"出现异常："<<e.Msg()<<endl;
+                        }catch(Exception* e){
+                            logException(e);
                         }catch(...){
                             cout<<"出现异常"<<endl;
                         }

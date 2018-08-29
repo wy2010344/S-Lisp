@@ -9,7 +9,7 @@ namespace s{
                 return "{(let (k) args) (kvs-find1st kvs k)}";
             }
             Function_type ftype(){
-                return Function_type::fBetter;
+                return Function_type::fUser;
             }
             MatchFunc(Node *kvs_map){
                 this->kvs_map=kvs_map;

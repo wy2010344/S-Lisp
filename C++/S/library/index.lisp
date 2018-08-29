@@ -40,6 +40,106 @@
     }
 )
 
+(let build-cls 
+    {
+        (let (key cpp-run type toString) args)
+        [
+            "\n
+            class " (quote key) ": public LibFunction {
+            private:
+                static "(quote key)" * _in_;
+            public:    
+                static "(quote key)"*instance(){
+                    return _in_;
+                }
+                string toString(){
+                    return \"" (toString)"\";
+                }
+                Function_type ftype(){
+                    return Function_type::"(quote type)";
+                }
+            protected:
+                Base * run(Node * args){
+                    "(quote cpp-run)"
+                }
+            };
+            "(quote key)"* "(quote key)"::_in_=new "(quote key)"();
+            "                      
+        ]
+    }
+    build-m {
+        (let (k key) args)
+        [
+            "
+            m=kvs::extend(\"" (quote k) "\"," (quote key) "::instance(),m);"
+        ]
+    }
+)
+`写system.h文件`
+(let     
+    system (load './system.lisp)
+    (cls fun) 
+        (kvs-reduce 
+            system
+            {
+                (let (init v k i) args)
+                (let (cls fun) init)
+                (let cpp-run (kvs-path v [cpp run]))
+                (let key (kvs-path v [alias]))
+                (let key 
+                    (if-run (exist? key) 
+                        {key} 
+                        {(transKey k)}
+                    ) 
+                )
+                (list 
+                    (extend 
+                        (str-join 
+                            (build-cls 
+                                key 
+                                cpp-run 
+                                'fBuildIn
+                                {k}
+                            )
+                        )
+                        cls
+                    )
+                    (extend
+                        (str-join 
+                            (build-m k key)
+                        )
+                        fun
+                    )
+                )
+            } 
+            []
+        )
+)
+(write 
+    (calculate-path './system.h) 
+    (str-join 
+        [
+"
+#pragma once
+#include \"./buildIn.h\"
+namespace s{
+    namespace library{
+            "
+            `生成几个类体`
+            (str-join cls)
+            "
+        Node * library(){
+            Node * m=buildIn();
+            "
+            (str-join fun)
+            "
+            return m;
+        }
+    };
+};"
+        ]
+    )
+)
 (let 
     better (load './better.lisp)
     (cls fun) 
@@ -58,31 +158,18 @@
                                 (list
                                     (extend 
                                         (str-join 
-                                            [
-        "\n
-        class " (quote key) ": public LibFunction {
-        public:    
-            string toString(){
-                return \"" (stringify (kvs-path v [lisp])) "\";
-            }
-            Function_type ftype(){
-                return Function_type::fBetter;
-            }
-        protected:
-            Base * run(Node * args){
-                "(quote cpp-run)"
-            }
-        };"                      
-                                            ]
+                                            (build-cls 
+                                                key 
+                                                cpp-run 
+                                                'fUser
+                                                {(stringify (kvs-path v [lisp]))}
+                                            )
                                         )
                                         cls
                                     )
                                     (extend
                                         (str-join 
-                                            [
-                            "
-                            m=kvs::extend(\"" (quote k) "\",new " (quote key) "(),m);"
-                                            ]
+                                            (build-m k key)
                                         )
                                         fun
                                     )
@@ -105,91 +192,20 @@
         [
 "
 #pragma once
+#include \"./system.h\"
 namespace s{
     namespace library{
         "
         (str-join cls)
         "
-        Node * better(Node *m){
+        Node * better(){
+            Node * m=library();
             "
             (str-join fun)
             "
             return m;
         }
     }
-};"
-        ]
-    )
-)
-`写system.h文件`
-(let     
-    system (load './system.lisp)
-    (cls fun) 
-        (kvs-reduce 
-            system
-            {
-                (let (init v k i) args)
-                (let (cls fun) init)
-                (let cpp-run (kvs-path v [cpp run]))
-                (let key (transKey k))
-                (list 
-                    (extend 
-                        (str-join 
-                            [
-        "\n
-        class " (quote key) ": public LibFunction {
-        public:    
-            string toString(){
-                return \"" (quote k) "\";
-            }
-            Function_type ftype(){
-                return Function_type::fBuildIn;
-            }
-        protected:
-            Base * run(Node * args){
-                "(quote cpp-run)"
-            }
-        };"                      
-                            ]
-                        )
-                        cls
-                    )
-                    (extend
-                        (str-join 
-                            [
-            "
-            m=kvs::extend(\"" (quote k) "\",new " (quote key) "(),m);"
-                            ]
-                        )
-                        fun
-                    )
-                )
-            } 
-            []
-        )
-)
-(write 
-    (calculate-path './system.h) 
-    (str-join 
-        [
-"
-#pragma once
-#include \"./buildIn.h\"
-#include \"./better.h\"
-namespace s{
-    namespace library{
-            "
-            `生成几个类体`
-            (str-join cls)
-            "
-        Node * library(){
-            Node * m=buildIn();
-            "
-            (str-join fun)
-            "
-            return better(m);
-        }
-    };
 };"
         ]
     )

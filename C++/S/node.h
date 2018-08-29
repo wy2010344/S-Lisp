@@ -6,6 +6,10 @@
 using namespace std;
 
 namespace s{
+    enum E_Type{
+        Location,
+        Defined
+    };
     class Exception{
     private:
         string msg;
@@ -16,10 +20,12 @@ namespace s{
         string& Msg(){
             return msg;
         }
+        virtual E_Type type()=0;
         void Msg(string _msg)
         {
             msg=_msg;
         }
+        virtual ~Exception(){}
     };
     class LocationException:public Exception{
     private:
@@ -29,6 +35,9 @@ namespace s{
         {
             this->index=index;
         }
+        E_Type type(){
+            return E_Type::Location;
+        }
         int Index(){
             return index;
         }
@@ -36,6 +45,9 @@ namespace s{
     class DefinedException:public Exception{
     public:
         DefinedException(string msg):Exception(msg){}
+        E_Type type(){
+            return E_Type::Defined;
+        }
     };
     namespace str{
         char trans_map[]={'n','\n','r','\r','t','\t'};
@@ -95,7 +107,7 @@ namespace s{
                             bool unfind=true;
                             char x=trans_from_char(c,unfind);
                             if(unfind){
-                                throw DefinedException("非法转义"+v);
+                                throw new DefinedException("非法转义"+v);
                             }else{
                                 buff[ref]=x;
                             }
@@ -323,7 +335,7 @@ namespace s{
 #endif
     enum Function_type{
         fBuildIn,//内置函数
-        fBetter,//迁移到C++优化函数
+        //fBetter,//迁移到C++优化函数
         fUser,//用户函数，只有一个
         fCache//cache函数，只有一个
     };
