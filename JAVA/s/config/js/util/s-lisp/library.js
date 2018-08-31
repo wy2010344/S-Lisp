@@ -126,7 +126,7 @@
             },
             //a?b:default(null)
             "if":function(node){
-                if(node.First()){
+                if(node.First()==true){
                     return node.Rest().First();
                 }else{
                     node=node.Rest().Rest();

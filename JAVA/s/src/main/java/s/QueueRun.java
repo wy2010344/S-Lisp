@@ -1,13 +1,13 @@
 package s;
 
 public class QueueRun {
-	public QueueRun(Node scope) {
+	public QueueRun(Node<Object> scope) {
 		this.scope=scope;
 	}
-	public Node scope;
+	public Node<Object> scope;
 	public Object run(Exp x) throws Exception {
-		if(x instanceof Exp.SBracketsExp) {
-			Exp.SBracketsExp sbe=(Exp.SBracketsExp)x;
+		if(x.xtype()==Exp.Exp_Type.Call) {
+			Exp.CallExp sbe=(Exp.CallExp)x;
 			if(isLet(sbe)) {
 				/**
 				 * 也许应该进行命名规范的约束，未来再放开吧
@@ -15,27 +15,27 @@ public class QueueRun {
 				 * 单个命名不允许.
 				 * 减少命名重复的概率
 				 */
-				for(Node y=sbe.Children().Rest();y!=null;y=y.Rest().Rest()) {
-					Exp val=(Exp)y.Rest().First();
-					Object values=Eval.interpret(val, scope);
+				for(Node<Exp> y=sbe.Children().Rest();y!=null;y=y.Rest().Rest()) {
+					Exp val=y.Rest().First();
+					Object values=interpret(val, scope);
 					scope=match(scope,(Exp)y.First(),values);
 				}
 				return null;
 			}else {
-				return Eval.interpret(x, scope);
+				return interpret(x, scope);
 			}
 		}else{
-			return Eval.interpret(x, scope);
+			return interpret(x, scope);
 		}
 	}
 
-	Node match(Node scope,Exp y,Object values) throws Exception {
-		if(y instanceof Exp.SBracketsExp) {
+	Node<Object> match(Node<Object> scope,Exp y,Object values) throws Exception {
+		if(y.xtype()==Exp.Exp_Type.Call) {
 			//小括号，多匹配
-			scope=bracket_match(scope,((Exp.SBracketsExp)y).Children(),(Node)values);
+			scope=bracket_match(scope,((Exp.CallExp)y).Children(),(Node<Object>)values);
 		}else 
-		if(y instanceof Exp.IdExp){
-			String key=((Exp.IdExp)y).value;
+		if(y.xtype()==Exp.Exp_Type.ID){
+			String key=((Exp.IdExp)y).Value();
 			if(key.endsWith("*")) {
 				scope=when_kvs_match(scope,key,values);
 			}else {
@@ -46,12 +46,12 @@ public class QueueRun {
 		}
 		return scope;
 	}
-	boolean isLet(Exp.SBracketsExp sbe) {
+	boolean isLet(Exp.CallExp sbe) {
 		boolean ret=false;
 		Exp sbec=(Exp)sbe.Children().First();
-		if(sbec instanceof Exp.IdExp) {
+		if(sbec.xtype()==Exp.Exp_Type.ID) {
 			Exp.IdExp sbec_id=(Exp.IdExp)sbec;
-			if("let".equals(sbec_id.value)) {
+			if("let".equals(sbec_id.Value())) {
 				ret=true;
 			}
 		}
@@ -88,10 +88,10 @@ public class QueueRun {
 	 * @return
 	 * @throws Exception
 	 */
-	Node bracket_match(Node scope,Node key_nodes,Node val_nodes) throws Exception {
-		Node kv=val_nodes;
-		for(Node kt=key_nodes;kt!=null;kt=kt.Rest()) {
-			Exp key_exp=(Exp)kt.First();
+	Node<Object> bracket_match(Node<Object> scope,Node<Exp> key_nodes,Node<Object> val_nodes) throws Exception {
+		Node<Object> kv=val_nodes;
+		for(Node<Exp> kt=key_nodes;kt!=null;kt=kt.Rest()) {
+			Exp key_exp=kt.First();
 			String key=key_exp.to_value();
 			if(key.startsWith("...") && kt.Rest()==null) {
 				//以...xx结尾，匹配后续的列表
@@ -123,7 +123,7 @@ public class QueueRun {
 	 * @return
 	 * @throws Exception
 	 */
-	Node when_normal_match(Node scope,String key,Object kv) throws Exception {
+	Node<Object> when_normal_match(Node<Object> scope,String key,Object kv) throws Exception {
 		if(isValidKey(key)) {
 			scope=Library.kvs_extend(key, kv,scope);
 		}else {
@@ -141,7 +141,7 @@ public class QueueRun {
 	 * @return
 	 * @throws Exception
 	 */
-	Node when_kvs_match(Node scope,String key,Object values) throws Exception {
+	Node<Object> when_kvs_match(Node<Object> scope,String key,Object values) throws Exception {
 		if(WITH_KVS_MATCH) {
 			key=key.substring(0, key.length()-1);
 			if(isValidKey(key)) {
@@ -162,14 +162,14 @@ public class QueueRun {
 	 * @return
 	 * @throws Exception
 	 */
-	Node kvs_match(Node scope,final String key_prefix,Object values) throws Exception {
-		final Node kvs=(Node)values;
+	Node<Object> kvs_match(Node<Object> scope,final String key_prefix,Object values) throws Exception {
+		final Node<Object> kvs=(Node<Object>)values;
 		/**
 		 * 附加一个查询字典的函数
 		 */
 		scope=Library.kvs_extend(key_prefix, new Function() {
 			@Override
-			public Object exec(Node node)throws Exception {
+			public Object exec(Node<Object> node)throws Exception {
 				// TODO Auto-generated method stub
 				return Library.kvs_find1st(kvs, (String)node.First());
 			}
@@ -184,8 +184,8 @@ public class QueueRun {
 				return Function.Type.user;
 			}
 		},scope);
-		final Node svk=Library.reverse((Node)values);
-		Node tmp_svk=svk;
+		final Node<Object> svk=Library.reverse((Node<Object>)values);
+		Node<Object> tmp_svk=svk;
 		while(tmp_svk!=null) {
 			Object vk=tmp_svk.First();
 			tmp_svk=tmp_svk.Rest();
@@ -205,5 +205,67 @@ public class QueueRun {
 			tmp_svk=tmp_svk.Rest();
 		}
 		return scope;
+	}
+	private Node<Object> calNode(Node<Exp> list,Node<Object> scope) throws Exception {
+		Node<Object> r=null;
+		for(Node<Exp> x=list;x!=null;x=x.Rest()) {
+			Exp xe=x.First();
+			Object xv=interpret(xe,scope);
+			r=new Node<Object>(xv,r);
+		}
+		return r;
+		//return Library.reverse(r);
+	}
+	private void errorMessage(String message,Exp.CallExp exp,Node<Object> children) throws Exception {
+		String exp_msg=exp.toString();
+		String result_msg=children.toString();
+		throw new Exception(
+			message+":\n"+
+		    exp_msg+"\n"+
+		    result_msg+"\n"+
+		    exp.First().Loc().toString()
+		);
+	}
+	private Object interpret(Exp exp,Node<Object> scope) throws Exception{ 
+		if(exp.isBracket()) {
+			if(exp.xtype()==Exp.Exp_Type.Call) {
+				Exp.CallExp tmp=(Exp.CallExp)exp;
+				Node<Object> children=calNode(tmp.R_children(),scope);
+				Object first=children.First();
+				if(first==null) {
+					errorMessage("函数1未找到定义",tmp,children);
+				}else
+				if(first instanceof Function) {
+					return ((Function)first).exec(children.Rest());
+				}else {
+					errorMessage("参数1的结果必须是函数",tmp,children);
+				}
+			}else
+			if(exp.xtype()==Exp.Exp_Type.List) {
+				Exp.ListExp tmp=(Exp.ListExp)exp;
+				return calNode(tmp.R_children(),scope);
+			}else
+			if(exp.xtype()==Exp.Exp_Type.Function) {
+				return new Function.UserFunction((Exp.FunctionExp)exp, scope);
+			}
+		}else {
+			if(exp.xtype()==Exp.Exp_Type.ID) {
+				Exp.IdExp tmp=(Exp.IdExp)exp;
+				return Library.kvs_find1st(scope, tmp.Value());
+			}else
+	        if(exp.xtype()==Exp.Exp_Type.String){
+	            return ((Exp.StrExp)exp).Value();
+	        }else
+	        if(exp.xtype()==Exp.Exp_Type.Int){
+	            return ((Exp.IntExp)exp).Value();
+	        }
+		}
+        /*
+        else
+        if(exp instanceof Exp.FloatExp){
+            return ((Exp.FloatExp)exp).value;
+        }
+		*/
+		return null;
 	}
 }

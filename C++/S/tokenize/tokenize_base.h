@@ -82,7 +82,11 @@ namespace s{
         Token *token;
         if (Id[0]=='\'') {
             //阻止求值
-            token=new Token(Id.substr(1,Id.size()-1),token::Types::Prevent,start);
+            if(Id.size()==1){
+                throw new DefinedException("单个'不允许");
+            }else{
+                token=new Token(Id.substr(1,Id.size()-1),token::Types::Prevent,start);
+            }
         }else
         if (isInt(Id)){
             //转成Int，方便数值计算

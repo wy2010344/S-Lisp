@@ -3,171 +3,337 @@ package s;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
-import s.Exp.LBracketsExp;
+import s.Exp.BracketsExp;
+import s.util.Location;
 import s.util.threeQuote.Token;
 
 public class Eval {
-	static HashMap<String,String> opposite_quote;
-	static {
-		opposite_quote=new HashMap<String,String>();
-		opposite_quote.put("(", ")");
-		opposite_quote.put("[", "]");
-		opposite_quote.put("{", "}");
-	}
-	public static Exp.LBracketsExp parse(List<Token> tokens) throws LocationException{
-		Exp.LBracketsExp root=new Exp.LBracketsExp();
-		
-		Exp.BracketsExp current=root;
+	static String[] kvs_quote= {
+			"(",")",
+			"[","]",
+			"{","}"
+	};
+	static String quoteLeftToRight(String left) {
 		int i=0;
-		while(i<tokens.size()) {
-			Token token=tokens.get(i);
-			if(token.Type()==Token.Type.BraL) {
-				Exp.BracketsExp tmp=null;
-                if("(".equals(token.Value())){
-                    tmp=new Exp.SBracketsExp();
-                }else
-                if("[".equals(token.Value())){
-                    tmp=new Exp.MBracketsExp();
-                }else
-                if("{".equals(token.Value())){
-                    tmp=new Exp.LBracketsExp();
-                }
-                tmp.parent=current;
-                tmp.token=token;
-                current.append(tmp);
-                current=tmp;
-			}else
-			if(token.Type()==Token.Type.BraR) {
-				if(!token.Value().equals(opposite_quote.get(current.token.Value()))) {
-					throw new LocationException("括号不匹配"+current.token.Value()+token.Value(),token.Loc());
-				}else {
-	                Exp.BracketsExp tmp=current.parent;
-					current.reverstChildren();
-	                current=tmp;
-	                if(tmp==null) {
-	                	throw new LocationException("括号不匹配，过早结束",token.Loc());
-	                }
-				}
-			}else {
-                if(current instanceof Exp.SBracketsExp || current instanceof Exp.LBracketsExp){
-                    //小括号\大括号内
-                    if(token.Type()==Token.Type.Quote){
-                        //'
-                        token.Type(Token.Type.Str);
-                    }
-                }else
-                if(current instanceof Exp.MBracketsExp){
-                    //中括号内
-                    if(token.Type()==Token.Type.Id){
-                        //识别为字符串
-                        token.Type(Token.Type.Str);
-                    }else
-                    if(token.Type()==Token.Type.Quote){
-                        //识别为id
-                        token.Type(Token.Type.Id);
-                    }
-                }
-                
-                Exp exp=null;
-                if(token.Type()==Token.Type.Id){
-                    //id
-                    Exp.IdExp tmp=new Exp.IdExp();
-                    tmp.value=token.Value();
-                    exp=tmp;
-                }else
-                if(token.Type()==Token.Type.Str){
-                    //字符串
-                    Exp.StrExp tmp=new Exp.StrExp();
-                    tmp.value=token.Value();
-                    exp=tmp;
-                }else
-                if(token.Type()==Token.Type.Int){
-                    //int
-                    Exp.IntExp tmp=new Exp.IntExp();
-                    tmp.value=Integer.parseInt(token.Value());
-                    exp=tmp;
-                }
-                /*
-                else
-                if(token.Type()==Token.Type.Float){
-                    //float
-                    Exp.FloatExp tmp=new Exp.FloatExp();
-                    tmp.value=Float.parseFloat(token.Value());
-                    exp=tmp;
-                }
-                */
-                if(exp!=null) {
-                    exp.token=token;
-                    exp.parent=current;
-                    current.append(exp);
-                }
-            }
-            i++;
-		}
-		root.reverstChildren();
-		return root;
-	}
-	static Node calNode(Node list,Node scope) throws Exception {
-		Node r=null;
-		for(Node x=list;x!=null;x=x.Rest()) {
-			Exp xe=(Exp)x.First();
-			Object xv=interpret(xe,scope);
-			r=new Node(xv,r);
-		}
-		return Library.reverse(r);
-	}
-	static void errorMessage(String message,Exp.SBracketsExp exp,Node children) throws Exception {
-		String exp_msg=exp.toString();
-		String result_msg=children.toString();
-		throw new Exception(
-							message+":\n"+
-						    exp_msg+"\n"+
-						    result_msg+"\n"+
-						    exp.token.Loc().toString()
-						   );
-	}
-	public static Object interpret(Exp exp,Node scope) throws Exception{ 
-		if(exp instanceof Exp.SBracketsExp) {
-			Exp.SBracketsExp tmp=(Exp.SBracketsExp)exp;
-			Node children=calNode(tmp.Children(),scope);
-			Object first=children.First();
-			if(first==null) {
-				errorMessage("函数1未找到定义",tmp,children);
-			}else
-			if(first instanceof Function) {
-				return ((Function)first).exec(children.Rest());
-			}else {
-				errorMessage("参数1的结果必须是函数",tmp,children);
+		String right=null;
+		while(i<kvs_quote.length&&right==null) {
+			String t_l=kvs_quote[i];
+			i++;
+			String t_r=kvs_quote[i];
+			i++;
+			if(t_l.equals(left)) {
+				right=t_r;
 			}
-		}else
-		if(exp instanceof Exp.MBracketsExp) {
-			Exp.MBracketsExp tmp=(Exp.MBracketsExp)exp;
-			return calNode(tmp.Children(),scope);
-		}else
-		if(exp instanceof Exp.LBracketsExp) {
-			return new Function.UserFunction((Exp.LBracketsExp)exp, scope);
-		}else
-		if(exp instanceof Exp.IdExp) {
-			Exp.IdExp tmp=(Exp.IdExp)exp;
-			return Library.kvs_find1st(scope, tmp.value);
-		}else
-        if(exp instanceof Exp.StrExp){
-            return ((Exp.StrExp)exp).value;
-        }else
-        if(exp instanceof Exp.IntExp){
-            return ((Exp.IntExp)exp).value;
-        }
-        /*
-        else
-        if(exp instanceof Exp.FloatExp){
-            return ((Exp.FloatExp)exp).value;
-        }
-		*/
-		return null;
+		}
+		return right;
+	}
+	static String quoteRightToLeft(String right) {
+		int i=0;
+		String left=null;
+		while(i<kvs_quote.length&&left==null) {
+			String t_l=kvs_quote[i];
+			i++;
+			String t_r=kvs_quote[i];
+			i++;
+			if(t_r.equals(right)) {
+				left=t_l;
+			}
+		}
+		return left;
+	}
+	static class Cache{
+		public Cache(Token value,Node<Exp> children) {
+			this.value=value;
+			this.children=children;
+		}
+		private Token value;
+		public Token token() {
+			return value;
+		}
+		private Node<Exp> children;
+		public Node<Exp> Children() {
+			return children;
+		}
 	}
 	
+	/*
+	static Node<Exp> reverse(BracketsExp exps){
+		
+	}
+	static Node<Exp> whenFunction(Node<Exp> children){
+		Node<Exp> caches=null;
+		for(Node<Exp> t=children;t!=null;t=t.Rest()) {
+			Exp e=t.First();
+			if(e.isBracket()) {
+				if(e.xtype()==Exp.Exp_Type.Call) {
+					
+				}else
+				if(e.xtype()==Exp.Exp_Type.List) {
+					caches=new Node<Exp>(reverse((BracketsExp) e),caches);
+				}else
+				{
+					caches=new Node<Exp>(e,caches);
+				}
+			}else {
+				caches=new Node<Exp>(e,caches);
+			}
+		}
+		return caches;
+	}
+	*/
+
+	static Node<Exp> whenFunction(Node<Exp> children){
+		return children;
+	}
+	/**
+	 * tokens未翻转(a b c)->) c b a (
+	 * 递归得太多！
+	 * @param tokens
+	 * @return
+	 * @throws Exception 
+	 */
+	@Deprecated
+	public static Exp.FunctionExp parse(
+			Node<Token> tokens,//供解析的列表
+			Node<Cache> caches,//栈(括号,列表)
+			Node<Exp> children//平行列表
+			) throws Exception{
+		if(tokens==null) {
+			return new Exp.FunctionExp(null, children, null);
+		}else {
+			Token x=tokens.First();
+			Node<Token> xs=tokens.Rest();
+			if(x.Type()==Token.Type.BraR) {
+				return parse(
+					xs,
+					new Node<Cache>(
+						new Cache(x,children),
+						caches
+					),
+					null
+				);
+			}else
+			if(x.Type()==Token.Type.BraL) {
+				Cache cache=caches.First();
+				String c_right=cache.token().Value();
+				String right=quoteLeftToRight(x.Value());
+				if(c_right.equals(right)){
+					Exp e=null;
+					if("}".equals(c_right)) {
+						//上一级是函数
+						e=new Exp.FunctionExp(
+							cache.token(),
+							whenFunction(children),
+							x
+						);
+					}else
+					if("]".equals(c_right)) {
+						e=new Exp.ListExp(
+							cache.token(), 
+							children, 
+							x
+						);
+					}else
+					if(")".equals(c_right)) {
+						e=new Exp.CallExp(
+							cache.token(), 
+							children, 
+							x
+						);
+					}
+					return parse(
+						xs,
+						caches.Rest(),
+						new Node<Exp>(e,cache.Children())
+					);
+				}else {
+					String msg="括号不匹配"+x.Value()+":"+c_right+"在位置:"+x.Loc().toString();
+					System.out.println(msg);
+					throw new Exception(msg);
+				}
+			}else {
+				Exp e=null;
+				if(x.Type()==Token.Type.Str) {
+					e=new Exp.StrExp(x);
+				}else
+				if(x.Type()==Token.Type.Int) {
+					e=new Exp.IntExp(x);
+				}else{
+					//ID
+					Cache cache=caches.First();
+					if(cache==null) {
+						System.out.println(caches.toString());
+					}
+					if("]".equals(cache.token().Value()))
+					{
+						//中括号号
+						if(x.Type()==Token.Type.Quote) {
+							e=new Exp.IdExp(x);
+						}else 
+						if(x.Type()==Token.Type.Id){
+							e=new Exp.StrExp(x);
+						}
+					}else {
+						//其它括号
+						if(x.Type()==Token.Type.Quote) {
+							e=new Exp.StrExp(x);
+						}else
+						if(x.Type()==Token.Type.Id){
+							e=new Exp.IdExp(x);
+						}
+					}
+				}
+				if(e==null) {
+					if(x.Type()==Token.Type.Comment ) {
+						return parse(
+							xs,
+							caches,
+							children
+						);
+					}else {
+						String msg="出错，未解析正确"+x.Type()+":"+x.Value();
+						System.out.println(msg);
+						throw new Exception(msg);
+					}
+				}else {
+					return parse(
+						xs,
+						caches,
+						new Node<Exp>(e,children)
+					);
+				}
+			}
+		}
+	}
+	@Deprecated
+	public static Exp.FunctionExp parseV1(
+			Node<Token> tokens//供解析的列表
+	) throws Exception
+	{
+		return parse(
+				tokens,
+				new Node<Cache>(
+					new Cache(
+						new Token(
+							"}",
+							new Location(0,0,0),
+							Token.Type.BraR
+						),
+						null
+					),null
+				),
+				null);
+	}	
+	/**
+	 * 转成非递归调用的while语句
+	 * @param tokens
+	 * @return
+	 * @throws Exception
+	 */
+	public static Exp.FunctionExp parse(final Node<Token> tokens) throws Exception{
+		//栈(括号,列表)
+		Node<Cache> caches=new Node<Cache>(
+			new Cache(
+				new Token(
+					"}",
+					new Location(0,0,0),
+					Token.Type.BraR
+				),
+				null
+			),null
+		);
+		//平行列表
+		Node<Exp> children=null;
+		//所有tokens
+		Node<Token> xs=tokens;
+		while(xs!=null) {
+			Token x=xs.First();
+			xs=xs.Rest();
+			if(x.Type()==Token.Type.BraR) {
+				caches=new Node<Cache>(
+					new Cache(x,children),
+					caches
+				);
+				children=null;
+			}else
+			if(x.Type()==Token.Type.BraL) {
+				Cache cache=caches.First();
+				String c_right=cache.token().Value();
+				String right=quoteLeftToRight(x.Value());
+				if(c_right.equals(right)){
+					Exp e=null;
+					if("}".equals(c_right)) {
+						//上一级是函数
+						e=new Exp.FunctionExp(
+							cache.token(),
+							whenFunction(children),
+							x
+						);
+					}else
+					if("]".equals(c_right)) {
+						e=new Exp.ListExp(
+							cache.token(), 
+							children, 
+							x
+						);
+					}else
+					if(")".equals(c_right)) {
+						e=new Exp.CallExp(
+							cache.token(), 
+							children, 
+							x
+						);
+					}
+					caches=caches.Rest();
+					children=new Node<Exp>(e,cache.Children());
+				}else {
+					String msg="括号不匹配"+x.Value()+":"+c_right+"在位置:"+x.Loc().toString();
+					System.out.println(msg);
+					throw new Exception(msg);
+				}
+			}else {
+				Exp e=null;
+				if(x.Type()==Token.Type.Str) {
+					e=new Exp.StrExp(x);
+				}else
+				if(x.Type()==Token.Type.Int) {
+					e=new Exp.IntExp(x);
+				}else{
+					//ID
+					Cache cache=caches.First();
+					if("]".equals(cache.token().Value()))
+					{
+						//中括号号
+						if(x.Type()==Token.Type.Quote) {
+							e=new Exp.IdExp(x);
+						}else 
+						if(x.Type()==Token.Type.Id){
+							e=new Exp.StrExp(x);
+						}
+					}else {
+						//其它括号
+						if(x.Type()==Token.Type.Quote) {
+							e=new Exp.StrExp(x);
+						}else
+						if(x.Type()==Token.Type.Id){
+							e=new Exp.IdExp(x);
+						}
+					}
+				}
+				if(e==null) {
+					if(x.Type()!=Token.Type.Comment ) {
+						String msg="出错，未解析正确"+x.Type()+":"+x.Value();
+						System.out.println(msg);
+						throw new Exception(msg);
+					}
+				}else {
+					children=new Node<Exp>(e,children);
+				}
+			}
+		}
+		return new Exp.FunctionExp(null, children, null);
+	}
 	/**
 	 * 执行文本
 	 * @param codes
@@ -176,13 +342,11 @@ public class Eval {
 	 * @return
 	 * @throws LocationException
 	 */
-	public static Object run(String codes,Node scope,char lineSplit) throws LocationException, Exception{
-        return ((Function)interpret(
-	        		parse(
-	        				s.util.threeQuote.Eval.tokenize(codes,lineSplit)
-	        		),
-	        		scope
-	        	)).exec(null);
+	public static Object run(String codes,Node<Object> scope,char lineSplit) throws LocationException, Exception{
+		Exp.FunctionExp	exp=parse(
+			s.util.threeQuote.Eval.tokenize(codes,lineSplit)
+		);
+        return (new Function.UserFunction(exp,scope)).exec(null);
 	}
 	/**
 	 * 主要是控制台使用
@@ -194,10 +358,12 @@ public class Eval {
 	 * @throws Exception
 	 */
 	public static Object run(String codes,QueueRun qr,char lineSplit) throws LocationException, Exception {
-		LBracketsExp lbe=parse(s.util.threeQuote.Eval.tokenize(codes,lineSplit));
+		Exp.FunctionExp lbe=parse(
+			s.util.threeQuote.Eval.tokenize(codes,lineSplit)
+		);
 		Object r=null;
-		for(Node t=lbe.Children();t!=null;t=t.Rest()) {
-			r=qr.run((Exp)t.First());
+		for(Node<Exp> t=lbe.Children();t!=null;t=t.Rest()) {
+			r=qr.run(t.First());
 		}
 		return r;
 	}
@@ -239,11 +405,11 @@ public class Eval {
 			}
 			return c_path;
 	 }
-	 public static Object run(final String path,final Node library) throws Exception{
+	 public static Object run(final String path,final Node<Object> library) throws Exception{
 		 String codes=mb.Util.readTxt(path, "\n", "UTF-8");
-		 Node pkg=Library.kvs_extend("calculate-path", new Function() {
+		 Node<Object> pkg=Library.kvs_extend("calculate-path", new Function() {
 			@Override
-			public Object exec(Node node) throws Exception {
+			public Object exec(Node<Object> node) throws Exception {
 				// TODO Auto-generated method stub
 				return calculate_path(path,(String)node.First());
 			}
@@ -256,7 +422,7 @@ public class Eval {
 		 },library);
 		 pkg=Library.kvs_extend("load", new Function() {
 			@Override
-			public Object exec(Node node) throws Exception{
+			public Object exec(Node<Object> node) throws Exception{
 				// TODO Auto-generated method stub
 				String c_path=(String)node.First();
 				if(c_path==null) {

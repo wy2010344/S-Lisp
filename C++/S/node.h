@@ -77,51 +77,56 @@ namespace s{
             }
             return x;
         }
+        string stringFromEscape(const string& v,const char split,const unsigned trans_time){
+            const unsigned old_size=v.size();
+            const unsigned size=old_size-trans_time;
+            char *buff=new char[size+1];
+            unsigned i=0;
+            unsigned ref=0;
+            while(ref<size){
+                char c=v[i];
+                if(c=='\\'){
+                    i++;
+                    c=v[i];
+                    if(c=='\\'){
+                        buff[ref]='\\';
+                    }else
+                    if(c==split){
+                        buff[ref]=split;
+                    }else{
+                        bool unfind=true;
+                        char x=trans_from_char(c,unfind);
+                        if(unfind){
+                            throw new DefinedException("非法转义"+v);
+                        }else{
+                            buff[ref]=x;
+                        }
+                    }
+                }else{
+                    buff[ref]=c;
+                }
+                ref++;
+                i++;
+            }
+            buff[size]='\0';
+            string r(buff);
+            delete [] buff;
+            return r;
+        }
         string stringFromEscape(const string& v,const char split){
             const unsigned old_size=v.size();
-            unsigned size=old_size;
+            unsigned trans_time=0;
             unsigned i=0;
             while(i<old_size){
                 char c=v[i];
                 if(c=='\\'){
-                    size--;
+                    trans_time++;
                     i++;
                 }
                 i++;
             }
-            if(size!=old_size){
-                char *buff=new char[size+1];
-                i=0;
-                unsigned ref=0;
-                while(ref<size){
-                    char c=v[i];
-                    if(c=='\\'){
-                        i++;
-                        c=v[i];
-                        if(c=='\\'){
-                            buff[ref]='\\';
-                        }else
-                        if(c==split){
-                            buff[ref]=split;
-                        }else{
-                            bool unfind=true;
-                            char x=trans_from_char(c,unfind);
-                            if(unfind){
-                                throw new DefinedException("非法转义"+v);
-                            }else{
-                                buff[ref]=x;
-                            }
-                        }
-                    }else{
-                        buff[ref]=c;
-                    }
-                    ref++;
-                    i++;
-                }
-                buff[size]='\0';
-                string r(buff);
-                delete [] buff;
-                return r;
+            if(trans_time!=0){
+                stringFromEscape(v,split,trans_time);
             }else{
                 return v;
             }
@@ -211,6 +216,8 @@ namespace s{
     private:
         static int addsize;//增加的
         static int subsize;//减少的
+        static int last_addsize;//上一次的减少
+        static int last_subsize;//上一次的增加
     public:
         static gc::LNode* lnode;
         /*回收*/
@@ -226,7 +233,15 @@ namespace s{
             }
         }
         static void print_node(){
-            cout<<"合计新增:"<<Base::addsize<<"  合计减少:"<<Base::subsize<<"  生存数量:"<<(Base::addsize-Base::subsize)<<endl;
+            int add=Base::addsize-Base::last_addsize;
+            int sub=Base::subsize-Base::last_subsize;
+            cout<<"本次新增:"<<add<<" ";
+            cout<<"本次减少:"<<sub<<" ";
+            cout<<"本次净增:"<<(add-sub)<<" ";
+            cout<<"生存数量:"<<(Base::addsize-Base::subsize)<<" ";
+            cout<<endl;   
+            Base::last_addsize=Base::addsize;
+            Base::last_subsize=Base::subsize;
         }
         int id;
         static void add_to_link(Base * b){
@@ -331,6 +346,8 @@ namespace s{
 #ifdef DEBUG
     int Base::addsize=0;
     int Base::subsize=0;
+    int Base::last_addsize=0;
+    int Base::last_subsize=0;
     gc::LNode* Base::lnode=NULL;
 #endif
     enum Function_type{

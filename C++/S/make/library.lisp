@@ -7,16 +7,20 @@
 		(not (apply = args))
 	}
 	empty-fun {}
+	`
 	default {
 		(let (a dv) args)
 		(if (exist? a) a dv)
 	}
+	`
+	`
 	if-run {
 		(let (a b c) args)
 		(let c  (default c empty-fun))
 		(let run (if a b c))
 		(run)
 	}
+	`
 	`偏移量，从0开始`
 	offset {
 		(let (list i) args offset this)

@@ -3,7 +3,7 @@
 namespace s{
     void print(BracketExp *x,int indent)
     {
-        for(Node *tmp=x->Cache();tmp!=NULL;tmp=tmp->Rest()){
+        for(Node *tmp=x->Children();tmp!=NULL;tmp=tmp->Rest()){
             Exp * e=static_cast<Exp*>(tmp->First());
             for(int i=0;i<indent;i++)
             {

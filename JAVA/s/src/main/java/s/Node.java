@@ -1,7 +1,7 @@
 package s;
 
-public class Node {
-	public Node(Object v,Node n) {
+public class Node<T> {
+	public Node(T v,Node<T> n) {
 		this.value=v;
 		this.next=n;
 		if(n!=null) {
@@ -14,10 +14,10 @@ public class Node {
 	public int Length() {
 		return length;
 	}
-	private Object value;
-	private Node next;
-	public Object First() {return value;}
-	public Node Rest() {return next;}
+	private T value;
+	private Node<T> next;
+	public T First() {return value;}
+	public Node<T> Rest() {return next;}
 
 	//不换行，默认
 	@Override
@@ -36,7 +36,7 @@ public class Node {
 	//嵌套不换行
 	public void toString(StringBuilder sb) {
 		sb.append("[ ");
-		for(Node t=this;t!=null;t=t.next) {
+		for(Node<T> t=this;t!=null;t=t.next) {
 			if(t.value==null) {
 				sb.append("[]");
 			}else
@@ -88,7 +88,7 @@ public class Node {
 		Exp.repeat(sb,indent);
 		sb.append("[");
 		sb.append("\n");
-		for(Node t=this;t!=null;t=t.next) {
+		for(Node<T> t=this;t!=null;t=t.next) {
 			if(t.value==null) {
 				Exp.repeat(sb,indent+1);
 				sb.append("null");

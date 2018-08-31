@@ -38,7 +38,7 @@ namespace s{
     				tokenize_ID(txt,length,rest,flag);
     			}
     		}
-    		return list::reverseAndDelete(rest);
+    		return rest;
     	}
     	void tokenize_split(
     		const string &txt,
@@ -51,10 +51,14 @@ namespace s{
     		bool unbreak=true;
             flag++;
             unsigned start=flag;
+            unsigned trans_time=0;
     		while((flag<length) && unbreak){
     			char c=txt[flag];
     			if(c==split){
-    				string stre=str::stringFromEscape(txt.substr(start,flag-start),split);
+                    string stre=txt.substr(start,flag-start);
+                    if(trans_time!=0){
+                        stre=str::stringFromEscape(stre,split,trans_time);
+                    }
     				rest=new Node(
                         new Token(stre,type,start-1),
                         rest
@@ -63,13 +67,14 @@ namespace s{
     				unbreak=false;
     			}else{
 	    			if(c=='\\'){
+                        trans_time++;
 	    				flag++;
 	    			}
 	    			flag++;
     			}
     		}
     		if(unbreak){
-    			throw DefinedException("超出范围");
+    			throw new DefinedException("超出范围");
     		}
     	}
 

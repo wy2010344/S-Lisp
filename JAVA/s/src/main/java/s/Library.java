@@ -5,25 +5,16 @@ public class Library {
 		public abstract void write(String text);
 		public abstract String read(String title,String init);
 	}
-    
-    /*结合成列表*/
-    public static Node make_list(Object ...args) {
-    	Node r=null;
-    	for(int i=args.length-1;i>-1;i--) {
-    		r=new Node(args[i],r);
-    	}
-    	return r;
-    }
     /*反转*/
-    public static Node reverse(Node node) {
-    	Node r=null;
-    	for(Node t=node;t!=null;t=t.Rest()) {
-    		r=new Node(t.First(),r);
+    public static <T> Node<T> reverse(Node<T> node) {
+    	Node<T> r=null;
+    	for(Node<T> t=node;t!=null;t=t.Rest()) {
+    		r=new Node<T>(t.First(),r);
     	}
     	return r;
     }
-    public static void log(Node node,Console c) {
-    	for(Node tmp=node;tmp!=null;tmp=tmp.Rest()) {
+    public static void log(Node<Object> node,Console c) {
+    	for(Node<Object> tmp=node;tmp!=null;tmp=tmp.Rest()) {
     		c.write(tmp.First().toString());
     		c.write(" ");
     	}
@@ -31,11 +22,11 @@ public class Library {
     }
     
     //直接用kvs作字典，性能更高
-    public static Object kvs_find1st(Node kvs,String key) {
+    public static Object kvs_find1st(Node<Object> kvs,String key) {
     	if(kvs==null) {
     		return null;
     	}else {
-    		Node r_kvs=kvs.Rest();
+    		Node<Object> r_kvs=kvs.Rest();
     		if(r_kvs==null) {
     			System.out.println("as");
     		}
@@ -46,8 +37,8 @@ public class Library {
     		}
     	}
     }
-    public static Node kvs_extend(String key,Object value,Node kvs) {
-    	return new Node(key,new Node(value,kvs));
+    public static Node<Object> kvs_extend(String key,Object value,Node<Object> kvs) {
+    	return new Node<Object>(key,new Node<Object>(value,kvs));
     }
     /*
     //寻找第一个定义
@@ -85,10 +76,4 @@ public class Library {
 		return reverse(map);//顺序反转，保证最前的是最新的。
     }
     */
-	
-    Node m=null;
-    Library def(String key,Object value) {
-    	m=kvs_extend(key,value,m);
-    	return this;
-    }
 }

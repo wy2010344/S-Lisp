@@ -12,26 +12,26 @@ public interface Function {
 	 * @return
 	 * @throws Exception
 	 */
-	public Object exec(Node node) throws Exception;
+	public Object exec(Node<Object> node) throws Exception;
 	public Type ftype();
 	public static class UserFunction implements Function{
 		
-		public UserFunction(Exp.LBracketsExp exp,Node parentScope) {
+		public UserFunction(Exp.FunctionExp exp,Node<Object> parentScope) {
 			this.parentScope=parentScope;
 			this.exp=exp;
 		}
-		protected Node parentScope;
-		Exp.LBracketsExp exp;
+		protected Node<Object> parentScope;
+		Exp.FunctionExp exp;
 		/*node.Value(),node.Next().Value(),.....*/
 		@Override
-		public Object exec(Node node) throws Exception {
+		public Object exec(Node<Object> node) throws Exception {
 			// TODO Auto-generated method stub
-			Node scope=Library.kvs_extend("args", node,parentScope);
+			Node<Object> scope=Library.kvs_extend("args", node,parentScope);
 			scope=Library.kvs_extend("this",this,scope);
 			QueueRun qr=new QueueRun(scope);
 			Object r=null;
-			for(Node tmp=exp.Children();tmp!=null;tmp=tmp.Rest()) {
-				Exp x=(Exp)tmp.First();
+			for(Node<Exp> tmp=exp.Children();tmp!=null;tmp=tmp.Rest()) {
+				Exp x=tmp.First();
 				r=qr.run(x);
 			}
 			return r;

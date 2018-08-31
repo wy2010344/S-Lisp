@@ -65,6 +65,112 @@
             "
         ]
     ]
+
+
+    and [
+        cpp [
+            run "
+                bool init=true;
+                Node *t=args;
+                while(t!=NULL && init){
+                    Bool *b=static_cast<Bool*>(t->First());
+                    init=b->Value();
+                    t=t->Rest();
+                }
+                if(init){
+                    return Bool::True;
+                }else{
+                    return Bool::False;
+                }
+            "
+        ]
+    ]
+
+    or [
+        cpp [
+            run "
+                bool init=false;
+                Node *t=args;
+                while(t!=NULL && (!init)){
+                    Bool *b=static_cast<Bool*>(t->First());
+                    init=b->Value();
+                    t=t->Rest();
+                }
+                if(init){
+                    return Bool::True;
+                }else{
+                    return Bool::False;
+                }
+            "
+        ]
+    ]
+
+    not [
+        cpp [
+            run "
+                Bool *b=static_cast<Bool*>(args->First());
+                if(b->Value()){
+                    return Bool::False;
+                }else{
+                    return Bool::True;
+                }
+            "
+        ]
+    ]
+
+    str-reduce-left [
+        cpp [
+            run "
+                String * stre=static_cast<String*>(args->First());
+                args=args->Rest();
+                Function * f=static_cast<Function*>(args->First());
+                args=args->Rest();
+                Base * init=args->First();
+                unsigned size=stre->StdStr().size();
+                for(unsigned i=0;i<size;i++){
+                    char c[]={stre->StdStr()[i],'\\0'};
+                    String *cs=new String(string(c));
+                    Int* is=new Int(i);
+                    Node *targs=new Node(init,new Node(cs,new Node(is,NULL)));
+                    targs->retain();
+                    Base *new_init=f->exec(targs);
+                    targs->release();
+                    if(new_init!=NULL){
+                        new_init->eval_release();
+                    }
+                    init=new_init;
+                }
+                return init;
+            "
+        ]
+    ]
+    `参考str-reduce-left`
+    str-reduce-right [
+        cpp [
+            run "
+                String * stre=static_cast<String*>(args->First());
+                args=args->Rest();
+                Function * f=static_cast<Function*>(args->First());
+                args=args->Rest();
+                Base * init=args->First();
+                unsigned size=stre->StdStr().size();
+                for(unsigned i=size-1;i!=0;i--){
+                    char c[]={stre->StdStr()[i],'\\0'};
+                    String *cs=new String(string(c));
+                    Int* is=new Int(i);
+                    Node *targs=new Node(init,new Node(cs,new Node(is,NULL)));
+                    targs->retain();
+                    Base *new_init=f->exec(targs);
+                    targs->release();
+                    if(new_init!=NULL){
+                        new_init->eval_release();
+                    }
+                    init=new_init;
+                }
+                return init;
+            "
+        ]
+    ]
 	`判断列表为空，应该只支持列表和空才对`
 	empty? [
 		cpp [

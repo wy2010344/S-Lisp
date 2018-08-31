@@ -465,6 +465,186 @@ namespace s{
             IsemptyFunc* IsemptyFunc::_in_=new IsemptyFunc();
             
 
+            class Str_reduce_rightFunc: public LibFunction {
+            private:
+                static Str_reduce_rightFunc * _in_;
+            public:    
+                static Str_reduce_rightFunc*instance(){
+                    return _in_;
+                }
+                string toString(){
+                    return "str-reduce-right";
+                }
+                Function_type ftype(){
+                    return Function_type::fBuildIn;
+                }
+            protected:
+                Base * run(Node * args){
+                    
+                String * stre=static_cast<String*>(args->First());
+                args=args->Rest();
+                Function * f=static_cast<Function*>(args->First());
+                args=args->Rest();
+                Base * init=args->First();
+                unsigned size=stre->StdStr().size();
+                for(unsigned i=size-1;i!=0;i--){
+                    char c[]={stre->StdStr()[i],'\0'};
+                    String *cs=new String(string(c));
+                    Int* is=new Int(i);
+                    Node *targs=new Node(init,new Node(cs,new Node(is,NULL)));
+                    targs->retain();
+                    Base *new_init=f->exec(targs);
+                    targs->release();
+                    if(new_init!=NULL){
+                        new_init->eval_release();
+                    }
+                    init=new_init;
+                }
+                return init;
+            
+                }
+            };
+            Str_reduce_rightFunc* Str_reduce_rightFunc::_in_=new Str_reduce_rightFunc();
+            
+
+            class Str_reduce_leftFunc: public LibFunction {
+            private:
+                static Str_reduce_leftFunc * _in_;
+            public:    
+                static Str_reduce_leftFunc*instance(){
+                    return _in_;
+                }
+                string toString(){
+                    return "str-reduce-left";
+                }
+                Function_type ftype(){
+                    return Function_type::fBuildIn;
+                }
+            protected:
+                Base * run(Node * args){
+                    
+                String * stre=static_cast<String*>(args->First());
+                args=args->Rest();
+                Function * f=static_cast<Function*>(args->First());
+                args=args->Rest();
+                Base * init=args->First();
+                unsigned size=stre->StdStr().size();
+                for(unsigned i=0;i<size;i++){
+                    char c[]={stre->StdStr()[i],'\0'};
+                    String *cs=new String(string(c));
+                    Int* is=new Int(i);
+                    Node *targs=new Node(init,new Node(cs,new Node(is,NULL)));
+                    targs->retain();
+                    Base *new_init=f->exec(targs);
+                    targs->release();
+                    if(new_init!=NULL){
+                        new_init->eval_release();
+                    }
+                    init=new_init;
+                }
+                return init;
+            
+                }
+            };
+            Str_reduce_leftFunc* Str_reduce_leftFunc::_in_=new Str_reduce_leftFunc();
+            
+
+            class NotFunc: public LibFunction {
+            private:
+                static NotFunc * _in_;
+            public:    
+                static NotFunc*instance(){
+                    return _in_;
+                }
+                string toString(){
+                    return "not";
+                }
+                Function_type ftype(){
+                    return Function_type::fBuildIn;
+                }
+            protected:
+                Base * run(Node * args){
+                    
+                Bool *b=static_cast<Bool*>(args->First());
+                if(b->Value()){
+                    return Bool::False;
+                }else{
+                    return Bool::True;
+                }
+            
+                }
+            };
+            NotFunc* NotFunc::_in_=new NotFunc();
+            
+
+            class OrFunc: public LibFunction {
+            private:
+                static OrFunc * _in_;
+            public:    
+                static OrFunc*instance(){
+                    return _in_;
+                }
+                string toString(){
+                    return "or";
+                }
+                Function_type ftype(){
+                    return Function_type::fBuildIn;
+                }
+            protected:
+                Base * run(Node * args){
+                    
+                bool init=false;
+                Node *t=args;
+                while(t!=NULL && (!init)){
+                    Bool *b=static_cast<Bool*>(t->First());
+                    init=b->Value();
+                    t=t->Rest();
+                }
+                if(init){
+                    return Bool::True;
+                }else{
+                    return Bool::False;
+                }
+            
+                }
+            };
+            OrFunc* OrFunc::_in_=new OrFunc();
+            
+
+            class AndFunc: public LibFunction {
+            private:
+                static AndFunc * _in_;
+            public:    
+                static AndFunc*instance(){
+                    return _in_;
+                }
+                string toString(){
+                    return "and";
+                }
+                Function_type ftype(){
+                    return Function_type::fBuildIn;
+                }
+            protected:
+                Base * run(Node * args){
+                    
+                bool init=true;
+                Node *t=args;
+                while(t!=NULL && init){
+                    Bool *b=static_cast<Bool*>(t->First());
+                    init=b->Value();
+                    t=t->Rest();
+                }
+                if(init){
+                    return Bool::True;
+                }else{
+                    return Bool::False;
+                }
+            
+                }
+            };
+            AndFunc* AndFunc::_in_=new AndFunc();
+            
+
             class SubFunc: public LibFunction {
             private:
                 static SubFunc * _in_;
@@ -655,6 +835,11 @@ namespace s{
             m=kvs::extend("log",LogFunc::instance(),m);
             m=kvs::extend("exist?",IsexistFunc::instance(),m);
             m=kvs::extend("empty?",IsemptyFunc::instance(),m);
+            m=kvs::extend("str-reduce-right",Str_reduce_rightFunc::instance(),m);
+            m=kvs::extend("str-reduce-left",Str_reduce_leftFunc::instance(),m);
+            m=kvs::extend("not",NotFunc::instance(),m);
+            m=kvs::extend("or",OrFunc::instance(),m);
+            m=kvs::extend("and",AndFunc::instance(),m);
             m=kvs::extend("-",SubFunc::instance(),m);
             m=kvs::extend("+",AddFunc::instance(),m);
             m=kvs::extend("retain-count",Retain_countFunc::instance(),m);

@@ -8,7 +8,7 @@
 #endif
 
 #include"./tokenize/tokenize.h"
-#include"./tree.h"
+#include"./parse/parse.h"
 #include "./interpret.h"
 #include "./load.h"
 namespace s{
@@ -89,10 +89,10 @@ namespace s{
                             r->retain();
                             r->release();
                         }
-
-                        Base::print_node();
                         exp->release();
                         tokens->release();
+                        Base::print_node();
+                        
                         cache="";
                         cout<<endl;
                     }

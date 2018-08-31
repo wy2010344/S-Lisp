@@ -1,13 +1,37 @@
 package s.util.threeQuote;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import s.LocationException;
 import s.util.Code;
 import s.util.Location;
 
 public class Eval {
+	
+	static String trans_str(String s,Character end,int trans_time,Location loc) throws LocationException {
+		int i=0,size=s.length();
+		StringBuilder sb=new StringBuilder();
+		while(i<size) {
+			Character c=s.charAt(i);
+			if(c=='\\') {
+				i++;
+				c=s.charAt(i);
+				if(c==end) {
+					sb.append(end);
+				}else {
+		    		Character x=mb.Util.trans_from_char(c);
+		    		if(x!=null) {
+		    			sb.append(x);
+		    		}else {
+		        		System.out.println(sb.toString());
+		        		throw new LocationException("非法转义字符"+c+"在字符串:"+s,loc);
+		    		}
+				}
+			}else {
+				sb.append(c);
+			}
+			i++;
+		}
+		return sb.toString();
+	}
     /**
      * 解析字符串、注释
      * @param code
@@ -16,32 +40,18 @@ public class Eval {
      * @throws LocationException 
      */
     static String parseStr(Code code,char end) throws LocationException{
+        Location loc=code.currentLoc();
         code.shift();
+        int start=code.index();
         boolean nobreak=true;
-        StringBuilder sb=new StringBuilder();
+        int trans_time=0;
         while(code.current()!=null && nobreak){
             if(code.current()==end){
                 nobreak=false;
             }else{
                 if(code.current()=='\\'){
                 	code.shift();
-                	if(code.current()==end) {
-                		//添加普通转义符
-                		sb.append(end);
-                	}else 
-                	if(code.current()=='\\'){
-                		sb.append("\\");
-                	}else {
-                		Character c=mb.Util.trans_from_char(code.current());
-                		if(c!=null) {
-                			sb.append(c);
-                		}else {
-                    		System.out.println(sb.toString());
-                    		throw new LocationException("非法转义字符"+code.current()+"在位置:"+code.currentLoc().toString(),code.currentLoc());
-                		}
-                	}
-                }else{
-                	sb.append(code.current());
+                	trans_time++;
                 }
                 code.shift();
             }
@@ -49,8 +59,12 @@ public class Eval {
         if(code.current()==null){
             throw code.msgThrow(end);
         }else{
+        	String s=code.substr(start, code.index()-start);
+        	if(trans_time!=0) {
+        		s=trans_str(s,end,trans_time,loc);
+        	}
             code.shift();
-            return sb.toString();
+            return s;
         }
     }
     
@@ -110,62 +124,63 @@ public class Eval {
         }
         return ret;
     }
-    public static List<Token> tokenize(String codes,char lineSplit) throws LocationException{
+    public static s.Node<Token> tokenize(String codes,char lineSplit) throws LocationException{
         Code code=new Code(codes,lineSplit);
-        ArrayList<Token> tokens=new ArrayList<Token>();
+        s.Node<Token> tokens=null;
         while(code.current()!=null){
             if(Character.isWhitespace(code.current())){
-                while(code.current()!=null && Character.isWhitespace(code.current())){
-                    code.shift();
-                }
+            	code.shift();
             }else
             if(code.current()=='"'){
                 //字符串
                 Location loc=code.currentLoc();
                 String s=parseStr(code,'"');
                 loc.setLength(s.length()+2);
-                tokens.add(new Token(s,loc,Token.Type.Str));
+                tokens=new s.Node<Token>(new Token(s,loc,Token.Type.Str),tokens);
             }else
             if(code.current()=='`'){
                 //注释
                 Location loc=code.currentLoc();
                 String s=parseStr(code,'`');
                 loc.setLength(s.length()+2);
-                tokens.add(new Token(s,loc,Token.Type.Comment));
+                tokens=new s.Node<Token>(new Token(s,loc,Token.Type.Comment),tokens);
                 //不处理
             }else
             if(has(code.current(),brackets_in)){
                 //([{
                 Location loc=code.currentLoc();
                 loc.setLength(1);
-                tokens.add(new Token(code.current()+"",loc,Token.Type.BraL));
+                tokens=new s.Node<Token>(new Token(code.current()+"",loc,Token.Type.BraL),tokens);
                 code.shift();
             }else
             if(has(code.current(),brackets_out)){
                 //)]}
                 Location loc=code.currentLoc();
                 loc.setLength(1);
-                tokens.add(new Token(code.current()+"",loc,Token.Type.BraR));
+                tokens=new s.Node<Token>(new Token(code.current()+"",loc,Token.Type.BraR),tokens);
                 code.shift();
             }else
             {
                 //id
                 Location loc=code.currentLoc();
-                StringBuilder sb=new StringBuilder();
+                int start=code.index();
                 while(code.current()!=null && isNotEnd(code.current())){
-                    sb.append(code.current());
                     code.shift();
                 }
-                String s=sb.toString();
+                String s=code.substr(start, code.index()-start);
                 loc.setLength(s.length());
             	//长度超过1
                 if(s.charAt(0)=='\'' && s.length()!=1){
                     //转义
-                	s=s.substring(1);
-                    tokens.add(new Token(s,loc,Token.Type.Quote));
+                    if(s.length()==1){
+                        code.msgThrow('\'');
+                    }else{
+                        s=s.substring(1);
+                        tokens=new s.Node<Token>(new Token(s,loc,Token.Type.Quote),tokens);
+                    }
                 }else
                 if((!s.equals("-"))&&isInt(s)){
-                    tokens.add(new Token(s,loc,Token.Type.Int));
+                    tokens=new s.Node<Token>(new Token(s,loc,Token.Type.Int),tokens);
                 }else
                 /*
                 if(isFloat(s)){
@@ -174,10 +189,13 @@ public class Eval {
                 else
                 */
                 {
-                	tokens.add(new Token(s,loc,Token.Type.Id));
+                	tokens=new s.Node<Token>(new Token(s,loc,Token.Type.Id),tokens);
                 }
             }
         }
+        /*
+         *因为没有翻转，与文章完全相反 
+         */
         return tokens;
     }
 }

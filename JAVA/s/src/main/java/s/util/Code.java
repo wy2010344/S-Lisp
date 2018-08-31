@@ -8,17 +8,17 @@ public class Code {
     private final char split;
     public Code(String code,char linesplit){
     	this.code=code;
-        maxLength=code.length()-1;
+        maxLength=code.length();
         split=linesplit;
         shift();
     }
-    private int index=-1;
+    private int flag=-1;
     private int row=0,col=0;
     private Character c;
     public void shift(){
-        if(index<maxLength){
-            index++;
-            c=code.charAt(index);
+        flag++;
+        if(flag<maxLength){
+            c=code.charAt(flag);
             if(c==split){
                 col=0;
                 row++;
@@ -29,11 +29,20 @@ public class Code {
             c=null;
         }
     }
+    public int index() {
+    	return flag;
+    }
+    public int length() {
+    	return maxLength;
+    }
+    public String substr(int start,int size) {
+    	return code.substring(start, start+size);
+    }
     public Character current(){
         return c;
     }
     public Location currentLoc(){
-        return new Location(row,col,index);
+        return new Location(row,col,flag);
     }
     public LocationException msgThrow(){
         return msgThrow(null);

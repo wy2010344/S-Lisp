@@ -1,7 +1,6 @@
 #pragma once
 #include "./library/better.h"
 namespace s{
-    Base *interpret(Exp* e,Node * scope);
     //为了支持控制台
     class QueueRun{
         bool iswait(const string & x){
@@ -39,7 +38,7 @@ namespace s{
         }
         Node* bracket_match(Node * scope,Exp * key,Node *vas){
             BracketExp * sq=static_cast<BracketExp *>(key);
-            Node *xs=sq->Cache();
+            Node *xs=sq->Children();
             while (xs!=NULL) {
                 Exp * x=static_cast<Exp *>(xs->First());
                 const string &vk=x->Value();
@@ -152,11 +151,11 @@ namespace s{
         Base* run(Exp * e){
             if(e->Type()==parse::Type::Small){
                 BracketExp *be=static_cast<BracketExp *>(e);
-                if (be->Cache()!=NULL) {
-                    Exp *t=static_cast<Exp *>(be->Cache()->First());
+                if (be->Children()!=NULL) {
+                    Exp *t=static_cast<Exp *>(be->Children()->First());
                     if (t->Type()==parse::Type::Id && t->Value()=="let") {
                         //let表达式
-                        Node *rst=be->Cache()->Rest();
+                        Node *rst=be->Children()->Rest();
                         while (rst!=NULL) {
                             Exp *key=static_cast<Exp*>(rst->First());
                             rst=rst->Rest();
@@ -176,11 +175,46 @@ namespace s{
                 return interpret(e, scope);
             }
         }
+        /*(b a log)*/
+        Node * calNode(Node * list,Node * scope)
+        {
+            Node * r=NULL;
+            for(Node * x=list;x!=NULL;x=x->Rest())
+            {
+                Exp *xe=static_cast<Exp *>(x->First());
+                Base *xv=interpret(xe,scope);
+                r=new Node(xv,r);
+            }
+            return r;
+            //return list::reverseAndDelete(r);
+        }
+        LocationException* call_exception(string msg,BracketExp * exp,Node * children,Node * scope)
+        {
+            msg=msg+"\n"+exp->toString()+"\n"+children->toString()+"\n";
+            //cout<<"出现异常:"<<msg<<"在位置:"<<exp->Index()<<endl;
+            children->release();
+            /*
+            scope->retain();
+            scope->release();
+            */
+            return new LocationException(msg,exp->Index());
+        }
+        Base * exec(Function* func,Node *rst,Node *children){
+            /*函数的计算结果默认是+1的*/
+            Base *b=func->exec(rst);
+            children->release();
+            if (b!=NULL) {
+                //在计算结果时伪销毁。
+                b->eval_release();
+            }
+            return b;
+        }
+        Base *interpret(Exp* e,Node * scope);
     public:
         QueueRun(Node * & scope):scope(scope){}
         Base * exec(BracketExp *exp){
             Base * ret=NULL;
-            for (Node * tmp=exp->Cache(); tmp!=NULL; tmp=tmp->Rest()) {
+            for (Node * tmp=exp->Children(); tmp!=NULL; tmp=tmp->Rest()) {
                 if(ret!=NULL)
                 {
                     //上一次的计算结果，未加到作用域
@@ -234,42 +268,8 @@ namespace s{
             return qr.exec(exp);
         }
     };
-    Node * calNode(Node * list,Node * scope)
-    {
-        Node * r=NULL;
-        for(Node * x=list;x!=NULL;x=x->Rest())
-        {
-            Exp *xe=static_cast<Exp *>(x->First());
-            Base *xv=interpret(xe,scope);
-            r=new Node(xv,r);
-        }
-        return list::reverseAndDelete(r);
-    }
-    LocationException* call_exception(string msg,BracketExp * exp,Node * children,Node * scope)
-    {
-        msg=msg+"\n"+exp->toString()+"\n"+children->toString()+"\n";
-        //cout<<"出现异常:"<<msg<<"在位置:"<<exp->Index()<<endl;
-        children->release();
-        /*
-        scope->retain();
-        scope->release();
-        */
-        return new LocationException(msg,exp->Index());
-    }
-    Base * exec(Function* func,Node *rst,Node *children){
-        /*函数的计算结果默认是+1的*/
-        Base *b=func->exec(rst);
-        children->release();
-        if (b!=NULL) {
-            //在计算结果时伪销毁。
-            b->eval_release();
-        }
-        return b;
-    }
-    Base *interpret(Exp* e,Node * scope)
-    {
-        if(e->isBracket())
-        {
+    Base *QueueRun::interpret(Exp* e,Node * scope){
+        if(e->isBracket()){
             /*
              *scope可能作为父作用域，避免被销毁
              */
@@ -279,7 +279,7 @@ namespace s{
             if(be->Type()==parse::Type::Small)
             {
                 //小括号
-                Node * children=calNode(be->Cache(),scope);
+                Node * children=calNode(be->R_children(),scope);
                 children->retain();
                 Base* first=children->First();
                 Function * func=static_cast<Function*>(first);
@@ -311,7 +311,7 @@ namespace s{
             if(be->Type()==parse::Type::Medium)
             {
                 //中括号
-                b=calNode(be->Cache(),scope);
+                b=calNode(be->R_children(),scope);
             }else
             if(be->Type()==parse::Type::Large)
             {

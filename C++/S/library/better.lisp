@@ -19,6 +19,11 @@
 			(first args)
 		}
 	]
+
+    != [
+
+    ]
+
     empty-fun [
         cpp [
             run "
@@ -65,6 +70,22 @@
             (let x (default (if a b c)))
             (x)
         }
+    ]
+
+    reduce-left [
+
+    ]
+
+    reduce-right [
+
+    ]
+
+    kvs-reduce-left [
+
+    ]
+
+    kvs-reduce-right [
+
     ]
 	kvs-find1st [
 		cpp [

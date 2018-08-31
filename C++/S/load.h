@@ -8,7 +8,7 @@
 #endif
 #include<string>
 #include"./tokenize/tokenize.h"
-#include"./tree.h"
+#include"./parse/parse.h"
 #include "./interpret.h"
 using namespace std;
 namespace s{
@@ -187,6 +187,7 @@ namespace s{
             baseScope=kvs::extend(key,value,baseScope);
         }
         cscope->eval_release();
+        Node::print_node();
         return baseScope;
     }
     void logException(Exception* e){
