@@ -135,6 +135,22 @@
 			{e}
 		)
 	}
+	
+	reverse-join {
+		(reduce args
+			{
+				(let (init xs i) args)
+				(reduce xs
+					{
+						(let (init x i) args)
+						(extend x init)
+					}
+					init
+				)
+			}
+			[]
+		)
+	}
 )
 
 [
@@ -268,6 +284,69 @@
 			}
 		)
 	})
+	
+	sort {
+		`run flag v =0 <0 >0`
+		(let (xs run) args sort this)
+		(if-run (exist? xs)
+			{
+				(let (x ...xs) xs)
+				(if-run (empty? xs)
+					{
+						`只有一个元素`
+						(list x)
+					}
+					{
+						`有别的元素`
+						(let (smallers eqs largers ) 
+								(reduce xs
+									{
+										(let ((smallers eqs largers) v i) args)
+										(let c (run x v))
+										(if-run (= 0 c)
+											{
+												(list
+													smallers
+													(extend v eqs)
+													largers
+												)
+											}
+											{
+												(if-run (> 0 c)
+													{
+														(list
+															smallers
+															eqs
+															(extend v largers)
+														)
+													}
+													{
+														`<`
+														(list
+															(extend v smallers)
+															eqs
+															largers
+														)
+													}
+												)
+											}
+										)
+									}
+									(list [] [] [])
+								)
+						)
+						(reverse 
+							(reverse-join 
+								(sort smallers run)
+								(extend x eqs) 
+								(sort largers run)
+							)
+						)
+					}
+				)
+			}
+		)
+	}
 
 	kvs-map {
 		(let (kvs run) args)

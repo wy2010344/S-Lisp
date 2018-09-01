@@ -212,4 +212,58 @@ public class Util {
 		}
 		return x;
 	}
+	public static String string_from_trans(String s,Character end,int trans_time) throws Exception {
+		int i=0,size=s.length();
+		StringBuilder sb=new StringBuilder();
+		while(i<size) {
+			Character c=s.charAt(i);
+			if(c=='\\') {
+				i++;
+				c=s.charAt(i);
+				if(c=='\\') {
+					sb.append(c);
+				}else
+				if(c==end) {
+					sb.append(end);
+				}else {
+		    		Character x=mb.Util.trans_from_char(c);
+		    		if(x!=null) {
+		    			sb.append(x);
+		    		}else {
+		    			throw new Exception("非法转义字符"+c+"在字符串:"+s);
+		    		}
+				}
+			}else {
+				sb.append(c);
+			}
+			i++;
+		}
+		return sb.toString();
+	}
+    public static String string_to_trans(String v,Character end) {
+    	StringBuilder sb=new StringBuilder();
+    	sb.append(end);
+    	int len=v.length();
+    	int i=0;
+    	while(i<len) {
+    		char c=v.charAt(i);
+    		if(c=='\\') {
+    			sb.append("\\\\");
+    		}else
+    		if(c==end) {
+    			sb.append("\\").append(end);
+    		}else
+    		{
+    			Character x=mb.Util.trans_to_char(c);
+    			if(x!=null) {
+    				sb.append("\\").append(x);
+    			}else {
+    				sb.append(c);
+    			}
+    		}
+    		i++;
+    	}
+    	sb.append(end);
+    	return sb.toString();
+    }
 }

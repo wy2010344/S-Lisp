@@ -73,16 +73,7 @@ namespace s{
                 Base * run(Node * args){
                     
                 Base * f=args->First();
-                if(f==NULL){
-                    return Bool::False;
-                }else{
-                    if(dynamic_cast<Function*>(f)==NULL)
-                    {
-                        return Bool::False;
-                    }else{
-                        return Bool::True;
-                    }
-                }
+                return Bool::trans(f!=NULL && f->xtype()==Base_type::xFunction);
 			
                 }
             };
@@ -106,16 +97,8 @@ namespace s{
                 Base * run(Node * args){
                     
                 Base * f=args->First();
-                if(f==NULL){
-                    return Bool::False;
-                }else{
-                    if(dynamic_cast<Node*>(f)==NULL)
-                    {
-                        return Bool::False;
-                    }else{
-                        return Bool::True;
-                    }
-                }
+                //空也是列表，判断空用empty?或exist?
+                return Bool::trans(f==NULL || f->xtype()==Base_type::xList);
 			
                 }
             };
@@ -193,12 +176,7 @@ namespace s{
                 String *s1=static_cast<String*>(args->First());
                 args=args->Rest();
                 String *s2=static_cast<String*>(args->First());
-                if(s1->StdStr()==s2->StdStr())
-                {
-                    return Bool::True;
-                }else{
-                    return Bool::False;
-                }
+                return Bool::trans(s1->StdStr()==s2->StdStr());
 			
                 }
             };
@@ -223,11 +201,7 @@ namespace s{
                     
                 Base * a=args->First();
                 Base * b=args->Rest()->First();
-                if(a==b){
-                    return Bool::True;
-                }else{
-                    return Bool::False;
-                }
+                return Bool::trans(a==b);
             
                 }
             };
@@ -427,11 +401,7 @@ namespace s{
             protected:
                 Base * run(Node * args){
                     
-                if(args->First()==NULL){
-                    return Bool::False;
-                }else{
-                    return Bool::True;
-                }
+                return Bool::trans(args->First()!=NULL);
 			
                 }
             };
@@ -454,11 +424,7 @@ namespace s{
             protected:
                 Base * run(Node * args){
                     
-                if(args->First()==NULL){
-                    return Bool::True;
-                }else{
-                    return Bool::False;
-                }
+                return Bool::trans(args->First()==NULL);
 			
                 }
             };
@@ -566,11 +532,7 @@ namespace s{
                 Base * run(Node * args){
                     
                 Bool *b=static_cast<Bool*>(args->First());
-                if(b->Value()){
-                    return Bool::False;
-                }else{
-                    return Bool::True;
-                }
+                return Bool::trans(!b->Value());
             
                 }
             };
@@ -600,11 +562,7 @@ namespace s{
                     init=b->Value();
                     t=t->Rest();
                 }
-                if(init){
-                    return Bool::True;
-                }else{
-                    return Bool::False;
-                }
+                return Bool::trans(init);
             
                 }
             };
@@ -634,15 +592,107 @@ namespace s{
                     init=b->Value();
                     t=t->Rest();
                 }
-                if(init){
-                    return Bool::True;
-                }else{
-                    return Bool::False;
-                }
+                return Bool::trans(init);
             
                 }
             };
             AndFunc* AndFunc::_in_=new AndFunc();
+            
+
+            class MEqFunc: public LibFunction {
+            private:
+                static MEqFunc * _in_;
+            public:    
+                static MEqFunc*instance(){
+                    return _in_;
+                }
+                string toString(){
+                    return "=";
+                }
+                Function_type ftype(){
+                    return Function_type::fBuildIn;
+                }
+            protected:
+                Base * run(Node * args){
+                    
+                bool ret=true;
+                Int* last=static_cast<Int*>(args->First());
+                args=args->Rest();
+                while(args!=NULL && ret){
+                    Int* current=static_cast<Int*>(args->First());
+                    ret=(last->Value()==current->Value());
+                    last=current;
+                    args=args->Rest();
+                }
+                return Bool::trans(ret);
+            
+                }
+            };
+            MEqFunc* MEqFunc::_in_=new MEqFunc();
+            
+
+            class MSmallerFunc: public LibFunction {
+            private:
+                static MSmallerFunc * _in_;
+            public:    
+                static MSmallerFunc*instance(){
+                    return _in_;
+                }
+                string toString(){
+                    return "<";
+                }
+                Function_type ftype(){
+                    return Function_type::fBuildIn;
+                }
+            protected:
+                Base * run(Node * args){
+                    
+                bool ret=true;
+                Int* last=static_cast<Int*>(args->First());
+                args=args->Rest();
+                while(args!=NULL && ret){
+                    Int* current=static_cast<Int*>(args->First());
+                    ret=(last->Value()<current->Value());
+                    last=current;
+                    args=args->Rest();
+                }
+                return Bool::trans(ret);
+            
+                }
+            };
+            MSmallerFunc* MSmallerFunc::_in_=new MSmallerFunc();
+            
+
+            class MBiggerFunc: public LibFunction {
+            private:
+                static MBiggerFunc * _in_;
+            public:    
+                static MBiggerFunc*instance(){
+                    return _in_;
+                }
+                string toString(){
+                    return ">";
+                }
+                Function_type ftype(){
+                    return Function_type::fBuildIn;
+                }
+            protected:
+                Base * run(Node * args){
+                    
+                bool ret=true;
+                Int* last=static_cast<Int*>(args->First());
+                args=args->Rest();
+                while(args!=NULL && ret){
+                    Int* current=static_cast<Int*>(args->First());
+                    ret=(last->Value()>current->Value());
+                    last=current;
+                    args=args->Rest();
+                }
+                return Bool::trans(ret);
+            
+                }
+            };
+            MBiggerFunc* MBiggerFunc::_in_=new MBiggerFunc();
             
 
             class SubFunc: public LibFunction {
@@ -840,6 +890,9 @@ namespace s{
             m=kvs::extend("not",NotFunc::instance(),m);
             m=kvs::extend("or",OrFunc::instance(),m);
             m=kvs::extend("and",AndFunc::instance(),m);
+            m=kvs::extend("=",MEqFunc::instance(),m);
+            m=kvs::extend("<",MSmallerFunc::instance(),m);
+            m=kvs::extend(">",MBiggerFunc::instance(),m);
             m=kvs::extend("-",SubFunc::instance(),m);
             m=kvs::extend("+",AddFunc::instance(),m);
             m=kvs::extend("retain-count",Retain_countFunc::instance(),m);

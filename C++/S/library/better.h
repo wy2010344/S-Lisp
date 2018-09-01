@@ -59,6 +59,49 @@ namespace s{
             Kvs_find1stFunc* Kvs_find1stFunc::_in_=new Kvs_find1stFunc();
             
 
+            class ReduceFunc: public LibFunction {
+            private:
+                static ReduceFunc * _in_;
+            public:    
+                static ReduceFunc*instance(){
+                    return _in_;
+                }
+                string toString(){
+                    return "reduce";
+                }
+                Function_type ftype(){
+                    return Function_type::fBuildIn;
+                }
+            protected:
+                Base * run(Node * args){
+                    
+                Node *list=static_cast<Node*>(args->First());
+                args=args->Rest();
+                Function *f=static_cast<Function*>(args->First());
+                args=args->Rest();
+                Base * init=args->First();
+                int i=0;
+                while(list!=NULL){
+                    Base * x=list->First();
+                    Int *is=new Int(i);
+                    Node *nargs=new Node(init,new Node(x,new Node(is,NULL)));
+                    nargs->retain();
+                    Base* n_init=f->exec(nargs);
+                    nargs->release();
+                    if(n_init!=NULL){
+                        n_init->eval_release();
+                    }
+                    init=n_init;
+                    i++;
+                    list=list->Rest();
+                }
+                return init;
+            
+                }
+            };
+            ReduceFunc* ReduceFunc::_in_=new ReduceFunc();
+            
+
             class If_runFunc: public LibFunction {
             private:
                 static If_runFunc * _in_;
@@ -75,16 +118,24 @@ namespace s{
             protected:
                 Base * run(Node * args){
                     
-                Function * If=IfFunc::instance();
-                Base*  run=If->exec(args);
-                if(run!=NULL){
-                    Base * b=(static_cast<Function*>(run))->exec(NULL);
-                    run->release();/*从函数出来都加了1，release*/
-                    b->eval_release();/*从函数出来都加了1*/
-                    return b;
+                Bool * cond=static_cast<Bool*>(args->First());
+                args=args->Rest();
+                Function * trueR=static_cast<Function*>(args->First());
+                args=args->Rest();
+                Base * b=NULL;
+                if(cond->Value()){
+                    b=trueR->exec(NULL);
                 }else{
-                    return NULL;
+                    if(args!=NULL){
+                        Function *theF=static_cast<Function*>(args->First());
+                        b=theF->exec(NULL);
+                    }
                 }
+                /*从函数出来都加了1，release*/
+                if(b!=NULL){
+                    b->eval_release();
+                }
+                return b;
             
                 }
             };
@@ -144,6 +195,35 @@ namespace s{
             Empty_funFunc* Empty_funFunc::_in_=new Empty_funFunc();
             
 
+            class ReverseFunc: public LibFunction {
+            private:
+                static ReverseFunc * _in_;
+            public:    
+                static ReverseFunc*instance(){
+                    return _in_;
+                }
+                string toString(){
+                    return "reverse";
+                }
+                Function_type ftype(){
+                    return Function_type::fBuildIn;
+                }
+            protected:
+                Base * run(Node * args){
+                    
+                Node * list=static_cast<Node*>(args->First());
+                Node *r=NULL;
+                while(list!=NULL){
+                    r=new Node(list->First(),r);
+                    list=list->Rest();
+                }
+                return r;
+            
+                }
+            };
+            ReverseFunc* ReverseFunc::_in_=new ReverseFunc();
+            
+
             class QuoteFunc: public LibFunction {
             private:
                 static QuoteFunc * _in_;
@@ -194,9 +274,11 @@ namespace s{
             
             m=kvs::extend("kvs-extend",Kvs_extendFunc::instance(),m);
             m=kvs::extend("kvs-find1st",Kvs_find1stFunc::instance(),m);
+            m=kvs::extend("reduce",ReduceFunc::instance(),m);
             m=kvs::extend("if-run",If_runFunc::instance(),m);
             m=kvs::extend("default",DefaultFunc::instance(),m);
             m=kvs::extend("empty-fun",Empty_funFunc::instance(),m);
+            m=kvs::extend("reverse",ReverseFunc::instance(),m);
             m=kvs::extend("quote",QuoteFunc::instance(),m);
             m=kvs::extend("list",ListFunc::instance(),m);
             return m;

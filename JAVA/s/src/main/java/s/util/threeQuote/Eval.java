@@ -5,33 +5,6 @@ import s.util.Code;
 import s.util.Location;
 
 public class Eval {
-	
-	static String trans_str(String s,Character end,int trans_time,Location loc) throws LocationException {
-		int i=0,size=s.length();
-		StringBuilder sb=new StringBuilder();
-		while(i<size) {
-			Character c=s.charAt(i);
-			if(c=='\\') {
-				i++;
-				c=s.charAt(i);
-				if(c==end) {
-					sb.append(end);
-				}else {
-		    		Character x=mb.Util.trans_from_char(c);
-		    		if(x!=null) {
-		    			sb.append(x);
-		    		}else {
-		        		System.out.println(sb.toString());
-		        		throw new LocationException("非法转义字符"+c+"在字符串:"+s,loc);
-		    		}
-				}
-			}else {
-				sb.append(c);
-			}
-			i++;
-		}
-		return sb.toString();
-	}
     /**
      * 解析字符串、注释
      * @param code
@@ -61,7 +34,11 @@ public class Eval {
         }else{
         	String s=code.substr(start, code.index()-start);
         	if(trans_time!=0) {
-        		s=trans_str(s,end,trans_time,loc);
+        		try {
+        			s=mb.Util.string_from_trans(s, end, trans_time);
+        		}catch(Exception e){
+	        		throw new LocationException(e.getMessage(),loc);
+        		}
         	}
             code.shift();
             return s;

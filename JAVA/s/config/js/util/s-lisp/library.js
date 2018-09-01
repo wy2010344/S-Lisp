@@ -15,7 +15,7 @@
                 v="[]";
             }else
             if(v instanceof Java_String){
-                v=Exp.replaceQuote(v);
+                v=mb_Util.string_to_trans(v,mb.charAt('"',0));
             }else{
                 v=v.toString();
             }

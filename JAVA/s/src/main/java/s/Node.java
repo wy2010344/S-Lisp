@@ -62,7 +62,7 @@ public class Node<T> {
 				}
 			}else
 			if(t.value instanceof String){
-				sb.append(Exp.replaceQuote(t.value.toString()));
+				sb.append(mb.Util.string_to_trans(t.value.toString(),'"'));
 			}else
 			if(t.value instanceof Integer){				
 				sb.append(t.value);
@@ -101,7 +101,7 @@ public class Node<T> {
 			}else
 			if(t.value instanceof String){
 				Exp.repeat(sb,indent+1);
-				sb.append(Exp.replaceQuote(t.value.toString()));
+				sb.append(mb.Util.string_to_trans(t.value.toString(),'"'));
 			}else
 			if(t.value instanceof Integer){		
 				Exp.repeat(sb, indent+1);

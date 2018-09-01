@@ -134,7 +134,7 @@ namespace s{
         /*
         其实在S-Lisp中，只需要处理斜线转义和双引号转义，其它正常输入即可。
         */
-        string stringToEscape(const string& v,bool trans_other=true)
+        string stringToEscape(const string& v,char end,bool trans_other=true)
         {
             const unsigned old_size=v.size();
             unsigned size=v.size();
@@ -143,7 +143,7 @@ namespace s{
                 if(c=='\\'){
                     size+=1;
                 }else
-                if(c=='"'){
+                if(c==end){
                     size+=1;
                 }else
                 {
@@ -157,7 +157,7 @@ namespace s{
                 }
             }
             char *buff=new char[size+3];
-            buff[0]='"';
+            buff[0]=end;
             unsigned ref=1;
             unsigned i=0;
             while(i<old_size)
@@ -168,10 +168,10 @@ namespace s{
                     ref++;
                     buff[ref]='\\';
                 }else
-                if(c=='"'){
+                if(c==end){
                     buff[ref]='\\';
                     ref++;
-                    buff[ref]='"';
+                    buff[ref]=end;
                 }else
                 {
                     if(trans_other){
@@ -191,7 +191,7 @@ namespace s{
                 i++;
                 ref++;
             }
-            buff[size+1]='"';
+            buff[size+1]=end;
             buff[size+2]='\0';
             string r(buff);
             delete [] buff;
@@ -376,7 +376,7 @@ namespace s{
             return std_str;
         }
         string toString(){
-            return str::stringToEscape(std_str);
+            return str::stringToEscape(std_str,'"');
         }
         Base_type xtype(){
             return Base_type::xString;
@@ -507,6 +507,13 @@ namespace s{
         }
         static Bool * True;
         static Bool * False;
+        static Bool * trans(bool b){
+            if(b){
+                return Bool::True;
+            }else{
+                return Bool::False;
+            }
+        }
     };
     Bool * Bool::True=new Bool(true);
     Bool * Bool::False=new Bool(false);

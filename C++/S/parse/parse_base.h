@@ -40,7 +40,7 @@ namespace s{
             }else
             if(type==parse::Type::String)
             {
-                return str::stringToEscape(value);
+                return str::stringToEscape(value,'"');
             }else{
                 return value;
             }

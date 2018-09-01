@@ -22,29 +22,6 @@ public abstract class Exp {
             i++;
         }
     }
-    public static String replaceQuote(String v) {
-    	StringBuilder sb=new StringBuilder();
-    	sb.append("\"");
-    	for(int i=0;i<v.length();i++) {
-    		char c=v.charAt(i);
-    		if(c=='\\') {
-    			sb.append("\\\\");
-    		}else
-    		if(c=='"') {
-    			sb.append("\\\"");
-    		}else
-    		{
-    			Character x=mb.Util.trans_to_char(c);
-    			if(x!=null) {
-    				sb.append("\\").append(x);
-    			}else {
-    				sb.append(c);
-    			}
-    		}
-    	}
-    	sb.append("\"");
-    	return sb.toString();
-    }
     public BracketsExp parent;
     //不换行，组合
     protected abstract void toString(StringBuilder sb);
@@ -337,7 +314,7 @@ public abstract class Exp {
     			toString(sb,value,"","");
     		}else{
     			//默认字符串
-            	toString(sb,Exp.replaceQuote(value),"","");
+            	toString(sb,mb.Util.string_to_trans(value,'"'),"","");
     		}
 		}
 		@Override

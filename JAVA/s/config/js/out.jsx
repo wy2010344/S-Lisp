@@ -118,6 +118,12 @@ mb.log=(function(){
 mb.Exception=function(s){
     return new (Java.type("java.lang.Exception"))(s);
 };
+mb.charAt=(function(){
+    var me=ini.get("me");
+    return function(s,i){
+	    return me.charAt(s,i);
+	}
+})();
 mb.Object={
 	forEach:function(obj,func){
 		for(var key in obj){

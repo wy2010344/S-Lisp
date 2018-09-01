@@ -24,6 +24,25 @@
 
     ]
 
+    reverse [
+        cpp [
+            run "
+                Node * list=static_cast<Node*>(args->First());
+                Node *r=NULL;
+                while(list!=NULL){
+                    r=new Node(list->First(),r);
+                    list=list->Rest();
+                }
+                return r;
+            "
+        ]
+        `可以用lisp实现，有点麻烦的样子`
+        lisp_tmp {
+            (let (xs) args)
+            (let (x ...xs) xs)
+        }
+    ]
+
     empty-fun [
         cpp [
             run "
@@ -52,17 +71,26 @@
     ]   
     if-run [
         cpp [
+            `可以调用IfFunc，但中间retain\release次数比较多`
             run "
-                Function * If=IfFunc::instance();
-                Base*  run=If->exec(args);
-                if(run!=NULL){
-                    Base * b=(static_cast<Function*>(run))->exec(NULL);
-                    run->release();/*从函数出来都加了1，release*/
-                    b->eval_release();/*从函数出来都加了1*/
-                    return b;
+                Bool * cond=static_cast<Bool*>(args->First());
+                args=args->Rest();
+                Function * trueR=static_cast<Function*>(args->First());
+                args=args->Rest();
+                Base * b=NULL;
+                if(cond->Value()){
+                    b=trueR->exec(NULL);
                 }else{
-                    return NULL;
+                    if(args!=NULL){
+                        Function *theF=static_cast<Function*>(args->First());
+                        b=theF->exec(NULL);
+                    }
                 }
+                /*从函数出来都加了1，release*/
+                if(b!=NULL){
+                    b->eval_release();
+                }
+                return b;
             "
         ]
         lisp {
@@ -72,8 +100,33 @@
         }
     ]
 
-    reduce-left [
-
+    `就是reduce-left`
+    reduce [
+        cpp [
+            run "
+                Node *list=static_cast<Node*>(args->First());
+                args=args->Rest();
+                Function *f=static_cast<Function*>(args->First());
+                args=args->Rest();
+                Base * init=args->First();
+                int i=0;
+                while(list!=NULL){
+                    Base * x=list->First();
+                    Int *is=new Int(i);
+                    Node *nargs=new Node(init,new Node(x,new Node(is,NULL)));
+                    nargs->retain();
+                    Base* n_init=f->exec(nargs);
+                    nargs->release();
+                    if(n_init!=NULL){
+                        n_init->eval_release();
+                    }
+                    init=n_init;
+                    i++;
+                    list=list->Rest();
+                }
+                return init;
+            "
+        ]
     ]
 
     reduce-right [

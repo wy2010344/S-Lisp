@@ -155,14 +155,25 @@ namespace s{
                         (if-run (exist? cpp-run)
                             {
                                 (let key (transKey k))
+                                (let lispfun (kvs-path v [lisp]))
+                                (let (ftype toStr)
+                                    (if-run (exist? lispfun)
+                                        {
+                                            [fUser {(stringify lispfun)}]
+                                        }
+                                        {
+                                            [fBuildIn {k}]
+                                        }
+                                    )
+                                )
                                 (list
                                     (extend 
                                         (str-join 
                                             (build-cls 
                                                 key 
                                                 cpp-run 
-                                                'fUser
-                                                {(stringify (kvs-path v [lisp]))}
+                                                ftype
+                                                toStr
                                             )
                                         )
                                         cls

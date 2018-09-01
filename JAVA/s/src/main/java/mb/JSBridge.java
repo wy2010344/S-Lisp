@@ -115,6 +115,9 @@ public class JSBridge {
         first_run=false;
     }
     public static class Helper{
+    	public Character charAt(String string,int index) {
+    		return string.charAt(index);
+    	}
         public void saveText(String content,String path){
             try{
                 FileOutputStream fout=new FileOutputStream(path);

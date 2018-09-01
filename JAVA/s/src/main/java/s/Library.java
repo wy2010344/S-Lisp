@@ -28,7 +28,7 @@ public class Library {
     	}else {
     		Node<Object> r_kvs=kvs.Rest();
     		if(r_kvs==null) {
-    			System.out.println("as");
+    			System.out.println("as:"+key+":"+kvs.toString());
     		}
     		if(key.equals(kvs.First())) {
     			return r_kvs.First();
