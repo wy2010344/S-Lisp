@@ -22,7 +22,7 @@ namespace s{
             {
                 char c=txt[flag];
                 //开始
-                if(token::isBlank(c))
+                if(isBlank(c))
                 {
                     return tokenize(
                         txt,
@@ -31,7 +31,7 @@ namespace s{
                         rest
                      );
                 }else
-                if(token::isQuoteLeft(c))
+                if(isQuoteLeft(c))
                 {
                     char cs[2]={c,'\0'};
                     return tokenize(
@@ -39,12 +39,12 @@ namespace s{
                         length,
                         flag+1,
                         new Node(
-                            new Token(string(cs),token::Types::BracketLeft,flag),
+                            new Token(string(cs),Token::Token_BracketLeft,flag),
                             rest
                         )
                      );
                 }else
-                if(token::isQuoteRight(c))
+                if(isQuoteRight(c))
                 {
                     char cs[2]={c,'\0'};
                     return tokenize(
@@ -52,7 +52,7 @@ namespace s{
                         length,
                         flag+1,
                         new Node(
-                            new Token(string(cs),token::Types::BracketRight,flag),
+                            new Token(string(cs),Token::Token_BracketRight,flag),
                             rest
                         )
                      );
@@ -63,7 +63,7 @@ namespace s{
                         length,
                         flag+1,
                         '"',
-                        token::Types::Str,
+                        Token::Token_Str,
                         rest,
                         flag+1
                     );
@@ -77,7 +77,7 @@ namespace s{
                         length,
                         flag+1,
                         '`',
-                        token::Types::Comment,
+                        Token::Token_Comment,
                         rest,
                         flag+1
                     );
@@ -102,7 +102,7 @@ namespace s{
             const int length,
             const int flag,
             const char split,
-            const token::Types type,
+            const Types type,
             Node *rest,
             const int start)
         {
@@ -159,7 +159,7 @@ namespace s{
                 if(flag<length)
                 {
                     char c=txt[flag];
-                    if(!(token::isBlank(c)  ||token::isQuoteLeft(c) || token::isQuoteRight(c)))
+                    if(!(isBlank(c)  ||isQuoteLeft(c) || isQuoteRight(c)))
                     {
                         return tokenize_id(
                             txt,

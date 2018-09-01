@@ -2,14 +2,9 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>/*file*/
-#include "gc.h"
 using namespace std;
 
 namespace s{
-    enum E_Type{
-        Location,
-        Defined
-    };
     class Exception{
     private:
         string msg;
@@ -20,7 +15,11 @@ namespace s{
         string& Msg(){
             return msg;
         }
-        virtual E_Type type()=0;
+        enum Exception_Type{
+            Exception_Location,
+            Exception_Defined
+        };
+        virtual Exception_Type type()=0;
         void Msg(string _msg)
         {
             msg=_msg;
@@ -35,8 +34,8 @@ namespace s{
         {
             this->index=index;
         }
-        E_Type type(){
-            return E_Type::Location;
+        Exception_Type type(){
+            return Exception::Exception_Location;
         }
         int Index(){
             return index;
@@ -45,8 +44,8 @@ namespace s{
     class DefinedException:public Exception{
     public:
         DefinedException(string msg):Exception(msg){}
-        E_Type type(){
-            return E_Type::Defined;
+        Exception_Type type(){
+            return Exception::Exception_Defined;
         }
     };
     namespace str{
@@ -126,7 +125,7 @@ namespace s{
                 i++;
             }
             if(trans_time!=0){
-                stringFromEscape(v,split,trans_time);
+                return stringFromEscape(v,split,trans_time);
             }else{
                 return v;
             }
@@ -198,19 +197,6 @@ namespace s{
             return r;
         }
     };
-    /*
-    对base进行区分
-    */
-    enum Base_type{
-        xList,
-        xInt,
-        xChar,
-        xString,
-        xBool,
-        xToken,
-        xExp,
-        xFunction
-    };
     class Base{
 #ifdef DEBUG
     private:
@@ -219,7 +205,12 @@ namespace s{
         static int last_addsize;//上一次的减少
         static int last_subsize;//上一次的增加
     public:
-        static gc::LNode* lnode;
+	    class LNode{
+	    public:
+	        Base *value;
+	        LNode *next;
+	    };
+        static LNode* lnode;
         /*回收*/
         static void clear(){
             while(lnode!=NULL)
@@ -239,7 +230,7 @@ namespace s{
             cout<<"本次减少:"<<sub<<" ";
             cout<<"本次净增:"<<(add-sub)<<" ";
             cout<<"生存数量:"<<(Base::addsize-Base::subsize)<<" ";
-            cout<<endl;   
+            cout<<endl;
             Base::last_addsize=Base::addsize;
             Base::last_subsize=Base::subsize;
         }
@@ -247,7 +238,7 @@ namespace s{
         static void add_to_link(Base * b){
             addsize++;
             b->id=addsize;
-            gc::LNode *n=new gc::LNode();
+            LNode *n=new LNode();
             n->value=b;
             n->next=lnode;
             lnode=n;
@@ -257,13 +248,13 @@ namespace s{
 
             if(lnode!=NULL){
                 //有可能在链上找不到
-                gc::LNode *t=lnode;
+                LNode *t=lnode;
                 if(t->value==b)
                 {
                     lnode=t->next;
                     delete t;
                 }else{
-                    gc::LNode *pre=t;
+                    LNode *pre=t;
                     t=t->next;
                     bool will=true;
                     while(t!=NULL && will)
@@ -340,31 +331,43 @@ namespace s{
         virtual ~Base(){
             remove_on_link(this);
             //cout<<"销毁:"<<id<<endl;
-        }
-        virtual Base_type xtype()=0;
+        } /*
+        对base进行区分
+        */
+        enum S_Type{
+            sList,
+            sInt,
+            sChar,
+            sString,
+            sBool,
+            sToken,
+            sExp,
+            sFunction
+        };
+        virtual S_Type stype()=0;
     };
 #ifdef DEBUG
     int Base::addsize=0;
     int Base::subsize=0;
     int Base::last_addsize=0;
     int Base::last_subsize=0;
-    gc::LNode* Base::lnode=NULL;
+    Base::LNode* Base::lnode=NULL;
 #endif
-    enum Function_type{
-        fBuildIn,//内置函数
-        //fBetter,//迁移到C++优化函数
-        fUser,//用户函数，只有一个
-        fCache//cache函数，只有一个
-    };
     class Node;
     class Function:public Base{
     public:
         Function():Base(){}
         virtual Base * exec(Node * args)=0;
-        Base_type xtype(){
-            return Base_type::xFunction;
+        S_Type stype(){
+            return Base::sFunction;
         }
-        virtual Function_type ftype()=0;
+        enum Fun_Type{
+            fBuildIn,//内置函数
+            //fBetter,//迁移到C++优化函数
+            fUser,//用户函数，只有一个
+            fCache//cache函数，只有一个
+        };
+        virtual Fun_Type ftype()=0;
     };
     class String:public Base{
     public:
@@ -378,8 +381,8 @@ namespace s{
         string toString(){
             return str::stringToEscape(std_str,'"');
         }
-        Base_type xtype(){
-            return Base_type::xString;
+        S_Type stype(){
+            return Base::sString;
         }
     private:
         string std_str;
@@ -419,8 +422,8 @@ namespace s{
                 rest->release();
             }
         }
-        Base_type xtype(){
-            return Base_type::xList;
+        S_Type stype(){
+            return Base::sList;
         }
         string toString(){
             string r="["+toString(first)+" ";
@@ -437,17 +440,17 @@ namespace s{
             if(b==NULL){
                 return "[]";
             }else{
-                if(b->xtype()==Base_type::xFunction)
+                if(b->stype()==Base::sFunction)
                 {
                     Function *f=static_cast<Function*>(b);
-                    if(f->ftype()==Function_type::fBuildIn)
+                    if(f->ftype()==Function::fBuildIn)
                     {
                         return "'"+f->toString();
                     }else{
                         return f->toString();
                     }
                 }else
-                if(b->xtype()==Base_type::xBool){
+                if(b->stype()==Base::sBool){
                     return "'"+b->toString();
                 }else
                 {
@@ -481,8 +484,8 @@ namespace s{
         int Value(){
             return value;
         }
-        Base_type xtype(){
-            return Base_type::xInt;
+        S_Type stype(){
+            return Base::sInt;
         }
     };
     class Bool:public Base{
@@ -502,8 +505,8 @@ namespace s{
                 return "false";
             }
         }
-        Base_type xtype(){
-            return Base_type::xBool;
+        S_Type stype(){
+            return Base::sBool;
         }
         static Bool * True;
         static Bool * False;

@@ -17,27 +17,27 @@ namespace s{
         if(tokens==NULL)
         {
             //解析完成
-            return new BracketExp(parse::Type::Large,"{}",children,0);
+            return new BracketExp(Exp::Exp_Large,"{}",children,0);
         }
         else
         {
             Token* x=static_cast<Token*>(tokens->First());
             Node* xs=tokens->Rest();
-            if(x->Type()==token::Types::BracketRight)
+            if(x->Type()==Token::Token_BracketRight)
             {
                 parse::Type tp;
                 string v="";
                 if(x->Value()==")"){
-                    tp=parse::Type::Small;
+                    tp=Exp::Exp_Small;
                     v="()";
                 }else
                 if(x->Value()=="]"){
-                    tp=parse::Type::Medium;
+                    tp=Exp::Exp_Medium;
                     v="[]";
                 }else
                 {
                     //"{"
-                    tp=parse::Type::Large;
+                    tp=Exp::Exp_Large;
                     v="{}";
                 }
                 //临时括号，记录一些位置数据
@@ -51,7 +51,7 @@ namespace s{
                     NULL//子列表置空
                 );
             }else
-            if(x->Type()==token::Types::BracketLeft)
+            if(x->Type()==Token::Token_BracketLeft)
             {
                 BracketExp *exp=static_cast<BracketExp*>(caches->First());
                 Node *  n_result=new Node(
@@ -72,31 +72,31 @@ namespace s{
             {
                 parse::Type tp;
                 bool deal=true;
-                if(x->Type()==token::Types::Str)
+                if(x->Type()==Token::Token_Str)
                 {
                     tp=parse::String;
                 }else
-                if(x->Type()==token::Types::Num)
+                if(x->Type()==Token::Token_Num)
                 {
                     tp=parse::Int;
                 }else{
                     BracketExp* parent=static_cast<BracketExp*>(caches->First());
-                    if(parent->Type()==parse::Type::Medium){
+                    if(parent->Type()==Exp::Exp_Medium){
                         //中括号
-                        if (x->Type()==token::Types::Prevent) {
+                        if (x->Type()==Token::Token_Prevent) {
                             tp=parse::Id;
                         }else
-                        if (x->Type()==token::Types::Id) {
+                        if (x->Type()==Token::Token_Id) {
                             tp=parse::String;
                         }else{
                             deal=false;
                         }
                     }else{
                         //其它括号
-                        if (x->Type()==token::Types::Prevent){
+                        if (x->Type()==Token::Token_Prevent){
                             tp=parse::String;
                         }else
-                        if (x->Type()==token::Types::Id) {
+                        if (x->Type()==Token::Token_Id) {
                             tp=parse::Id;
                         }else{
                             deal=false;
@@ -120,7 +120,7 @@ namespace s{
     }
     /*抛弃*/
     BracketExp* Parse(Node* tokens){
-        BracketExp *exp=new BracketExp(parse::Type::Large,"{}",NULL,0);//缓存子列表
+        BracketExp *exp=new BracketExp(Exp::Exp_Large,"{}",NULL,0);//缓存子列表
         Node *caches=new Node(exp,NULL);
         //还必须在Parse前后retain和release，因为参数了树节点的动作？模拟有一个引用着它。
         caches->retain();

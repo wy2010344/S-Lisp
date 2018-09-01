@@ -9,7 +9,9 @@ cl –GX ../main.cpp /DWIN32 /DDEBUG
 测试 main.exe ../test/t.lisp
 
 linux:
-g++ -o main -D DEBUG  ../main.cpp -std=c++0x
+g++ -o main -D DEBUG  ../main.cpp
+//-std=c++0x
+>20180901，调整了内部的枚举，不再需要C++11的支持
 其中 -D
 g++ 增加宏定义，
 

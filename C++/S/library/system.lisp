@@ -369,7 +369,7 @@
 			run "
                 Base * f=args->First();
                 //空也是列表，判断空用empty?或exist?
-                return Bool::trans(f==NULL || f->xtype()==Base_type::xList);
+                return Bool::trans(f==NULL || f->stype()==Base::sList);
 			"
 		]
 	]
@@ -377,7 +377,7 @@
 		cpp [
 			run "
                 Base * f=args->First();
-                return Bool::trans(f!=NULL && f->xtype()==Base_type::xFunction);
+                return Bool::trans(f!=NULL && f->stype()==Base::sFunction);
 			"
 		]
 	]

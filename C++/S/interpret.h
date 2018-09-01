@@ -28,7 +28,7 @@ namespace s{
                     {
                         ret=false;
                     }else
-                    if(token::isBlank(c))
+                    if(Tokenize::isBlank(c))
                     {
                         ret=false;
                     }
@@ -114,7 +114,7 @@ namespace s{
 #endif
         Node * match(Node *scope,Exp *key,Base *vas){
             //值为空，仍然需要增加定义
-            if (key->Type()==parse::Type::Id) {
+            if (key->exp_type()==Exp::Exp_Id) {
                 string id=key->Value();
                 if(id[id.size()-1]=='*') {
                     scope=when_kvs_match(scope,id,vas);
@@ -123,7 +123,7 @@ namespace s{
                     scope=when_normal_match(scope,id,vas);
                 }
             }else{
-                if (key->Type()==parse::Type::Small) {
+                if (key->exp_type()==Exp::Exp_Small) {
                     //括号匹配
                     if(vas!=NULL){
                         vas->retain();
@@ -149,11 +149,11 @@ namespace s{
         }
         Node * & scope;
         Base* run(Exp * e){
-            if(e->Type()==parse::Type::Small){
+            if(e->exp_type()==Exp::Exp_Small){
                 BracketExp *be=static_cast<BracketExp *>(e);
                 if (be->Children()!=NULL) {
                     Exp *t=static_cast<Exp *>(be->Children()->First());
-                    if (t->Type()==parse::Type::Id && t->Value()=="let") {
+                    if (t->exp_type()==Exp::Exp_Id && t->Value()=="let") {
                         //let表达式
                         Node *rst=be->Children()->Rest();
                         while (rst!=NULL) {
@@ -254,8 +254,8 @@ namespace s{
             this->exp->release();
             this->parentScope->release();
         }
-        Function_type ftype(){
-            return Function_type::fUser;
+        Fun_Type ftype(){
+            return Function::fUser;
         }
         string toString(){
             return exp->toString();
@@ -276,7 +276,7 @@ namespace s{
             scope->retain();
             Base *b;
             BracketExp * be=static_cast<BracketExp*>(e);
-            if(be->Type()==parse::Type::Small)
+            if(be->exp_type()==Exp::Exp_Small)
             {
                 //小括号
                 Node * children=calNode(be->R_children(),scope);
@@ -308,12 +308,12 @@ namespace s{
                 b=exec(func,rst,children);
 #endif
             }else
-            if(be->Type()==parse::Type::Medium)
+            if(be->exp_type()==Exp::Exp_Medium)
             {
                 //中括号
                 b=calNode(be->R_children(),scope);
             }else
-            if(be->Type()==parse::Type::Large)
+            if(be->exp_type()==Exp::Exp_Large)
             {
                 //大括号
                 b=new UserFunction(be,scope);
@@ -323,15 +323,15 @@ namespace s{
             scope->eval_release();
             return b;
         }else
-        if(e->Type()==parse::Type::String)
+        if(e->exp_type()==Exp::Exp_String)
         {
             return new String(e->Value());
         }else
-        if(e->Type()==parse::Type::Int)
+        if(e->exp_type()==Exp::Exp_Int)
         {
             return new Int(e->Value());
         }else
-        if(e->Type()==parse::Type::Id)
+        if(e->exp_type()==Exp::Exp_Id)
         {
             return kvs::find1st(scope,e->Value());
         }else{

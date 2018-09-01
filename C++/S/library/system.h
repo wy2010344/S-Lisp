@@ -15,8 +15,8 @@ namespace s{
                 string toString(){
                     return "write";
                 }
-                Function_type ftype(){
-                    return Function_type::fBuildIn;
+                Fun_Type ftype(){
+                    return Function::fBuildIn;
                 }
             protected:
                 Base * run(Node * args){
@@ -42,8 +42,8 @@ namespace s{
                 string toString(){
                     return "read";
                 }
-                Function_type ftype(){
-                    return Function_type::fBuildIn;
+                Fun_Type ftype(){
+                    return Function::fBuildIn;
                 }
             protected:
                 Base * run(Node * args){
@@ -66,14 +66,14 @@ namespace s{
                 string toString(){
                     return "function?";
                 }
-                Function_type ftype(){
-                    return Function_type::fBuildIn;
+                Fun_Type ftype(){
+                    return Function::fBuildIn;
                 }
             protected:
                 Base * run(Node * args){
                     
                 Base * f=args->First();
-                return Bool::trans(f!=NULL && f->xtype()==Base_type::xFunction);
+                return Bool::trans(f!=NULL && f->stype()==Base::sFunction);
 			
                 }
             };
@@ -90,15 +90,15 @@ namespace s{
                 string toString(){
                     return "list?";
                 }
-                Function_type ftype(){
-                    return Function_type::fBuildIn;
+                Fun_Type ftype(){
+                    return Function::fBuildIn;
                 }
             protected:
                 Base * run(Node * args){
                     
                 Base * f=args->First();
                 //空也是列表，判断空用empty?或exist?
-                return Bool::trans(f==NULL || f->xtype()==Base_type::xList);
+                return Bool::trans(f==NULL || f->stype()==Base::sList);
 			
                 }
             };
@@ -115,8 +115,8 @@ namespace s{
                 string toString(){
                     return "stringify";
                 }
-                Function_type ftype(){
-                    return Function_type::fBuildIn;
+                Fun_Type ftype(){
+                    return Function::fBuildIn;
                 }
             protected:
                 Base * run(Node * args){
@@ -138,8 +138,8 @@ namespace s{
                 string toString(){
                     return "apply";
                 }
-                Function_type ftype(){
-                    return Function_type::fBuildIn;
+                Fun_Type ftype(){
+                    return Function::fBuildIn;
                 }
             protected:
                 Base * run(Node * args){
@@ -167,8 +167,8 @@ namespace s{
                 string toString(){
                     return "str-eq";
                 }
-                Function_type ftype(){
-                    return Function_type::fBuildIn;
+                Fun_Type ftype(){
+                    return Function::fBuildIn;
                 }
             protected:
                 Base * run(Node * args){
@@ -193,8 +193,8 @@ namespace s{
                 string toString(){
                     return "eq";
                 }
-                Function_type ftype(){
-                    return Function_type::fBuildIn;
+                Fun_Type ftype(){
+                    return Function::fBuildIn;
                 }
             protected:
                 Base * run(Node * args){
@@ -218,8 +218,8 @@ namespace s{
                 string toString(){
                     return "char-at";
                 }
-                Function_type ftype(){
-                    return Function_type::fBuildIn;
+                Fun_Type ftype(){
+                    return Function::fBuildIn;
                 }
             protected:
                 Base * run(Node * args){
@@ -244,8 +244,8 @@ namespace s{
                 string toString(){
                     return "str-length";
                 }
-                Function_type ftype(){
-                    return Function_type::fBuildIn;
+                Fun_Type ftype(){
+                    return Function::fBuildIn;
                 }
             protected:
                 Base * run(Node * args){
@@ -268,8 +268,8 @@ namespace s{
                 string toString(){
                     return "str-join";
                 }
-                Function_type ftype(){
-                    return Function_type::fBuildIn;
+                Fun_Type ftype(){
+                    return Function::fBuildIn;
                 }
             protected:
                 Base * run(Node * args){
@@ -329,8 +329,8 @@ namespace s{
                 string toString(){
                     return "if";
                 }
-                Function_type ftype(){
-                    return Function_type::fBuildIn;
+                Fun_Type ftype(){
+                    return Function::fBuildIn;
                 }
             protected:
                 Base * run(Node * args){
@@ -362,8 +362,8 @@ namespace s{
                 string toString(){
                     return "log";
                 }
-                Function_type ftype(){
-                    return Function_type::fBuildIn;
+                Fun_Type ftype(){
+                    return Function::fBuildIn;
                 }
             protected:
                 Base * run(Node * args){
@@ -395,8 +395,8 @@ namespace s{
                 string toString(){
                     return "exist?";
                 }
-                Function_type ftype(){
-                    return Function_type::fBuildIn;
+                Fun_Type ftype(){
+                    return Function::fBuildIn;
                 }
             protected:
                 Base * run(Node * args){
@@ -418,8 +418,8 @@ namespace s{
                 string toString(){
                     return "empty?";
                 }
-                Function_type ftype(){
-                    return Function_type::fBuildIn;
+                Fun_Type ftype(){
+                    return Function::fBuildIn;
                 }
             protected:
                 Base * run(Node * args){
@@ -441,8 +441,8 @@ namespace s{
                 string toString(){
                     return "str-reduce-right";
                 }
-                Function_type ftype(){
-                    return Function_type::fBuildIn;
+                Fun_Type ftype(){
+                    return Function::fBuildIn;
                 }
             protected:
                 Base * run(Node * args){
@@ -483,8 +483,8 @@ namespace s{
                 string toString(){
                     return "str-reduce-left";
                 }
-                Function_type ftype(){
-                    return Function_type::fBuildIn;
+                Fun_Type ftype(){
+                    return Function::fBuildIn;
                 }
             protected:
                 Base * run(Node * args){
@@ -525,8 +525,8 @@ namespace s{
                 string toString(){
                     return "not";
                 }
-                Function_type ftype(){
-                    return Function_type::fBuildIn;
+                Fun_Type ftype(){
+                    return Function::fBuildIn;
                 }
             protected:
                 Base * run(Node * args){
@@ -549,8 +549,8 @@ namespace s{
                 string toString(){
                     return "or";
                 }
-                Function_type ftype(){
-                    return Function_type::fBuildIn;
+                Fun_Type ftype(){
+                    return Function::fBuildIn;
                 }
             protected:
                 Base * run(Node * args){
@@ -579,8 +579,8 @@ namespace s{
                 string toString(){
                     return "and";
                 }
-                Function_type ftype(){
-                    return Function_type::fBuildIn;
+                Fun_Type ftype(){
+                    return Function::fBuildIn;
                 }
             protected:
                 Base * run(Node * args){
@@ -609,8 +609,8 @@ namespace s{
                 string toString(){
                     return "=";
                 }
-                Function_type ftype(){
-                    return Function_type::fBuildIn;
+                Fun_Type ftype(){
+                    return Function::fBuildIn;
                 }
             protected:
                 Base * run(Node * args){
@@ -641,8 +641,8 @@ namespace s{
                 string toString(){
                     return "<";
                 }
-                Function_type ftype(){
-                    return Function_type::fBuildIn;
+                Fun_Type ftype(){
+                    return Function::fBuildIn;
                 }
             protected:
                 Base * run(Node * args){
@@ -673,8 +673,8 @@ namespace s{
                 string toString(){
                     return ">";
                 }
-                Function_type ftype(){
-                    return Function_type::fBuildIn;
+                Fun_Type ftype(){
+                    return Function::fBuildIn;
                 }
             protected:
                 Base * run(Node * args){
@@ -705,8 +705,8 @@ namespace s{
                 string toString(){
                     return "-";
                 }
-                Function_type ftype(){
-                    return Function_type::fBuildIn;
+                Fun_Type ftype(){
+                    return Function::fBuildIn;
                 }
             protected:
                 Base * run(Node * args){
@@ -734,8 +734,8 @@ namespace s{
                 string toString(){
                     return "+";
                 }
-                Function_type ftype(){
-                    return Function_type::fBuildIn;
+                Fun_Type ftype(){
+                    return Function::fBuildIn;
                 }
             protected:
                 Base * run(Node * args){
@@ -762,8 +762,8 @@ namespace s{
                 string toString(){
                     return "retain-count";
                 }
-                Function_type ftype(){
-                    return Function_type::fBuildIn;
+                Fun_Type ftype(){
+                    return Function::fBuildIn;
                 }
             protected:
                 Base * run(Node * args){
@@ -786,8 +786,8 @@ namespace s{
                 string toString(){
                     return "length";
                 }
-                Function_type ftype(){
-                    return Function_type::fBuildIn;
+                Fun_Type ftype(){
+                    return Function::fBuildIn;
                 }
             protected:
                 Base * run(Node * args){
@@ -809,8 +809,8 @@ namespace s{
                 string toString(){
                     return "extend";
                 }
-                Function_type ftype(){
-                    return Function_type::fBuildIn;
+                Fun_Type ftype(){
+                    return Function::fBuildIn;
                 }
             protected:
                 Base * run(Node * args){
@@ -832,8 +832,8 @@ namespace s{
                 string toString(){
                     return "rest";
                 }
-                Function_type ftype(){
-                    return Function_type::fBuildIn;
+                Fun_Type ftype(){
+                    return Function::fBuildIn;
                 }
             protected:
                 Base * run(Node * args){
@@ -855,8 +855,8 @@ namespace s{
                 string toString(){
                     return "first";
                 }
-                Function_type ftype(){
-                    return Function_type::fBuildIn;
+                Fun_Type ftype(){
+                    return Function::fBuildIn;
                 }
             protected:
                 Base * run(Node * args){

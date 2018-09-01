@@ -44,8 +44,8 @@ namespace s{
         string toString(){
             return "load";
         }
-        Function_type ftype(){
-            return Function_type::fBuildIn;
+        Fun_Type ftype(){
+            return Function::fBuildIn;
         }
         LoadFunc(string path,Node *scope){
             base_path=path;
@@ -136,8 +136,8 @@ namespace s{
         string toString(){
             return "parse";
         }
-        Function_type ftype(){
-            return Function_type::fBuildIn;
+        Fun_Type ftype(){
+            return Function::fBuildIn;
         }
         ParseFunc(Node *defaultScope):Function(){
             this->defaultScope=defaultScope;
@@ -192,7 +192,7 @@ namespace s{
     }
     void logException(Exception* e){
         cout<<"出现异常："<<e->Msg();
-        if(e->type()==E_Type::Location){
+        if(e->type()==Exception::Exception_Location){
             LocationException* ex=static_cast<LocationException*>(e);
             cout<<"在位置"<<ex->Index()<<endl;
         }else{

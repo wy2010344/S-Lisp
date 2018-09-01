@@ -9,30 +9,30 @@ namespace s{
     		Node* rest=NULL;
     		while(flag<length){
     			char c=txt[flag];
-    			if(token::isBlank(c)){
+    			if(isBlank(c)){
                     flag++;
     			}else
-    			if(token::isQuoteLeft(c)){
+    			if(isQuoteLeft(c)){
                     char cs[2]={c,'\0'};
                     rest=new Node(
-                        new Token(string(cs),token::Types::BracketLeft,flag),
+                        new Token(string(cs),Token::Token_BracketLeft,flag),
                         rest
                     );
                     flag++;
     			}else
-    			if(token::isQuoteRight(c)){
+    			if(isQuoteRight(c)){
                     char cs[2]={c,'\0'};
                     rest=new Node(
-                        new Token(string(cs),token::Types::BracketRight,flag),
+                        new Token(string(cs),Token::Token_BracketRight,flag),
                         rest
                     );
                     flag++;
     			}else
     			if(c=='"'){
-    				tokenize_split(txt,length,rest,flag,token::Types::Str,'"');
+    				tokenize_split(txt,length,rest,flag,Token::Token_Str,'"');
     			}else
     			if(c=='`'){
-    				tokenize_split(txt,length,rest,flag,token::Types::Comment,'`');
+    				tokenize_split(txt,length,rest,flag,Token::Token_Comment,'`');
     			}else
     			{
     				tokenize_ID(txt,length,rest,flag);
@@ -45,7 +45,7 @@ namespace s{
     		const unsigned length,
     		Node*&rest,
     		unsigned & flag,
-    		const token::Types type,
+    		const Token::Token_Type type,
     		const char split
     	){
     		bool unbreak=true;
@@ -88,7 +88,7 @@ namespace s{
     		unsigned start=flag;
     		while((flag<length) && unbreak){
     			char c=txt[flag];
-                if(!(token::isBlank(c)  ||token::isQuoteLeft(c) || token::isQuoteRight(c)))
+                if(!(isBlank(c)  || isQuoteLeft(c) || isQuoteRight(c)))
                 {
                 	flag++;
                 }else{

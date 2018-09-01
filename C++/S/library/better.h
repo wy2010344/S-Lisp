@@ -15,8 +15,8 @@ namespace s{
                 string toString(){
                     return "{ ( let ( k v kvs ) args ) ( extend k ( extend v kvs ) ) }";
                 }
-                Function_type ftype(){
-                    return Function_type::fUser;
+                Fun_Type ftype(){
+                    return Function::fUser;
                 }
             protected:
                 Base * run(Node * args){
@@ -43,8 +43,8 @@ namespace s{
                 string toString(){
                     return "{ ( let ( key kvs ) args find1st this ) ( let ( k v ...kvs ) args ) ( if-run ( str-eq k key ) { v } { find1st key kvs } ) }";
                 }
-                Function_type ftype(){
-                    return Function_type::fUser;
+                Fun_Type ftype(){
+                    return Function::fUser;
                 }
             protected:
                 Base * run(Node * args){
@@ -69,8 +69,8 @@ namespace s{
                 string toString(){
                     return "reduce";
                 }
-                Function_type ftype(){
-                    return Function_type::fBuildIn;
+                Fun_Type ftype(){
+                    return Function::fBuildIn;
                 }
             protected:
                 Base * run(Node * args){
@@ -112,8 +112,8 @@ namespace s{
                 string toString(){
                     return "{ ( let ( a b c ) args ) ( let x ( default ( if a b c ) ) ) ( x ) }";
                 }
-                Function_type ftype(){
-                    return Function_type::fUser;
+                Fun_Type ftype(){
+                    return Function::fUser;
                 }
             protected:
                 Base * run(Node * args){
@@ -152,8 +152,8 @@ namespace s{
                 string toString(){
                     return "{ ( let ( a d ) args ) ( if ( exist? a ) a d ) }";
                 }
-                Function_type ftype(){
-                    return Function_type::fUser;
+                Fun_Type ftype(){
+                    return Function::fUser;
                 }
             protected:
                 Base * run(Node * args){
@@ -182,8 +182,8 @@ namespace s{
                 string toString(){
                     return "{ }";
                 }
-                Function_type ftype(){
-                    return Function_type::fUser;
+                Fun_Type ftype(){
+                    return Function::fUser;
                 }
             protected:
                 Base * run(Node * args){
@@ -205,8 +205,8 @@ namespace s{
                 string toString(){
                     return "reverse";
                 }
-                Function_type ftype(){
-                    return Function_type::fBuildIn;
+                Fun_Type ftype(){
+                    return Function::fBuildIn;
                 }
             protected:
                 Base * run(Node * args){
@@ -234,8 +234,8 @@ namespace s{
                 string toString(){
                     return "{ ( first args ) }";
                 }
-                Function_type ftype(){
-                    return Function_type::fUser;
+                Fun_Type ftype(){
+                    return Function::fUser;
                 }
             protected:
                 Base * run(Node * args){
@@ -257,8 +257,8 @@ namespace s{
                 string toString(){
                     return "{ args }";
                 }
-                Function_type ftype(){
-                    return Function_type::fUser;
+                Fun_Type ftype(){
+                    return Function::fUser;
                 }
             protected:
                 Base * run(Node * args){

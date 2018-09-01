@@ -3,7 +3,7 @@
 namespace s{
     /*抛弃*/
     BracketExp* Parse(Node* tokens){
-        BracketExp *exp=new BracketExp(parse::Type::Large,"{}",NULL,0);//缓存子列表
+        BracketExp *exp=new BracketExp(Exp::Exp_Large,"{}",NULL,0);//缓存子列表
         Node *caches=new Node(exp,NULL);
         //还必须在Parse前后retain和release，因为参数了树节点的动作？模拟有一个引用着它。
         caches->retain();
@@ -12,21 +12,21 @@ namespace s{
         while(xs!=NULL){
             Token* x=static_cast<Token*>(xs->First());
             xs=xs->Rest();
-            if(x->Type()==token::Types::BracketRight)
+            if(x->token_type()==Token::Token_BracketRight)
             {
-                parse::Type tp;
+                Exp::Exp_Type tp;
                 string v="";
                 if(x->Value()==")"){
-                    tp=parse::Type::Small;
+                    tp=Exp::Exp_Small;
                     v="()";
                 }else
                 if(x->Value()=="]"){
-                    tp=parse::Type::Medium;
+                    tp=Exp::Exp_Medium;
                     v="[]";
                 }else
                 {
                     //"{"
-                    tp=parse::Type::Large;
+                    tp=Exp::Exp_Large;
                     v="{}";
                 }
                 //临时括号，记录一些位置数据
@@ -36,16 +36,16 @@ namespace s{
                 caches->retain();
                 children=NULL;
             }else
-            if(x->Type()==token::Types::BracketLeft)
+            if(x->token_type()==Token::Token_BracketLeft)
             {
                 BracketExp *exp=static_cast<BracketExp*>(caches->First());
                 Node * r_children=NULL;
-                if(exp->Type()!=parse::Type::Large){
+                if(exp->exp_type()!=Exp::Exp_Large){
                     r_children=list::reverse(children);
                 }
                 Node *  n_result=new Node(
                         new BracketExp(
-                            exp->Type(),
+                            exp->exp_type(),
                             exp->Value(),
                             children,
                             exp->Index(),
@@ -62,34 +62,34 @@ namespace s{
                 children=n_result;
             }else
             {
-                parse::Type tp;
+                Exp::Exp_Type tp;
                 bool deal=true;
-                if(x->Type()==token::Types::Str)
+                if(x->token_type()==Token::Token_Str)
                 {
-                    tp=parse::String;
+                    tp=Exp::Exp_String;
                 }else
-                if(x->Type()==token::Types::Num)
+                if(x->token_type()==Token::Token_Num)
                 {
-                    tp=parse::Int;
+                    tp=Exp::Exp_Int;
                 }else{
                     BracketExp* parent=static_cast<BracketExp*>(caches->First());
-                    if(parent->Type()==parse::Type::Medium){
+                    if(parent->exp_type()==Exp::Exp_Medium){
                         //中括号
-                        if (x->Type()==token::Types::Prevent) {
-                            tp=parse::Id;
+                        if (x->token_type()==Token::Token_Prevent) {
+                            tp=Exp::Exp_Id;
                         }else
-                        if (x->Type()==token::Types::Id) {
-                            tp=parse::String;
+                        if (x->token_type()==Token::Token_Id) {
+                            tp=Exp::Exp_String;
                         }else{
                             deal=false;
                         }
                     }else{
                         //其它括号
-                        if (x->Type()==token::Types::Prevent){
-                            tp=parse::String;
+                        if (x->token_type()==Token::Token_Prevent){
+                            tp=Exp::Exp_String;
                         }else
-                        if (x->Type()==token::Types::Id) {
-                            tp=parse::Id;
+                        if (x->token_type()==Token::Token_Id) {
+                            tp=Exp::Exp_Id;
                         }else{
                             deal=false;
                         }
@@ -99,12 +99,12 @@ namespace s{
                 if(deal)
                 {
                     Exp* e=new Exp(tp,x->Value(),x->Index());
-                    e->original_type=x->Type();
+                    e->original_type=x->token_type();
                     children=new Node(e,children);
                 }
             }
         }
         caches->release();
-        return new BracketExp(parse::Type::Large,"{}",children,0);
+        return new BracketExp(Exp::Exp_Large,"{}",children,0);
     }
 };

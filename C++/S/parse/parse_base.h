@@ -1,22 +1,21 @@
 #pragma once
 namespace s{
-    namespace parse{
-        enum Type{
-            Large,
-            Medium,
-            Small,
-            String,
-            Int,
-            Id//,Comment//不要Comment
-        };
-    };
     class Exp:public Base{
+    public:
+        enum Exp_Type{
+            Exp_Large,
+            Exp_Medium,
+            Exp_Small,
+            Exp_String,
+            Exp_Int,
+            Exp_Id//,Comment//不要Comment
+        };
     private:
-        parse::Type type;
+        Exp_Type type;
         string value;
         int index;
     public:
-        Exp(parse::Type type,string value,int index):Base(){
+        Exp(Exp_Type type,string value,int index):Base(){
             this->type=type;
             this->value=value;
             this->index=index;
@@ -24,7 +23,7 @@ namespace s{
         string & Value(){
             return value;
         }
-        parse::Type Type(){
+        Exp_Type exp_type(){
             return type;
         }
         int Index(){
@@ -33,20 +32,20 @@ namespace s{
         virtual bool isBracket(){
             return false;
         }
-        token::Types original_type;
+        Token::Token_Type original_type;
         virtual string toString(){
-            if(original_type==token::Types::Prevent){
+            if(original_type==Token::Token_Prevent){
                 return "'"+value;
             }else
-            if(type==parse::Type::String)
+            if(type==Exp::Exp_String)
             {
                 return str::stringToEscape(value,'"');
             }else{
                 return value;
             }
         }
-        Base_type xtype(){
-            return Base_type::xExp;
+        S_Type stype(){
+            return Base::sExp;
         }
     };
     class BracketExp:public Exp{
@@ -55,7 +54,7 @@ namespace s{
         /*减少计算时的反转*/
         Node *r_children;
     public:
-        BracketExp(parse::Type type,string value,Node * children,int index,Node* r_children=NULL)
+        BracketExp(Exp_Type type,string value,Node * children,int index,Node* r_children=NULL)
             :Exp(type,value,index){
             this->children=children;
             this->r_children=r_children;

@@ -55,8 +55,8 @@
                 string toString(){
                     return \"" (toString)"\";
                 }
-                Function_type ftype(){
-                    return Function_type::"(quote type)";
+                Fun_Type ftype(){
+                    return Function::"(quote type)";
                 }
             protected:
                 Base * run(Node * args){

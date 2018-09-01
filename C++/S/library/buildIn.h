@@ -8,8 +8,8 @@ namespace s{
             string toString(){
                 return "{(let (k) args) (kvs-find1st kvs k)}";
             }
-            Function_type ftype(){
-                return Function_type::fUser;
+            Fun_Type ftype(){
+                return Function::fUser;
             }
             MatchFunc(Node *kvs_map){
                 this->kvs_map=kvs_map;
@@ -39,8 +39,8 @@ namespace s{
             string toString(){
                 return "[]";
             }
-            Function_type ftype(){
-                return Function_type::fCache;
+            Fun_Type ftype(){
+                return Function::fCache;
             }
         protected:
             Base * run(Node *args){
@@ -70,8 +70,8 @@ namespace s{
         /*生成缓存性质的函数，本质上可被用户函数替代，嵌套，但这个是根*/
         class CacheFunc:public Function{
         public:
-            Function_type ftype(){
-                return Function_type::fBuildIn;
+            Fun_Type ftype(){
+                return Function::fBuildIn;
             }
             string toString(){
                 return "cache";
