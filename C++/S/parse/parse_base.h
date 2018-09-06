@@ -13,12 +13,16 @@ namespace s{
     private:
         Exp_Type type;
         string value;
-        int index;
+        Location* loc;
     public:
-        Exp(Exp_Type type,string value,int index):Base(){
+        Exp(Exp_Type type,string value,Location* loc):Base(){
             this->type=type;
             this->value=value;
-            this->index=index;
+            this->loc=loc;
+            loc->retain();
+        }
+        virtual ~Exp(){
+            loc->release();
         }
         string & Value(){
             return value;
@@ -26,8 +30,8 @@ namespace s{
         Exp_Type exp_type(){
             return type;
         }
-        int Index(){
-            return index;
+        Location* Loc(){
+            return loc;
         }
         virtual bool isBracket(){
             return false;
@@ -39,7 +43,7 @@ namespace s{
             }else
             if(type==Exp::Exp_String)
             {
-                return str::stringToEscape(value,'"');
+                return str::stringToEscape(value,'"','"');
             }else{
                 return value;
             }
@@ -54,8 +58,8 @@ namespace s{
         /*减少计算时的反转*/
         Node *r_children;
     public:
-        BracketExp(Exp_Type type,string value,Node * children,int index,Node* r_children=NULL)
-            :Exp(type,value,index){
+        BracketExp(Exp_Type type,string value,Node * children,Location* loc,Node* r_children=NULL)
+            :Exp(type,value,loc){
             this->children=children;
             this->r_children=r_children;
             if(children!=NULL)

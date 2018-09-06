@@ -197,7 +197,7 @@ namespace s{
             scope->retain();
             scope->release();
             */
-            return new LocationException(msg,exp->Index());
+            return new LocationException(msg,exp->Loc());
         }
         Base * exec(Function* func,Node *rst,Node *children){
             /*函数的计算结果默认是+1的*/

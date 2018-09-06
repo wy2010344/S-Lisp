@@ -3,7 +3,8 @@
 namespace s{
     /*抛弃*/
     BracketExp* Parse(Node* tokens){
-        BracketExp *exp=new BracketExp(Exp::Exp_Large,"{}",NULL,0);//缓存子列表
+        Location *root_loc=new Location(0,0,0);
+        BracketExp *exp=new BracketExp(Exp::Exp_Large,"{}",NULL,root_loc);//缓存子列表
         Node *caches=new Node(exp,NULL);
         //还必须在Parse前后retain和release，因为参数了树节点的动作？模拟有一个引用着它。
         caches->retain();
@@ -30,7 +31,7 @@ namespace s{
                     v="{}";
                 }
                 //临时括号，记录一些位置数据
-                BracketExp *exp=new BracketExp(tp,v,children,x->Index());
+                BracketExp *exp=new BracketExp(tp,v,children,x->Loc());
                 caches=new Node(exp,caches);
                 //这里也必须使用引用计数的方式才能正确执行->突然又得行了。
                 caches->retain();
@@ -44,14 +45,14 @@ namespace s{
                     r_children=list::reverse(children);
                 }
                 Node *  n_result=new Node(
-                        new BracketExp(
-                            exp->exp_type(),
-                            exp->Value(),
-                            children,
-                            exp->Index(),
-                            r_children
-                        ),
-                        exp->Children()
+                    new BracketExp(
+                        exp->exp_type(),
+                        exp->Value(),
+                        children,
+                        exp->Loc(),
+                        r_children
+                    ),
+                    exp->Children()
                 );
                 Node * caches_parent=caches->Rest();
                 //cout<<"引用数"<<bracket->_ref_()<<endl;
@@ -98,13 +99,13 @@ namespace s{
                 //普通的值节点，返回解析后继节点
                 if(deal)
                 {
-                    Exp* e=new Exp(tp,x->Value(),x->Index());
+                    Exp* e=new Exp(tp,x->Value(),x->Loc());
                     e->original_type=x->token_type();
                     children=new Node(e,children);
                 }
             }
         }
         caches->release();
-        return new BracketExp(Exp::Exp_Large,"{}",children,0);
+        return new BracketExp(Exp::Exp_Large,"{}",children,root_loc);
     }
 };

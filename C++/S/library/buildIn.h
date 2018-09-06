@@ -1,5 +1,19 @@
 #pragma once
 namespace s{
+    class LibFunction:public Function{
+    public:
+        Base * exec(Node* args)
+        {
+            Base* ret=run(args);
+            if(ret!=NULL)
+            {
+                ret->retain();
+            }
+            return ret;
+        }
+    protected:
+        virtual Base * run(Node * args)=0;
+    };
     namespace library{
         /*这个函数本质上是可被用户函数替换的，但又要被匹配所使用*/
         class MatchFunc:public LibFunction{

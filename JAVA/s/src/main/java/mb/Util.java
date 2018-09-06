@@ -177,42 +177,22 @@ public class Util {
 		// 目录此时为空，可以删除
 		return dir.delete();
 	}
-
 	
-	static char[] trans_map= {
-			'n','\n',
-			'r','\r',
-			't','\t'
-	};
-	public static Character trans_from_char(char c) {
-		Character x=null;
+	public static <T> T kvs_find1st(T[] kvs,T key) {
+		T x=null;
 		int i=0;
-		while(i<trans_map.length) {
-			char key=trans_map[i];
+		while(i<kvs.length) {
+			T k=kvs[i];
 			i++;
-			char value=trans_map[i];
+			T v=kvs[i];
 			i++;
-			if(key==c) {
-				x=value;
+			if(k.equals(key)) {
+				x=v;
 			}
 		}
 		return x;
 	}
-	public static Character trans_to_char(char c) {
-		Character x=null;
-		int i=0;
-		while(i<trans_map.length) {
-			char value=trans_map[i];
-			i++;
-			char key=trans_map[i];
-			i++;
-			if(key==c) {
-				x=value;
-			}
-		}
-		return x;
-	}
-	public static String string_from_trans(String s,Character end,int trans_time) throws Exception {
+	public static String string_from_trans(String s,Character end,Character[] kvs,int trans_time) throws Exception {
 		int i=0,size=s.length();
 		StringBuilder sb=new StringBuilder();
 		while(i<size) {
@@ -226,7 +206,7 @@ public class Util {
 				if(c==end) {
 					sb.append(end);
 				}else {
-		    		Character x=mb.Util.trans_from_char(c);
+		    		Character x=mb.Util.kvs_find1st(kvs,c);
 		    		if(x!=null) {
 		    			sb.append(x);
 		    		}else {
@@ -240,9 +220,9 @@ public class Util {
 		}
 		return sb.toString();
 	}
-    public static String string_to_trans(String v,Character end) {
+    public static String string_to_trans(String v,Character start,Character end,Character[] trans) {
     	StringBuilder sb=new StringBuilder();
-    	sb.append(end);
+    	sb.append(start);
     	int len=v.length();
     	int i=0;
     	while(i<len) {
@@ -254,9 +234,13 @@ public class Util {
     			sb.append("\\").append(end);
     		}else
     		{
-    			Character x=mb.Util.trans_to_char(c);
-    			if(x!=null) {
-    				sb.append("\\").append(x);
+    			if(trans!=null) {
+        			Character x=mb.Util.kvs_find1st(trans,c);
+        			if(x!=null) {
+        				sb.append("\\").append(x);
+        			}else {
+        				sb.append(c);
+        			}
     			}else {
     				sb.append(c);
     			}

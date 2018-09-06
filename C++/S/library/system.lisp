@@ -386,7 +386,7 @@
         cpp [
             run "
                 String * path=static_cast<String*>(args->First());
-                return new String(file::read(path->StdStr()));
+                return new String(file::read(path->StdStr(),line_splits));
             "
         ]
     ]

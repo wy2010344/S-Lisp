@@ -1,7 +1,4 @@
 #pragma once
-#include <iostream>
-#include "../node.h"
-using namespace std;
 namespace s{
     class Token:public Base{
     public:
@@ -14,31 +11,84 @@ namespace s{
             Token_Id,
             Token_Num
         };
-        Token(string value,Token_Type type,int index):Base(){
+        Token(string value,Token_Type type,Location* loc):Base(){
             //cout<<"TOKEN:"<<value<<"  "<<type<<endl;
             this->value=value;
             this->type=type;
-            this->index=index;
+            this->loc=loc;
+            loc->retain();
         }
         string & Value(){
             return this->value;
         }
-        Token_Type token_type(){
+        virtual Token_Type token_type(){
             return this->type;
         }
-        int Index(){
-            return this->index;
+        Location* Loc(){
+            return this->loc;
         }
         S_Type stype(){
             return Base::sToken;
         }
-        string toString(){
+        virtual string toString(){
             return "$Token";
         }
+        virtual ~Token(){
+            loc->release();
+        }
     private:
-        int index;
+        Location* loc;
         string value;
         Token_Type type;
+    };
+    class Code
+    {
+        unsigned i;
+        const string & code;
+        unsigned maxLength;
+        unsigned row;
+        unsigned col;
+        const char split;
+        char c;
+    public:
+        Code(const string & txt,char linesplit):
+            code(txt),
+            maxLength(txt.size()),
+            split(linesplit){
+            i=-1;
+            row=0;
+            col=0;
+            shift();
+        }
+        void shift(){
+            i++;
+            if(i<maxLength){
+                c=code[i];
+                if(c==split){
+                    col=0;
+                    row++;
+                }else{
+                    col++;
+                }
+            }else{
+                c=' ';
+            }
+        }
+        bool noEnd(){
+            return i<maxLength;
+        }
+        char current(){
+            return c;
+        }
+        unsigned index(){
+            return i;
+        }
+        string substr(unsigned start,unsigned end){
+            return code.substr(start,end-start);
+        }
+        Location* currentLoc(){
+            return new Location(row,col,i);
+        }
     };
     class TokenizeBase{
     public:
@@ -75,30 +125,30 @@ namespace s{
         因为s-lisp无强类型，只有运行时动态检查出类型，跟动态用字符串转化为特定类型一样的报错体验。
         */
         Token* deal_id(
-            const string & txt,
-            const int start,
-            const int flag){
-            string Id=txt.substr(start,flag-start);
+            Code *code,
+            Location* loc){
+            unsigned start=loc->index();
+            string Id=code->substr(start,code->index());
             Token *token;
             if (Id[0]=='\'') {
                 //阻止求值
                 if(Id.size()==1){
                     throw new DefinedException("单个'不允许");
                 }else{
-                    token=new Token(Id.substr(1,Id.size()-1),Token::Token_Prevent,start);
+                    token=new Token(Id.substr(1,Id.size()-1),Token::Token_Prevent,loc);
                 }
             }else
             if (isInt(Id)){
                 //转成Int，方便数值计算
-                token=new Token(Id,Token::Token_Num,start);
+                token=new Token(Id,Token::Token_Num,loc);
             }else
             {
                 //ID类型
-                token=new Token(Id,Token::Token_Id,start);
+                token=new Token(Id,Token::Token_Id,loc);
             }
             return token;
         }
 
-        virtual Node* run(const string& txt)=0;
+        virtual Node* run(const string& txt,const char linesplit)=0;
     };
 }

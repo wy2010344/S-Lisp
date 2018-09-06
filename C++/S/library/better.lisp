@@ -109,11 +109,9 @@
                 Function *f=static_cast<Function*>(args->First());
                 args=args->Rest();
                 Base * init=args->First();
-                int i=0;
                 while(list!=NULL){
                     Base * x=list->First();
-                    Int *is=new Int(i);
-                    Node *nargs=new Node(init,new Node(x,new Node(is,NULL)));
+                    Node *nargs=new Node(init,new Node(x,NULL));
                     nargs->retain();
                     Base* n_init=f->exec(nargs);
                     nargs->release();
@@ -121,7 +119,6 @@
                         n_init->eval_release();
                     }
                     init=n_init;
-                    i++;
                     list=list->Rest();
                 }
                 return init;

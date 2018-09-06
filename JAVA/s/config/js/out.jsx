@@ -190,10 +190,74 @@ mb.load=(function(){
     var sp=ini.get("file_sp");
     var base_path=ini.get("server_path")+sp;
     var me=ini.get("me");
-    
-
-    /*计算相对路径*/
-    var calAbsolutePath=function(base_url,url){
+    var cache={};
+    var load=function(path,servlet,getFun){
+        var o=cache[path];
+        if(!o){
+            var pkg=getFun(path);
+            o={
+                success:pkg.body.delay?pkg.body.success():pkg.body.success,
+                out:pkg.body.out
+            };
+            cache[path]=o;
+            mb.Object.forEach(pkg.body.data,function(v,k){
+	           var r;
+	           if(typeof(v)=='string'){
+	                var url;
+	                if(v[0]=='.'){
+	                    url=mb.load.calAbsolutePath(path,v);
+	                }else{
+	                    url=v;
+	                }
+                    r=load(url,false,getFun);
+	           }else
+	           if(typeof(v)=='object'){
+	                var url=mb.load.calAbsolutePath(path,v.url);
+	                if(typeof(v.type)=='string'){
+	                    if(v.type=="path"){
+	                        r=mb.load.path(url);
+	                    }else
+	                    if(v.type=="file"){
+	                        r=mb.load.file(url);
+	                    }else
+	                    if(v.type=="text"){
+	                        r=mb.load.text(url);
+	                    }else{
+	                        throw "未支持类型"+v;
+	                        r=url;
+	                    }
+	                }else{
+	                    /*本来是同步的，可以加载*/
+	                    v.type({
+	                        url:url,
+	                        notice:function(success){
+	                            r=success;
+	                        }
+	                    });
+	                }
+	           }else
+	           if(typeof(v)=='function'){
+	                v(function(success){
+	                    r=success;
+	                });
+	           }else{
+	                throw "未支持类型"+v;
+	           }
+	           pkg.lib[k]=r;
+            });
+        }
+        if(servlet){
+            if(o.out){
+                return o.success;
+            }else{
+                return null;
+            }
+        }else{
+            return o.success;
+        }
+    };
+    /*计算绝对路径*/
+    load.calAbsolutePath=function(base_url,url){
         var base=base_url.substr(0,base_url.lastIndexOf('/'))+'/'+url;
         var nodes=base.split('/');
         var rets=[];
@@ -221,123 +285,19 @@ mb.load=(function(){
         }
         return rets.join('/');
     };
-    
-    var pkgLoader=function(path){
-        //需要与单个加载的保持一致
-        var me={
-            relative_to_absolute:function(relative){
-                return mb.load.path(mb.load.calAbsolutePath(path,relative));
-            },
-            current_act:function(){
-                return path;  
-            },
-            load_file:function(relative){
-                return mb.load.file(mb.load.calAbsolutePath(path,relative));
-            },
-            log:mb.log.loadder(path)
-        };
-        return me;
+    load.path=function(path){
+        return base_path+sp+path;
     };
-    return {
-	    text:function(path){
-	        return me.readTxt(base_path+path.replace(/>/g,sp));
-	    },
-        /**
-         * 返回JAVA的File实例，传入js为根的任何路径。
-         */
-	    file:function(path){
-	        return me.fileFromPath(base_path+sp+path+sp)
-	    },
-        path:function(path){
-            return base_path+sp+path;
-        },
-        calAbsolutePath:calAbsolutePath,
-        pkgLoader:pkgLoader,
-	    require:(function(){
-        var fakemap=function(){
-            var _c={};
-            return {
-                get:function(key){
-	                 return _c[key];
-	            },
-	            put:function(key,value){
-	                 _c[key]=value;
-	            },
-                clear:function(){
-                    _c={};
-                }
-	        };
-	    };
-	    var core=fakemap();
-		//var core=ini.get("js_cache");
-		/**
-		 * data
-		 * success
-		 */
-		var ret=function(p){
-			var me={
-				retData:null,//注入
-				url:null,//注入
-				init:function(){
-					if(p.data){
-						mb.Object.forEach(p.data, function(value,key){
-							me.retData[key]=ret.sync(value,me.url)();
-						});
-					}
-				},
-                delay:p.delay
-			};
-            if(typeof(p.success)=='function'){
-                me.success=function(){
-                    try{
-                        return p.success.apply(null,arguments);
-                    }catch(e){
-                        mb.log("出错:",me.url);
-                        throw e;
-                    }
-                };
-            }else{
-                me.success=p.success;
-            }
-			return me;
-		};
-        ret.core=core;
-		ret.sync=function(value,base_url){
-            if(value[0]=='.'){
-                value=calAbsolutePath(base_url,value);
-            }
-			var vk=core.get(value);
-			if(!vk){
-				//mb.log("new:"+value);
-				var txt=mb.load.text(value);
-                if(txt==""){
-                    return null;
-                }else{
-					var lib={};
-                    //pkg与打包的要对称
-                    var pkg=pkgLoader(value);
-					var cvk=eval("mb.load.require"+txt);
-					cvk.retData=lib;
-					cvk.url=value;
-					cvk.init();
-                    var s;
-                    if(cvk.delay){
-                        s=cvk.success();
-                    }else{
-                        s=cvk.success;
-                    }
-                    /**与打包成一个文件的情况兼容*/
-                    vk=function(){
-                        return s;
-                    };
-					core.put(value,vk);
-                }
-			};
-			return vk;
-	    };
-	    return ret;
-	    })()
-	};
+    /**
+     * 返回JAVA的File实例，传入js为根的任何路径。
+     */
+    load.file=function(path){
+        return me.fileFromPath(load.path(path));
+    };
+    load.text=function(path){
+        return me.readTxt(load.path(path));
+    };
+    return load;
 })();
 mb.compile=(function(){
     //importPackage(java.io);
@@ -346,34 +306,6 @@ mb.compile=(function(){
     
     var escapeStr=function(str){
         return "\""+str.replace(/"/g,"\\\"")+"\"";
-    };
-    var stringify=function(p){
-        var tp=typeof(p);
-        if(tp=='function' || tp=="boolean" || tp=="number"){
-            return p.toString().trim();
-        }else
-        if(p==null)
-        {
-            return "null";
-        }else
-        if(tp=="string"){
-            return escapeStr(p);
-        }else
-        if(p instanceof Array){
-            var ret=[];
-            for(var i=0;i<p.length;i++){
-                ret.push(stringify(p[i]));
-            }
-            return '['+ret.join(',')+']';
-        }else
-        {
-            //object
-            var ret=[];
-            for(var k in p){
-                ret.push(escapeStr(k)+":"+stringify(p[k]));
-            }
-            return '{'+ret.join(',')+'}';
-        }
     };
     /**
      * 保存文件
@@ -398,9 +330,6 @@ mb.compile=(function(){
      * 都是delay的循环引用问题，引用时可能在未来，即区分构建时库和运行时库。
      */
     var loadRequire=(function(){
-        var require=function(p){
-            return p;
-        };
         var regx=(function(){
             if('/'==sp){
                 return /\//g;
@@ -424,7 +353,7 @@ mb.compile=(function(){
                 {
                     var suffix = childName.substring(childName.lastIndexOf(".") + 1).toLowerCase();
                     if("js"==suffix){
-                        root[childName.replace(regx,'/')]="require"+loadTxt(child);
+                        root[childName.replace(regx,'/')]=loadTxt(child);
                     }
                 }
             }
@@ -437,60 +366,24 @@ mb.compile=(function(){
             for(var i=0;i<arguments.length;i++){
                 singLoad(arguments[i],root);
             }
-            return  ["(function(){",
-                    "var calAbsolutePath=mb.load.calAbsolutePath;",
-                    "var pkgLoader=mb.load.pkgLoader;",
-                    "var xload="+(function(obj){
-                        var ret={};
-                        for(var key in obj){
-                            ret[key]=core[obj[key]]();
-                        }
-                        return ret;
-                    }).toString(),
-                    "  var cache={};",
-                    "  var core={};",
-                    "  var servlets={};",
+            return  [
+                    "var cache={};",
                     (function(){
                             var core=[];
                             for(var key in root){
-                            	try{
-                            		var obj=eval(root[key]);
-                            	}catch(ex){
-                            		mb.log("出错："+key);
-                            		mb.log(mb.log.stringifyError(ex));
-                            	}
-                                var escapeKey=escapeStr(key);
-                                var newFunc=["function(){ ",
-                                			"    var  ret=cache["+escapeKey+"];", //缓存一下，只执行一次
-                                			"    if(!ret){",
-                                            "    var pkg=pkgLoader("+escapeKey+");",
-                                            "    var lib=xload("+JSON.stringify(
-                                            		mb.Object.map(obj.data||{},function(val){
-                                            			val=val.trim();
-                                            			if(val[0]=='.'){
-                                            				val=mb.load.calAbsolutePath(key,val);
-                                            			}
-                                                        if(!root[val]){
-                                                            mb.log("未找到\""+val+"\"在"+escapeKey);
-                                                        }
-                                                        return val;
-                                            		})
-                                            ,"",2)+");",
-                                            "    ret="+stringify(obj.success).trim()+(obj.delay?"()":"")+";",
-                                            "		 cache["+escapeKey+"]=ret;",
-                                            "    }",
-                                            "	 return ret;",
-                                            "};"].join('\r\n');
-                                core.push("core["+escapeKey+"]="+newFunc);
-                                if(obj.out){
-                                    //如果有out标识，可供servlet访问
-                                    core.push("servlets["+escapeKey+"]=core["+escapeKey+"];");
-                                }
+                                var e_key=escapeStr(key);
+                                var txt=[
+                                    "cache["+e_key+"]=function(){",
+                                    "   var lib={};",
+                                    "   var body="+root[key]+";",
+                                    "   return {lib:lib,body:body};",
+                                    "};"
+                                ].join("\r\n");
+                                core.push(txt);
                             }
-                            return core.join(";\r\n");
-                    })(),
-                    "  return {coreData:core,servlets:servlets};",
-                    "})()"].join('\r\n');
+                            return core.join("\r\n");
+                    })()
+            ].join("\r\n");
         };
     })();
     
@@ -509,56 +402,56 @@ mb.compile=(function(){
 		loadMB(ret,ini.get("engine_name")+".js");
 		//项目共性包
 		loadMB(ret,"common.js");
+        ret.push("(function(){");
+        
+        var getLib;
         if(ini.get("package")){
             //打包成一个文件
             var rqs=loadRequire(
                 "act"+sp,
                 "util"+sp,
                 "ext"+sp);
-            ret.push("(");
-            ret.push(
-                (function(xp){/*{coreData,servlets}*/
-                    var getLib=function(libs,path){
-                        var lib=libs[path];
-                        if(lib){
-                            return lib();
-                        }else{
-                            return null;
-                        }
-                  };
-                  //差异库
-                  getLib(xp.coreData,"ext/index.js");
-                  if(ini.get("servlet")==true){
-                       mb.init(function(path){return getLib(xp.servlets,path);});
-                  }else{
-                       mb.init(function(path){return getLib(xp.coreData,path);});
-                  }
-                }).toString()
-           );
-           ret.push(")");
-           ret.push("("+rqs+")");
+                
+            ret.push(rqs);
+            /*打包文件*/
+            getLib=function(path,servlet){
+                return mb.load(path,servlet,function(url){
+                    return cache[url]();
+                });
+            };
        }else{
            //不打包文件
-           ret.push("(");
-           ret.push(
-               (function(){
-                    var getLib=function(c_path){
-			            var lib=mb.load.require.sync(c_path);
-			            if(lib){
-			                return lib();
-			            }else{
-			                return null;
-			            }
-			        };
-                    
-                    //差异库
-                    getLib("ext/index.js");
-                    mb.init(getLib);
-               }).toString()
-           );
-           ret.push(")");
-           ret.push("()");
+           getLib=function(path,servlet){
+	           return mb.load(path,servlet,function(url){
+                    var lib={};
+                    var body=eval(mb.load.text(url));
+                    return{
+                        lib:lib,
+                        body:body
+                    };
+	           });
+	       };
         }
+        ret.push("var getLib="+getLib.toString()+";");
+        
+        
+        /**对servlet不同的加载方案**/
+        ret.push("(");
+        ret.push((function(){
+	        getLib("ext/index.js")(mb);
+	        if(ini.get("servlet")==true){
+	            mb.init(function(path){
+	                return getLib(path,true);
+	            });
+	        }else{
+	            mb.init(function(path){
+	                return getLib(path);
+	            });
+	        }
+        }).toString());
+        ret.push("())");
+        /****/
+        ret.push("}())");
         return ret.join('\r\n');
     };
     //缓存到文件
@@ -823,20 +716,29 @@ mb.init=(function(){
     return initFunc;
 })();
 
+(function(){
+var getLib=function(path,servlet){
+	           return mb.load(path,servlet,function(url){
+                    var lib={};
+                    var body=eval(mb.load.text(url));
+                    return{
+                        lib:lib,
+                        body:body
+                    };
+	           });
+	       };
 (
 function(){
-                    var getLib=function(c_path){
-			            var lib=mb.load.require.sync(c_path);
-			            if(lib){
-			                return lib();
-			            }else{
-			                return null;
-			            }
-			        };
-                    
-                    //差异库
-                    getLib("ext/index.js");
-                    mb.init(getLib);
-               }
-)
-()
+	        getLib("ext/index.js")(mb);
+	        if(ini.get("servlet")==true){
+	            mb.init(function(path){
+	                return getLib(path,true);
+	            });
+	        }else{
+	            mb.init(function(path){
+	                return getLib(path);
+	            });
+	        }
+        }
+())
+}())

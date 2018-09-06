@@ -6,10 +6,6 @@
 #include <csignal>
 #include <signal.h>
 #endif
-
-#include"./tokenize/tokenize.h"
-#include"./parse/parse.h"
-#include "./interpret.h"
 #include "./load.h"
 namespace s{
     namespace shell{
@@ -38,7 +34,7 @@ namespace s{
             cout<<"输入任意字符，按回车退出"<<endl;
             cin>>buff;
         }
-        void _run(){
+        void _run(const string lineSplits){
 		    string cache="";
             while(come){
 			    string tmp="";
@@ -53,7 +49,7 @@ namespace s{
                         if(tmp=="``"){
                             will=false;
                         }else{
-                            cache=cache+tmp+"\n";
+                            cache=cache+tmp+lineSplits;
                         }
                     }
                     //多行
@@ -63,7 +59,7 @@ namespace s{
                 if(cache=="exit"){
                     come=false;
                 }else{
-                    Node * tokens=Tokenize().run(cache);
+                    Node * tokens=Tokenize().run(cache,lineSplits[0]);
                     if(tokens!=NULL){
                         tokens->retain();
                         BracketExp * exp=Parse(tokens);
@@ -128,7 +124,7 @@ CTRL_SHUTDOWN_EVENT - 当系统被关闭时.
             init();
             if(SetConsoleCtrlHandler((PHANDLER_ROUTINE)ctrlhandler,true))
             {
-        	    _run();
+        	    _run(line_splits);
             }
             destroy();
         }
@@ -183,7 +179,7 @@ SIGUSR1 用户信号1
             signal(SIGTERM,sig_handler);//15
             */
             init();
-            _run();
+            _run(line_splits);
             destroy();
         }
 #endif

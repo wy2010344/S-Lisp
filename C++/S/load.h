@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+using namespace std;
 
 #ifdef WIN32
 #include <direct.h>
@@ -7,10 +8,10 @@
 #include <unistd.h>
 #endif
 #include<string>
+#include "./s.h"
 #include"./tokenize/tokenize.h"
 #include"./parse/parse.h"
 #include "./interpret.h"
-using namespace std;
 namespace s{
 	Node * StringSplit(string & in,char sp)
     {
@@ -40,6 +41,7 @@ namespace s{
     class LoadFunc:public LibFunction{
         string base_path;
         Node *baseScope;
+        static bool onLoad;
     public:
         string toString(){
             return "load";
@@ -54,34 +56,40 @@ namespace s{
         static Node * core;
         static Base *run_e(string file_path,Node *baseScope)
         {
-            Node * x=static_cast<Node*>(kvs::find1st(core,file_path));
-            if(x!=NULL)
-            {
-                return x->First();
+            if(onLoad){
+                throw new DefinedException("禁止在加载期间加载，避免循环加载的问题");
             }else{
-                string sb=file::read(file_path);
-                Node* scope=kvs::extend(new String("load"),new LoadFunc(file_path,baseScope),baseScope);
-                Node *tokens=Tokenize().run(sb);
-                tokens->retain();
-                BracketExp *exp=Parse(tokens);
-                exp->retain();
-                UserFunction *f=new UserFunction(exp,scope);
-                f->retain();
-                Base * base=NULL;
-                try{
-                    base=f->exec(NULL);
-                }catch(Exception* ex){
-                    ex->Msg(file_path+":"+ex->Msg());
-                    throw ex;
+                Node * x=static_cast<Node*>(kvs::find1st(core,file_path));
+                if(x!=NULL)
+                {
+                    return x->First();
+                }else{
+                    onLoad=true;
+                    string sb=file::read(file_path,line_splits);
+                    Node* scope=kvs::extend(new String("load"),new LoadFunc(file_path,baseScope),baseScope);
+                    Node *tokens=Tokenize().run(sb,line_splits[0]);
+                    tokens->retain();
+                    BracketExp *exp=Parse(tokens);
+                    exp->retain();
+                    UserFunction *f=new UserFunction(exp,scope);
+                    f->retain();
+                    Base * base=NULL;
+                    try{
+                        base=f->exec(NULL);
+                    }catch(Exception* ex){
+                        ex->Msg(file_path+":"+ex->Msg());
+                        throw ex;
+                    }
+                    core=kvs::extend(new String(file_path),new Node(base,NULL),core);
+                    if(base!=NULL){
+                        base->release();
+                    }
+                    f->release();
+                    exp->release();
+                    tokens->release();
+                    onLoad=false;
+                    return base;
                 }
-                core=kvs::extend(new String(file_path),new Node(base,NULL),core);
-                if(base!=NULL){
-                    base->release();
-                }
-                f->release();
-                exp->release();
-                tokens->release();
-                return base;
             }
         }
         static string calAbsolutePath(string & base,string &relative)
@@ -129,6 +137,7 @@ namespace s{
         }
     };
     Node * LoadFunc::core=NULL;
+    bool LoadFunc::onLoad=false;
 	class ParseFunc:public Function{
     private:
         Node *defaultScope;
@@ -152,7 +161,7 @@ namespace s{
             }else{
                 scope=static_cast<Node*>(args->First());
             }
-            Node * tokens=Tokenize().run(str->StdStr());
+            Node * tokens=Tokenize().run(str->StdStr(),line_splits[0]);
             tokens->retain();
             BracketExp * exp=Parse(tokens);
             exp->retain();
@@ -194,7 +203,7 @@ namespace s{
         cout<<"出现异常："<<e->Msg();
         if(e->type()==Exception::Exception_Location){
             LocationException* ex=static_cast<LocationException*>(e);
-            cout<<"在位置"<<ex->Index()<<endl;
+            cout<<"在位置"<<ex->Loc()->toString()<<endl;
         }else{
             cout<<endl;
         }

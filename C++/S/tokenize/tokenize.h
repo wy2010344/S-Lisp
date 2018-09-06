@@ -3,104 +3,103 @@
 namespace s{
     class Tokenize:public TokenizeBase{
     public:
-    	Node * run(const string & txt){
-    		const unsigned length=txt.size();
-    		unsigned flag=0;
+    	Node * run(const string & txt,const char linesplit){
+            Code* code=new Code(txt,linesplit);
     		Node* rest=NULL;
-    		while(flag<length){
-    			char c=txt[flag];
+    		while(code->noEnd()){
+    			char c=code->current();
     			if(isBlank(c)){
-                    flag++;
+                    code->shift();
     			}else
     			if(isQuoteLeft(c)){
                     char cs[2]={c,'\0'};
                     rest=new Node(
-                        new Token(string(cs),Token::Token_BracketLeft,flag),
+                        new Token(string(cs),Token::Token_BracketLeft,code->currentLoc()),
                         rest
                     );
-                    flag++;
+                    code->shift();
     			}else
     			if(isQuoteRight(c)){
                     char cs[2]={c,'\0'};
                     rest=new Node(
-                        new Token(string(cs),Token::Token_BracketRight,flag),
+                        new Token(string(cs),Token::Token_BracketRight,code->currentLoc()),
                         rest
                     );
-                    flag++;
+                    code->shift();
     			}else
     			if(c=='"'){
-    				tokenize_split(txt,length,rest,flag,Token::Token_Str,'"');
+    				rest=tokenize_split(code,rest,Token::Token_Str,code->currentLoc(),'"');
     			}else
     			if(c=='`'){
-    				tokenize_split(txt,length,rest,flag,Token::Token_Comment,'`');
+    				rest=tokenize_split(code,rest,Token::Token_Comment,code->currentLoc(),'`');
     			}else
     			{
-    				tokenize_ID(txt,length,rest,flag);
+    				rest=tokenize_ID(code,code->currentLoc(),rest);
     			}
     		}
+    		delete code;
     		return rest;
     	}
-    	void tokenize_split(
-    		const string &txt,
-    		const unsigned length,
-    		Node*&rest,
-    		unsigned & flag,
+    	Node* tokenize_split(
+            Code *code,
+    		Node*rest,
     		const Token::Token_Type type,
+            Location* loc,
     		const char split
     	){
     		bool unbreak=true;
-            flag++;
-            unsigned start=flag;
+            code->shift();
+            unsigned start=code->index();
             unsigned trans_time=0;
-    		while((flag<length) && unbreak){
-    			char c=txt[flag];
+    		while(code->noEnd() && unbreak){
+    			char c=code->current();
     			if(c==split){
-                    string stre=txt.substr(start,flag-start);
+                    string stre=code->substr(start,code->index());
                     if(trans_time!=0){
                         stre=str::stringFromEscape(stre,split,trans_time);
                     }
     				rest=new Node(
-                        new Token(stre,type,start-1),
+                        new Token(stre,type,loc),
                         rest
                     );
-                    flag++;
+                    code->shift();
     				unbreak=false;
     			}else{
 	    			if(c=='\\'){
                         trans_time++;
-	    				flag++;
+                        code->shift();
 	    			}
-	    			flag++;
+                    code->shift();
     			}
     		}
     		if(unbreak){
     			throw new DefinedException("超出范围");
     		}
+            return rest;
     	}
 
-    	void tokenize_ID(
-    		const string &txt,
-    		const unsigned length,
-    		Node*&rest,
-    		unsigned & flag
+    	Node* tokenize_ID(
+    		Code *code,
+            Location* loc,
+    		Node* rest
     	){
     		bool unbreak=true;
-    		unsigned start=flag;
-    		while((flag<length) && unbreak){
-    			char c=txt[flag];
+    		while(code->noEnd() && unbreak){
+    			char c=code->current();
                 if(!(isBlank(c)  || isQuoteLeft(c) || isQuoteRight(c)))
                 {
-                	flag++;
+                    code->shift();
                 }else{
-                    Token *token=deal_id(txt,start,flag);
+                    Token *token=deal_id(code,loc);
                     rest=new Node(token,rest);
                 	unbreak=false;
                 }
     		}
     		if(unbreak){
-                Token *token=deal_id(txt,start,flag);
+                Token *token=deal_id(code,loc);
                 rest=new Node(token,rest);
     		}
+            return rest;
     	}
     };
 }

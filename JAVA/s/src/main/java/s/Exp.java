@@ -1,5 +1,5 @@
 package s;
-import s.util.threeQuote.Token;
+
 public abstract class Exp {
 	public static enum Exp_Type{
 		ID,
@@ -314,7 +314,7 @@ public abstract class Exp {
     			toString(sb,value,"","");
     		}else{
     			//默认字符串
-            	toString(sb,mb.Util.string_to_trans(value,'"'),"","");
+            	toString(sb,mb.Util.string_to_trans(value,'"','"',null),"","");
     		}
 		}
 		@Override

@@ -1,4 +1,4 @@
-package s.util.threeQuote;
+package s;
 
 import s.util.Location;
 

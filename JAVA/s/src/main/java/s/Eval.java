@@ -5,43 +5,192 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import s.Exp.BracketsExp;
+import s.util.Code;
 import s.util.Location;
-import s.util.threeQuote.Token;
 
 public class Eval {
+	/***tokenize***********************************************************************************************************************************************/
+	static Character[] trans_map= {
+			'n','\n',
+			'r','\r',
+			't','\t'
+	};
+	/**
+	 * 解析字符串、注释
+	 * @param code
+	 * @param end
+	 * @return
+	 * @throws LocationException 
+	 */
+	static String parseStr(Code code,char end) throws LocationException{
+	    Location loc=code.currentLoc();
+	    code.shift();
+	    int start=code.index();
+	    boolean nobreak=true;
+	    int trans_time=0;
+	    while(code.current()!=null && nobreak){
+	        if(code.current()==end){
+	            nobreak=false;
+	        }else{
+	            if(code.current()=='\\'){
+	            	code.shift();
+	            	trans_time++;
+	            }
+	            code.shift();
+	        }
+	    }
+	    if(code.current()==null){
+	        throw code.msgThrow(end);
+	    }else{
+	    	String s=code.substr(start, code.index()-start);
+	    	if(trans_time!=0) {
+	    		try {
+	    			s=mb.Util.string_from_trans(s,end,trans_map,trans_time);
+	    		}catch(Exception e){
+	        		throw new LocationException(e.getMessage(),loc);
+	    		}
+	    	}
+	        code.shift();
+	        return s;
+	    }
+	}
+	
+	static char[] brackets_in={'(','[','{'};
+	static char[] brackets_out={')',']','}'};
+	
+	static boolean has(char c,char[] cs){
+	    boolean ret=false;
+	    for(int i=0;i<cs.length;i++){
+	        if(cs[i]==c){
+	            ret=true;
+	        }
+	    }
+	    return ret;
+	}
+	
+	static boolean isNotEnd(char c){
+	    return !(Character.isWhitespace(c)|| has(c,brackets_in) || has(c,brackets_out));
+	}
+	
+	
+	static boolean isInt(String s){
+	    boolean ret=true;
+	    int index=0;
+	    if(s.charAt(0)=='-'){
+	        index=1;
+	    }
+	    while(index<s.length()){
+	        if(!Character.isDigit(s.charAt(index))){
+	            ret=false;
+	        }
+	        index++;
+	    }
+	    return ret;
+	}
+	
+	static boolean isFloat(String s){
+	    boolean ret=true;
+	    int index=0;
+	    if(s.charAt(0)=='-'){
+	        index=1;
+	    }
+	    boolean noPoint=true;
+	    while(index<s.length()){
+	        char c=s.charAt(index);
+	        if(c=='.'){
+	            if(noPoint){
+	                noPoint=false;
+	            }else{
+	                ret=false;
+	            }
+	        }else
+	        if(!Character.isDigit(c)){
+	            ret=false;
+	        }
+	        index++;
+	    }
+	    return ret;
+	}
+	public static s.Node<Token> tokenize(String codes,char lineSplit) throws LocationException{
+	    Code code=new Code(codes,lineSplit);
+	    s.Node<Token> tokens=null;
+	    while(code.current()!=null){
+	        if(Character.isWhitespace(code.current())){
+	        	code.shift();
+	        }else
+	        if(code.current()=='"'){
+	            //字符串
+	            Location loc=code.currentLoc();
+	            String s=parseStr(code,'"');
+	            loc.setLength(s.length()+2);
+	            tokens=new s.Node<Token>(new Token(s,loc,Token.Type.Str),tokens);
+	        }else
+	        if(code.current()=='`'){
+	            //注释
+	            Location loc=code.currentLoc();
+	            String s=parseStr(code,'`');
+	            loc.setLength(s.length()+2);
+	            tokens=new s.Node<Token>(new Token(s,loc,Token.Type.Comment),tokens);
+	            //不处理
+	        }else
+	        if(has(code.current(),brackets_in)){
+	            //([{
+	            Location loc=code.currentLoc();
+	            loc.setLength(1);
+	            tokens=new s.Node<Token>(new Token(code.current()+"",loc,Token.Type.BraL),tokens);
+	            code.shift();
+	        }else
+	        if(has(code.current(),brackets_out)){
+	            //)]}
+	            Location loc=code.currentLoc();
+	            loc.setLength(1);
+	            tokens=new s.Node<Token>(new Token(code.current()+"",loc,Token.Type.BraR),tokens);
+	            code.shift();
+	        }else
+	        {
+	            //id
+	            Location loc=code.currentLoc();
+	            int start=code.index();
+	            while(code.current()!=null && isNotEnd(code.current())){
+	                code.shift();
+	            }
+	            String s=code.substr(start, code.index()-start);
+	            loc.setLength(s.length());
+	        	//长度超过1
+	            if(s.charAt(0)=='\'' && s.length()!=1){
+	                //转义
+	                if(s.length()==1){
+	                    code.msgThrow('\'');
+	                }else{
+	                    s=s.substring(1);
+	                    tokens=new s.Node<Token>(new Token(s,loc,Token.Type.Quote),tokens);
+	                }
+	            }else
+	            if((!s.equals("-"))&&isInt(s)){
+	                tokens=new s.Node<Token>(new Token(s,loc,Token.Type.Int),tokens);
+	            }else
+	            /*
+	            if(isFloat(s)){
+	                tokens.add(new Token(s,loc,Token.Type.Float));
+	            }
+	            else
+	            */
+	            {
+	            	tokens=new s.Node<Token>(new Token(s,loc,Token.Type.Id),tokens);
+	            }
+	        }
+	    }
+	    /*
+	     *因为没有翻转，与文章完全相反 
+	     */
+	    return tokens;
+	}
+	/***解析***********************************************************************************************************************************************/
 	static String[] kvs_quote= {
 			"(",")",
 			"[","]",
 			"{","}"
 	};
-	static String quoteLeftToRight(String left) {
-		int i=0;
-		String right=null;
-		while(i<kvs_quote.length&&right==null) {
-			String t_l=kvs_quote[i];
-			i++;
-			String t_r=kvs_quote[i];
-			i++;
-			if(t_l.equals(left)) {
-				right=t_r;
-			}
-		}
-		return right;
-	}
-	static String quoteRightToLeft(String right) {
-		int i=0;
-		String left=null;
-		while(i<kvs_quote.length&&left==null) {
-			String t_l=kvs_quote[i];
-			i++;
-			String t_r=kvs_quote[i];
-			i++;
-			if(t_r.equals(right)) {
-				left=t_l;
-			}
-		}
-		return left;
-	}
 	static class Cache{
 		public Cache(Token value,Node<Exp> children) {
 			this.value=value;
@@ -56,175 +205,9 @@ public class Eval {
 			return children;
 		}
 	}
-	
-	/*
-	static Node<Exp> reverse(BracketsExp exps){
-		
-	}
-	static Node<Exp> whenFunction(Node<Exp> children){
-		Node<Exp> caches=null;
-		for(Node<Exp> t=children;t!=null;t=t.Rest()) {
-			Exp e=t.First();
-			if(e.isBracket()) {
-				if(e.xtype()==Exp.Exp_Type.Call) {
-					
-				}else
-				if(e.xtype()==Exp.Exp_Type.List) {
-					caches=new Node<Exp>(reverse((BracketsExp) e),caches);
-				}else
-				{
-					caches=new Node<Exp>(e,caches);
-				}
-			}else {
-				caches=new Node<Exp>(e,caches);
-			}
-		}
-		return caches;
-	}
-	*/
-
 	static Node<Exp> whenFunction(Node<Exp> children){
 		return children;
 	}
-	/**
-	 * tokens未翻转(a b c)->) c b a (
-	 * 递归得太多！
-	 * @param tokens
-	 * @return
-	 * @throws Exception 
-	 */
-	@Deprecated
-	public static Exp.FunctionExp parse(
-			Node<Token> tokens,//供解析的列表
-			Node<Cache> caches,//栈(括号,列表)
-			Node<Exp> children//平行列表
-			) throws Exception{
-		if(tokens==null) {
-			return new Exp.FunctionExp(null, children, null);
-		}else {
-			Token x=tokens.First();
-			Node<Token> xs=tokens.Rest();
-			if(x.Type()==Token.Type.BraR) {
-				return parse(
-					xs,
-					new Node<Cache>(
-						new Cache(x,children),
-						caches
-					),
-					null
-				);
-			}else
-			if(x.Type()==Token.Type.BraL) {
-				Cache cache=caches.First();
-				String c_right=cache.token().Value();
-				String right=quoteLeftToRight(x.Value());
-				if(c_right.equals(right)){
-					Exp e=null;
-					if("}".equals(c_right)) {
-						//上一级是函数
-						e=new Exp.FunctionExp(
-							cache.token(),
-							whenFunction(children),
-							x
-						);
-					}else
-					if("]".equals(c_right)) {
-						e=new Exp.ListExp(
-							cache.token(), 
-							children, 
-							x
-						);
-					}else
-					if(")".equals(c_right)) {
-						e=new Exp.CallExp(
-							cache.token(), 
-							children, 
-							x
-						);
-					}
-					return parse(
-						xs,
-						caches.Rest(),
-						new Node<Exp>(e,cache.Children())
-					);
-				}else {
-					String msg="括号不匹配"+x.Value()+":"+c_right+"在位置:"+x.Loc().toString();
-					System.out.println(msg);
-					throw new Exception(msg);
-				}
-			}else {
-				Exp e=null;
-				if(x.Type()==Token.Type.Str) {
-					e=new Exp.StrExp(x);
-				}else
-				if(x.Type()==Token.Type.Int) {
-					e=new Exp.IntExp(x);
-				}else{
-					//ID
-					Cache cache=caches.First();
-					if(cache==null) {
-						System.out.println(caches.toString());
-					}
-					if("]".equals(cache.token().Value()))
-					{
-						//中括号号
-						if(x.Type()==Token.Type.Quote) {
-							e=new Exp.IdExp(x);
-						}else 
-						if(x.Type()==Token.Type.Id){
-							e=new Exp.StrExp(x);
-						}
-					}else {
-						//其它括号
-						if(x.Type()==Token.Type.Quote) {
-							e=new Exp.StrExp(x);
-						}else
-						if(x.Type()==Token.Type.Id){
-							e=new Exp.IdExp(x);
-						}
-					}
-				}
-				if(e==null) {
-					if(x.Type()==Token.Type.Comment ) {
-						return parse(
-							xs,
-							caches,
-							children
-						);
-					}else {
-						String msg="出错，未解析正确"+x.Type()+":"+x.Value();
-						System.out.println(msg);
-						throw new Exception(msg);
-					}
-				}else {
-					return parse(
-						xs,
-						caches,
-						new Node<Exp>(e,children)
-					);
-				}
-			}
-		}
-	}
-	@Deprecated
-	public static Exp.FunctionExp parseV1(
-			Node<Token> tokens//供解析的列表
-	) throws Exception
-	{
-		return parse(
-				tokens,
-				new Node<Cache>(
-					new Cache(
-						new Token(
-							"}",
-							new Location(0,0,0),
-							Token.Type.BraR
-						),
-						null
-					),null
-				),
-				null);
-	}	
 	/**
 	 * 转成非递归调用的while语句
 	 * @param tokens
@@ -260,7 +243,7 @@ public class Eval {
 			if(x.Type()==Token.Type.BraL) {
 				Cache cache=caches.First();
 				String c_right=cache.token().Value();
-				String right=quoteLeftToRight(x.Value());
+				String right=mb.Util.kvs_find1st(kvs_quote, x.Value());
 				if(c_right.equals(right)){
 					Exp e=null;
 					if("}".equals(c_right)) {
@@ -334,6 +317,7 @@ public class Eval {
 		}
 		return new Exp.FunctionExp(null, children, null);
 	}
+	/***执行***********************************************************************************************************************************************/
 	/**
 	 * 执行文本
 	 * @param codes
@@ -344,7 +328,7 @@ public class Eval {
 	 */
 	public static Object run(String codes,Node<Object> scope,char lineSplit) throws LocationException, Exception{
 		Exp.FunctionExp	exp=parse(
-			s.util.threeQuote.Eval.tokenize(codes,lineSplit)
+			tokenize(codes,lineSplit)
 		);
         return (new Function.UserFunction(exp,scope)).exec(null);
 	}
@@ -359,7 +343,7 @@ public class Eval {
 	 */
 	public static Object run(String codes,QueueRun qr,char lineSplit) throws LocationException, Exception {
 		Exp.FunctionExp lbe=parse(
-			s.util.threeQuote.Eval.tokenize(codes,lineSplit)
+			tokenize(codes,lineSplit)
 		);
 		Object r=null;
 		for(Node<Exp> t=lbe.Children();t!=null;t=t.Rest()) {
@@ -371,6 +355,7 @@ public class Eval {
 		 public Object result;
 	 }
 	 static HashMap<String,Result> files_defs=new HashMap<String,Result>();
+	 static boolean onload=false;
 	 
 	 /*计算绝对路径*/
 	 static String calculate_path(String path,String c_path) {
@@ -405,6 +390,13 @@ public class Eval {
 			}
 			return c_path;
 	 }
+	 /**
+	  * 执行路径文件
+	  * @param path
+	  * @param library
+	  * @return
+	  * @throws Exception
+	  */
 	 public static Object run(final String path,final Node<Object> library) throws Exception{
 		 String codes=mb.Util.readTxt(path, "\n", "UTF-8");
 		 Node<Object> pkg=Library.kvs_extend("calculate-path", new Function() {
@@ -424,29 +416,35 @@ public class Eval {
 			@Override
 			public Object exec(Node<Object> node) throws Exception{
 				// TODO Auto-generated method stub
-				String c_path=(String)node.First();
-				if(c_path==null) {
-					System.out.println("路径参数为空？");
-					return null;
-				}
-				c_path=calculate_path(path,c_path);
-				//绝对路径
-				Result file_def=files_defs.get(c_path);
-				if(file_def==null) {
-					/**
-					文件加载了一次，就不加载第二次，使用第一次结果
-					 */
-					file_def=new Result();
-					try {
-						file_def.result=Eval.run(c_path,library);
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						System.out.println(c_path);
-						e.printStackTrace();
+				if(onload) {
+					throw new Exception("加载期间不允许其它加载");
+				}else{
+					onload=true;
+					String c_path=(String)node.First();
+					if(c_path==null) {
+						System.out.println("路径参数为空？");
+						return null;
 					}
-					files_defs.put(c_path, file_def);
+					c_path=calculate_path(path,c_path);
+					//绝对路径
+					Result file_def=files_defs.get(c_path);
+					if(file_def==null) {
+						/**
+						文件加载了一次，就不加载第二次，使用第一次结果
+						 */
+						file_def=new Result();
+						try {
+							file_def.result=Eval.run(c_path,library);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							System.out.println(c_path);
+							e.printStackTrace();
+						}
+						files_defs.put(c_path, file_def);
+					}
+					onload=false;
+					return file_def.result;
 				}
-				return file_def.result;
 			}
 
 			@Override

@@ -6,14 +6,12 @@
 	!= {
 		(not (apply = args))
 	}
-	empty-fun {}
 	`
+	empty-fun {}
 	default {
 		(let (a dv) args)
 		(if (exist? a) a dv)
 	}
-	`
-	`
 	if-run {
 		(let (a b c) args)
 		(let c  (default c empty-fun))
@@ -21,7 +19,7 @@
 		(run)
 	}
 	`
-	`偏移量，从0开始`
+	`偏移量，从0开始，最大为list的length`
 	offset {
 		(let (list i) args offset this)
 		(if-run (= i 0) 
@@ -31,70 +29,103 @@
 			} 
 		)
 	}
-	`第一位是offset，取代forEach-i等`
-	with-offset {
-		(let (run) args)
-		{
-			(apply run (extend 0 args))
-		}
-	}
 
-	`其实str-join有点reduce的意思，但分割符末尾没有`
+	`其实str-join有点reduce的意思，但分割符末尾没有，至于下标序号，在init参数中`
 	`
-	reduce (with-offset {
-		(let (i xs run init) args reduce-i this)
+	reduce {
+		(let (xs run init) args reduce this)
 		(if-run (exist? xs)
 			{
 				(let (x ...xs) xs)
-				(let init (run init x i))
-				(reduce-i (+ i 1) xs run init)
+				(let init (run init x))
+				(reduce xs run init)
 			}
 			{init}
 		)
-	})
+	}
 	`
-	reduce-right (with-offset {
-		(let (i xs run init) args reduce-right-i this)
+	
+	`异步的reduce`
+	async-reduce {
+		(let (notice xs run init) args async-reduce this)
 		(if-run (exist? xs)
 			{
 				(let (x ...xs) xs)
 				(run 
-					(reduce-right-i (+ i 1) xs run  init)
+					{
+						`单个的notice`
+						(let (init) args)
+						(async-reduce notice xs run init)
+					}
+					init x
+				)
+			}
+			{
+				(notice init)
+			}
+		)
+	}
+
+	reduce-right {
+		(let (xs run init) args reduce-right this)
+		(if-run (exist? xs)
+			{
+				(let (x ...xs) xs)
+				(run 
+					(reduce-right xs run  init)
 					x
-					i
 				)
 			}
 			{ init }
 		)
-	})
+	}
 	
-	kvs-reduce (with-offset {
-		(let (i kvs run init) args kvs-reduce-i this)
+	kvs-reduce {
+		(let (kvs run init) args kvs-reduce this)
 		(if-run (exist? kvs)
 			{
 				(let (k v ...kvs) kvs)
-				(let init (run init v k i))
-				(kvs-reduce-i (+ i 1) kvs run init)
+				(let init (run init v k))
+				(kvs-reduce kvs run init)
 			}
 			{init}
 		)
-	})
+	}
+
+	async-kvs-reduce {
+		(let (notice kvs run init) args async-kvs-reduce this)
+		(if-run (exist? kvs)
+			{
+				(let (k v ...kvs) kvs)
+				(run 
+					{
+						`单个的notice`
+						(let (init) args)
+						(async-kvs-reduce notice kvs run init)
+					}
+					init v k
+				)
+			}
+			{
+				(notice init)
+			}
+		)
+	}
 	
-	kvs-reduce-right (with-offset {
-		(let (i kvs run init) args kvs-reduce-right-i this)
+	kvs-reduce-right {
+		(let (kvs run init) args kvs-reduce-right this)
 		(if-run (exist? kvs)
 			{
 				(let (k v ...kvs) kvs)
 				(run
-					(kvs-reduce-right-i (+ i 1) kvs run init)
+					(kvs-reduce-right kvs run init)
 					v
 					k
-					i
 				)
 			}
 			{ init }
 		)
-	})
+	}
 	`切片到某处`
 	slice-to {
 		(let (xs to) args slice-to this)
@@ -106,7 +137,8 @@
 			}
 		)
 	}
-
+	`从某处开始切片`
+	slice-from offset
 	`叠加两个，可以用reduce来做N次重复`
 	combine-two {
 		(let (adds olds) args combine-two this)
@@ -188,15 +220,7 @@
 	`如果没有，设置默认值`
 	default 'default
 	`从某处开始切片`
-	slice-from {
-		(let (xs from) args slice-from this)
-		(if-run (= from 0)
-			{xs}
-			{
-				(slice-from (rest xs) (- from 1))
-			}
-		)
-	}
+	slice-from 'slice-from
 	slice-to 'slice-to
 	`暂不添加slice，因为不知道是(slice from to) 还是 (slice from length)`
 
@@ -216,54 +240,53 @@
 			(or init (run x))
 		} false)
 	}
-	`减少循环`
-	forEach (with-offset {
-		(let (i xs run) args forEach-i this)
-		(if-run (exist? xs)
-			{
-				(let (x ...xs) xs)
-				(run x i)
-				(forEach-i (+ i 1) xs run)
-			}
-		)
-	})
-	`map，可以用reduce-right实现，其实reverse就是reduce-left的极端，什么也不处理，就遍历翻转一下`
-	map {
+
+	forEach {
 		(let (xs run) args)
 		(reduce-right xs {
-			(let (init x i) args)
-			(extend (run x i) init)
+			(let (init x) args)
+			(run x)
 		} [])
 	}
 
-	`筛选`
-	filter (with-offset {
-		(let (i xs run) args filter-i this)
-		(if-run (exist? xs)
-			{
-				(let (x ...xs) xs)
-				(let olds 
-					(filter-i (+ i 1) xs run)
-				)
-				(if-run (run x i)
-					{
-						(extend x olds)
-					}
-					{ olds }
-				)
-			}
-		)
-	})
+	map {
+		(let (xs run) args)
+		(reduce-right xs {
+			(let (init x) args)
+			(extend (run x ) init)
+		} [])
+	}
+
+	filter {
+		(let (xs run) args)
+		(reduce-right xs {
+			(let (init x) args)
+			(let is (run x))
+			(if-run is
+				{(extend x init)}
+				{init}
+			)
+		} [])
+	}
+
 	combine-two 'combine-two
 
 	`类似js-Array的splice:list,offset,count,...adds，先不考虑异常`
 	splice  {
-		(let (xs i count ...adds) args)
-		(let olds 
-			(offset xs (+ i count))
+		(let 
+			(xs i count ...adds) args
+			index (+ i count)
 		)
-		(let olds (combine-two adds olds))
-		(combine-two (slice-to xs i) olds)
+		(if-run (< index (length xs))
+			{
+				(let olds  (offset xs (+ i count)))
+				(let olds (combine-two adds olds))
+				(combine-two (slice-to xs i) olds)
+			}
+			{
+				(slice-to xs (- i 1))
+			}
+		)
 	}
 	
 	`其实是与splice-last对应`
@@ -278,18 +301,7 @@
 		(let offset (- (length xs) count))
 		(combine-two (slice-to xs offset) adds)
 	}
-	
-	kvs-forEach (with-offset {
-		(let (i kvs run) args kvs-forEach-i this)
-		(if-run (exist? kvs)
-			{
-				(let (k v ...kvs) kvs)
-				(run v k i)
-				(kvs-forEach-i (+ i 1) kvs run)
-			}
-		)
-	})
-	
+
 	sort {
 		`run flag v =0 <0 >0`
 		(let (xs run) args sort this)
@@ -353,12 +365,20 @@
 		)
 	}
 
+	kvs-forEach {
+		(let (kvs run) args)
+		(kvs-reduce-right kvs {
+			(let (init v k) args)
+			(run v k)
+		} [])
+	}
+
 	kvs-map {
 		(let (kvs run) args)
 		(kvs-reduce-right kvs 
 			{
-				(let (init v k i) args)
-				(kvs-extend k (run v k i) init)
+				(let (init v k) args)
+				(kvs-extend k (run v k) init)
 			} 
 			[]
 		)

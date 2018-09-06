@@ -10,12 +10,14 @@
         var mb_Util=Java.type("mb.Util");
         var Java_String=Java.type("java.lang.String");
         var Exp=Java.type("s.Exp");
+        
+        var double_quotes=mb.charAt('"',0);
         var s_trans=function(v){
             if(v==null){
                 v="[]";
             }else
             if(v instanceof Java_String){
-                v=mb_Util.string_to_trans(v,mb.charAt('"',0));
+                v=mb_Util.string_to_trans(v,double_quotes,double_quotes,null);
             }else{
                 v=v.toString();
             }
