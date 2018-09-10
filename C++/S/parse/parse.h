@@ -4,6 +4,7 @@ namespace s{
     /*抛弃*/
     BracketExp* Parse(Node* tokens){
         Location *root_loc=new Location(0,0,0);
+        root_loc->retain();
         BracketExp *exp=new BracketExp(Exp::Exp_Large,"{}",NULL,root_loc);//缓存子列表
         Node *caches=new Node(exp,NULL);
         //还必须在Parse前后retain和release，因为参数了树节点的动作？模拟有一个引用着它。
@@ -106,6 +107,8 @@ namespace s{
             }
         }
         caches->release();
-        return new BracketExp(Exp::Exp_Large,"{}",children,root_loc);
+        exp=new BracketExp(Exp::Exp_Large,"{}",children,root_loc);
+        root_loc->release();
+        return exp;
     }
 };

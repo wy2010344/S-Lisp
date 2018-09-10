@@ -56,15 +56,15 @@ namespace s{
             ReadFunc* ReadFunc::_in_=new ReadFunc();
             
 
-            class IsfunctionFunc: public LibFunction {
+            class TypeFunc: public LibFunction {
             private:
-                static IsfunctionFunc * _in_;
+                static TypeFunc * _in_;
             public:    
-                static IsfunctionFunc*instance(){
+                static TypeFunc*instance(){
                     return _in_;
                 }
                 string toString(){
-                    return "function?";
+                    return "type";
                 }
                 Fun_Type ftype(){
                     return Function::fBuildIn;
@@ -72,37 +72,48 @@ namespace s{
             protected:
                 Base * run(Node * args){
                     
-                Base * f=args->First();
-                return Bool::trans(f!=NULL && f->stype()==Base::sFunction);
-			
+                Base *b=args->First();
+                string s;
+                if(b==NULL){
+                    s="list";
+                }else{
+                    Base::S_Type t=b->stype();
+                    if(t==Base::sList){
+                        s="list";
+                    }else
+                    if(t==Base::sFunction){
+                        s="function";
+                    }else
+                    if(t==Base::sInt){
+                        s="int";
+                    }else
+                    if(t==Base::sString){
+                        s="string";
+                    }else
+                    if(t==Base::sBool){
+                        s="bool";
+                    }else
+                    if(t==Base::sUser){
+                        s="user";
+                    }else
+                    {
+                        if(t==Base::sToken){
+                            s="token";
+                        }else
+                        if(t==Base::sExp){
+                            s="exp";
+                        }else
+                        if(t==Base::sLocation){
+                            s="location";
+                        }
+                    }
                 }
-            };
-            IsfunctionFunc* IsfunctionFunc::_in_=new IsfunctionFunc();
-            
 
-            class IslistFunc: public LibFunction {
-            private:
-                static IslistFunc * _in_;
-            public:    
-                static IslistFunc*instance(){
-                    return _in_;
-                }
-                string toString(){
-                    return "list?";
-                }
-                Fun_Type ftype(){
-                    return Function::fBuildIn;
-                }
-            protected:
-                Base * run(Node * args){
-                    
-                Base * f=args->First();
-                //空也是列表，判断空用empty?或exist?
-                return Bool::trans(f==NULL || f->stype()==Base::sList);
-			
+                return new String(s);
+            
                 }
             };
-            IslistFunc* IslistFunc::_in_=new IslistFunc();
+            TypeFunc* TypeFunc::_in_=new TypeFunc();
             
 
             class StringifyFunc: public LibFunction {
@@ -872,8 +883,7 @@ namespace s{
             
             m=kvs::extend("write",WriteFunc::instance(),m);
             m=kvs::extend("read",ReadFunc::instance(),m);
-            m=kvs::extend("function?",IsfunctionFunc::instance(),m);
-            m=kvs::extend("list?",IslistFunc::instance(),m);
+            m=kvs::extend("type",TypeFunc::instance(),m);
             m=kvs::extend("stringify",StringifyFunc::instance(),m);
             m=kvs::extend("apply",ApplyFunc::instance(),m);
             m=kvs::extend("str-eq",Str_eqFunc::instance(),m);

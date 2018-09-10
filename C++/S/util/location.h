@@ -20,7 +20,7 @@ namespace s{
             return i;
         }
         S_Type stype(){
-            return Base::sLoaction;
+            return Base::sLocation;
         }
         string toString(){
             ostringstream oss;  //创建一个格式化输出流

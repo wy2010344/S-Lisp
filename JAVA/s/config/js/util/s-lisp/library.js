@@ -92,13 +92,40 @@
             "exist?":function(node) {
                 return (node.First()!=null);
             },
-            "list?":function(node){
+            type:function(node){
                 var n=node.First();
-                return (n && (n instanceof Node));
+                if(n==null){
+                    return "list";
+                }else{
+                    if(n instanceof Node){
+                        return "list";
+                    }else
+                    if(n instanceof Fun){
+                        return "function";
+                    }else{
+                        var t=typeof(n);
+                        if(t=="string"){
+                            return "string";
+                        }else
+                        if(t=="boolean"){
+                            return "bool";
+                        }else
+                        if(t=="number"){
+                            if(n%1===0){
+                                return "int";
+                            }else{
+                                return "float";
+                            }
+                        }else{
+                            return t;
+                        }
+                    }
+                }
             },
-            "function?":function(node){
-                var n=node.First();
-                return (n && (n instanceof Fun));
+            "str-eq":function(node){
+                return compare(node,function(last,now){
+                    return (last==now);
+                });
             },
             length:function(node){
                 return node.First().Length();

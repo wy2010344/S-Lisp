@@ -20,6 +20,52 @@
 		}
 	]
 
+    type? [
+        `可以用type实现，就不一一枚举了`
+        cpp [
+            run "
+                Base *b=args->First();
+                args=args->Rest();
+                bool ret=false;
+                string & type=static_cast<String*>(args->First())->StdStr();
+                if(b==NULL){
+                    ret=(type==\"list\");
+                }else{
+                    Base::S_Type t=b->stype();
+                    if(t==Base::sList){
+                        ret=(type==\"list\");
+                    }else
+                    if(t==Base::sFunction){
+                        ret=(type==\"function\");
+                    }else
+                    if(t==Base::sInt){
+                        ret=(type==\"int\");
+                    }else
+                    if(t==Base::sString){
+                        ret=(type==\"string\");
+                    }else
+                    if(t==Base::sBool){
+                        ret=(type==\"bool\");
+                    }else
+                    if(t==Base::sUser){
+                        ret=(type==\"user\");
+                    }else{
+                        if(t==Base::sToken){
+                            ret=(type==\"token\");
+                        }else
+                        if(t==Base::sExp){
+                            ret=(type==\"exp\");
+                        }else
+                        if(t==Base::sLocation){
+                            ret=(type==\"location\");
+                        }
+                    }
+                }
+                return Bool::trans(ret);
+            "
+        ]
+    ]
+
     != [
 
     ]

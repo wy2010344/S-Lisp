@@ -143,9 +143,11 @@ namespace s{
             sString,
             sBool,
             sFunction,
+
+            sUser,
             sToken,
             sExp,
-            sLoaction
+            sLocation
         };
         virtual S_Type stype()=0;
     };

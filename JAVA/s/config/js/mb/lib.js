@@ -35,6 +35,28 @@ if((""+ini.get("engine_name"))=="Mozilla Rhino"){
         }
     };
 }
+mb.String={
+    /*
+     * x:重复的字眼
+     * length:长度
+     * split:分割
+     */
+    repeat:function(x,length,split){
+        var xs=x;
+        if(split){
+            xs=x+split;
+        }
+        var s="";
+        var len=length-1;  
+        if(len>0){
+            for(var i=0;i<len;i++){
+                s=s+xs;
+            }
+        }
+        s=s+x;
+        return s;
+    }
+};
 mb.Function=(function(){
     var quote=function(){
         return function(a){
@@ -194,65 +216,82 @@ mb.load=(function(){
         var o=cache[path];
         if(!o){
             var pkg=getFun(path);
-            o={
-                success:pkg.body.delay?pkg.body.success():pkg.body.success,
-                out:pkg.body.out
-            };
-            cache[path]=o;
-            mb.Object.forEach(pkg.body.data,function(v,k){
-	           var r;
-	           if(typeof(v)=='string'){
-	                var url;
-	                if(v[0]=='.'){
-	                    url=mb.load.calAbsolutePath(path,v);
-	                }else{
-	                    url=v;
-	                }
-                    r=load(url,false,getFun);
-	           }else
-	           if(typeof(v)=='object'){
-	                var url=mb.load.calAbsolutePath(path,v.url);
-	                if(typeof(v.type)=='string'){
-	                    if(v.type=="path"){
-	                        r=mb.load.path(url);
-	                    }else
-	                    if(v.type=="file"){
-	                        r=mb.load.file(url);
-	                    }else
-	                    if(v.type=="text"){
-	                        r=mb.load.text(url);
-	                    }else{
-	                        throw "未支持类型"+v;
-	                        r=url;
-	                    }
-	                }else{
-	                    /*本来是同步的，可以加载*/
-	                    v.type({
-	                        url:url,
-	                        notice:function(success){
+            if(pkg){
+	            o={
+	                success:pkg.body.delay?pkg.body.success():pkg.body.success,
+	                out:pkg.body.out
+	            };
+	            cache[path]=o;
+                
+                var loadPath=function(v){
+                    var url;
+                    if(v[0]=='.'){
+                        url=mb.load.calAbsolutePath(path,v);
+                    }else{
+                        url=v;
+                    }
+                    return url;
+                };
+                var loadFun=function(url,fun){
+                    if(url){
+                        /*使用结果*/
+                        return fun(loadPath(url));
+                    }else{
+                        /*延迟加载*/
+                        return function(url){
+                            return fun(loadPath(url));
+                        };
+                    }
+                };
+	            mb.Object.forEach(pkg.body.data,function(v,k){
+		           var r;
+		           if(typeof(v)=='string'){
+	                    r=load(loadPath(v),false,getFun);
+		           }else
+		           if(typeof(v)=='object'){
+		                if(typeof(v.type)=='string'){
+		                    if(v.type=="path"){
+                                r=loadFun(v.url,mb.load.path);
+		                    }else
+		                    if(v.type=="file"){
+                                r=loadFun(v.url,mb.load.file);
+		                    }else
+		                    if(v.type=="text"){
+                                r=loadFun(v.url,mb.load.text);
+		                    }else{
+		                        throw "未支持类型"+v;
+		                        r=url;
+		                    }
+		                }else{
+		                    /*本来是同步的，可以加载*/
+		                    v.type(url,function(success){
 	                            r=success;
-	                        }
-	                    });
-	                }
-	           }else
-	           if(typeof(v)=='function'){
-	                v(function(success){
-	                    r=success;
-	                });
-	           }else{
-	                throw "未支持类型"+v;
-	           }
-	           pkg.lib[k]=r;
-            });
-        }
-        if(servlet){
-            if(o.out){
-                return o.success;
-            }else{
-                return null;
+	                        });
+		                }
+		           }else
+		           if(typeof(v)=='function'){
+		                v(function(success){
+		                    r=success;
+		                });
+		           }else{
+		                throw "未支持类型"+v;
+		           }
+		           pkg.lib[k]=r;
+	            });
             }
+        }
+        if(o){
+	        if(servlet){
+	            if(o.out){
+	                return o.success;
+	            }else{
+	                return null;
+	            }
+	        }else{
+	            return o.success;
+	        }
         }else{
-            return o.success;
+            return null;
         }
     };
     /*计算绝对路径*/
@@ -415,19 +454,29 @@ mb.compile=(function(){
             /*打包文件*/
             getLib=function(path,servlet){
                 return mb.load(path,servlet,function(url){
-                    return cache[url]();
+                    var v=cache[url];
+                    if(v){
+                        return v();
+                    }else{
+                        return null;
+                    }
                 });
             };
        }else{
            //不打包文件
            getLib=function(path,servlet){
 	           return mb.load(path,servlet,function(url){
-                    var lib={};
-                    var body=eval(mb.load.text(url));
-                    return{
-                        lib:lib,
-                        body:body
-                    };
+                    var txt=mb.load.text(url);
+                    if(txt==null){
+                        return null;
+                    }else{
+	                    var lib={};
+	                    var body=eval(txt);
+	                    return{
+	                        lib:lib,
+	                        body:body
+	                    };
+                    }
 	           });
 	       };
         }

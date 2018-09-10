@@ -189,6 +189,10 @@
 [
 	!= '!=
 	empty-fun 'empty-fun
+	type? {
+		(let (x n) args)
+		(str-eq (type x) n)
+	}
 	`不想使用*的kvs-match，可以用这个kvs-match`
 	kvs-match {
 		(let (kvs) args)

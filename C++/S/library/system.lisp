@@ -364,23 +364,50 @@
 			"
 		]
 	]
-	list? [
-		cpp [
-			run "
-                Base * f=args->First();
-                //空也是列表，判断空用empty?或exist?
-                return Bool::trans(f==NULL || f->stype()==Base::sList);
-			"
-		]
-	]
-	function? [
-		cpp [
-			run "
-                Base * f=args->First();
-                return Bool::trans(f!=NULL && f->stype()==Base::sFunction);
-			"
-		]
-	]
+    type [
+        cpp [
+            run "
+                Base *b=args->First();
+                string s;
+                if(b==NULL){
+                    s=\"list\";
+                }else{
+                    Base::S_Type t=b->stype();
+                    if(t==Base::sList){
+                        s=\"list\";
+                    }else
+                    if(t==Base::sFunction){
+                        s=\"function\";
+                    }else
+                    if(t==Base::sInt){
+                        s=\"int\";
+                    }else
+                    if(t==Base::sString){
+                        s=\"string\";
+                    }else
+                    if(t==Base::sBool){
+                        s=\"bool\";
+                    }else
+                    if(t==Base::sUser){
+                        s=\"user\";
+                    }else
+                    {
+                        if(t==Base::sToken){
+                            s=\"token\";
+                        }else
+                        if(t==Base::sExp){
+                            s=\"exp\";
+                        }else
+                        if(t==Base::sLocation){
+                            s=\"location\";
+                        }
+                    }
+                }
+
+                return new String(s);
+            "
+        ]
+    ]
 
     read [
         cpp [

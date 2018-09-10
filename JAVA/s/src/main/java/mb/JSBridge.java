@@ -142,7 +142,7 @@ public class JSBridge {
                 // TODO Auto-generated catch block
                 e1.printStackTrace();
                 System.out.println("加载"+path+"出错:"+e1.getMessage());
-                return "";
+                return null;
             }
         }
         public Logger getLogger(String name) {
