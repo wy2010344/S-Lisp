@@ -7,9 +7,9 @@ namespace s{
             Token_BracketRight,
             Token_Comment,
             Token_Prevent,
-            Token_Str,
+            Token_String,
             Token_Id,
-            Token_Num
+            Token_Int
         };
         Token(string value,Token_Type type,Location* loc):Base(){
             //cout<<"TOKEN:"<<value<<"  "<<type<<endl;
@@ -140,7 +140,7 @@ namespace s{
             }else
             if (isInt(Id)){
                 //转成Int，方便数值计算
-                token=new Token(Id,Token::Token_Num,loc);
+                token=new Token(Id,Token::Token_Int,loc);
             }else
             {
                 //ID类型

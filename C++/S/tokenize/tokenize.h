@@ -28,7 +28,7 @@ namespace s{
                     code->shift();
     			}else
     			if(c=='"'){
-    				rest=tokenize_split(code,rest,Token::Token_Str,code->currentLoc(),'"');
+    				rest=tokenize_split(code,rest,Token::Token_String,code->currentLoc(),'"');
     			}else
     			if(c=='`'){
     				rest=tokenize_split(code,rest,Token::Token_Comment,code->currentLoc(),'`');
@@ -45,7 +45,7 @@ namespace s{
     		Node*rest,
     		const Token::Token_Type type,
             Location* loc,
-    		const char split
+    		const char end
     	){
     		bool unbreak=true;
             code->shift();
@@ -53,10 +53,10 @@ namespace s{
             unsigned trans_time=0;
     		while(code->noEnd() && unbreak){
     			char c=code->current();
-    			if(c==split){
+    			if(c==end){
                     string stre=code->substr(start,code->index());
                     if(trans_time!=0){
-                        stre=str::stringFromEscape(stre,split,trans_time);
+                        stre=str::stringFromEscape(stre,end,trans_time);
                     }
     				rest=new Node(
                         new Token(stre,type,loc),

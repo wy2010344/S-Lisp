@@ -3,24 +3,25 @@ namespace s{
     class Base{
 #ifdef DEBUG
     private:
+        class LNode{
+        public:
+            Base *value;
+            LNode *next;
+        };
+        static LNode* lnode;
+
         static int addsize;//增加的
         static int subsize;//减少的
         static int last_addsize;//上一次的减少
         static int last_subsize;//上一次的增加
     public:
-	    class LNode{
-	    public:
-	        Base *value;
-	        LNode *next;
-	    };
-        static LNode* lnode;
         /*回收*/
         static void clear(){
             while(lnode!=NULL)
             {
                 Base * b=lnode->value;
                 b->retain();
-                while(b->_ref_()!=1){
+                while(b->ref_count()!=1){
                     b->release();
                 }
                 b->release();
@@ -76,7 +77,6 @@ namespace s{
             }
         }
 #else
-    public:
         static void clear(){
         }
         static void eval_clear(){
@@ -89,7 +89,6 @@ namespace s{
         }
 #endif
         int count;
-        virtual string toString()=0;
     public:
         Base(){
             count=0;
@@ -128,9 +127,6 @@ namespace s{
             }
             */
         }
-        int _ref_(){
-            return count;
-        }
         virtual ~Base(){
             remove_on_link(this);
             //cout<<"销毁:"<<id<<endl;
@@ -149,13 +145,17 @@ namespace s{
             sExp,
             sLocation
         };
+        int ref_count(){
+            return count;
+        }
         virtual S_Type stype()=0;
+        virtual string toString()=0;
     };
 #ifdef DEBUG
     int Base::addsize=0;
     int Base::subsize=0;
     int Base::last_addsize=0;
     int Base::last_subsize=0;
-    Base::LNode* Base::lnode=NULL;
+    Base::LNode * Base::lnode=NULL;
 #endif
 };

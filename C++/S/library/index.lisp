@@ -116,12 +116,11 @@
         )
 )
 (write 
-    (calculate-path './system.h) 
+    (pathOf './system.h) 
     (str-join 
         [
 "
 #pragma once
-#include \"./buildIn.h\"
 namespace s{
     namespace library{
             "
@@ -129,7 +128,9 @@ namespace s{
             (str-join cls)
             "
         Node * library(){
-            Node * m=buildIn();
+            Node * m=NULL;
+            m=kvs::extend(\"true\",Bool::True,m);
+            m=kvs::extend(\"false\",Bool::False,m);
             "
             (str-join fun)
             "
@@ -198,7 +199,7 @@ namespace s{
 )
 `写better.h文件`
 (write
-    (calculate-path './better.h)
+    (pathOf './better.h)
     (str-join
         [
 "

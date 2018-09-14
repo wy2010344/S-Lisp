@@ -26,8 +26,8 @@ public interface Function {
 		@Override
 		public Object exec(Node<Object> node) throws Exception {
 			// TODO Auto-generated method stub
-			Node<Object> scope=Library.kvs_extend("args", node,parentScope);
-			scope=Library.kvs_extend("this",this,scope);
+			Node<Object> scope=Node.kvs_extend("args", node,parentScope);
+			scope=Node.kvs_extend("this",this,scope);
 			QueueRun qr=new QueueRun(scope);
 			Object r=null;
 			for(Node<Exp> tmp=exp.Children();tmp!=null;tmp=tmp.Rest()) {

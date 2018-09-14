@@ -1,43 +1,6 @@
 #pragma once
 namespace s{
-    class LibFunction:public Function{
-    public:
-        Base * exec(Node* args)
-        {
-            Base* ret=run(args);
-            if(ret!=NULL)
-            {
-                ret->retain();
-            }
-            return ret;
-        }
-    protected:
-        virtual Base * run(Node * args)=0;
-    };
-    namespace library{
-        /*这个函数本质上是可被用户函数替换的，但又要被匹配所使用*/
-        class MatchFunc:public LibFunction{
-            Node * kvs_map;
-        public:
-            string toString(){
-                return "{(let (k) args) (kvs-find1st kvs k)}";
-            }
-            Fun_Type ftype(){
-                return Function::fUser;
-            }
-            MatchFunc(Node *kvs_map){
-                this->kvs_map=kvs_map;
-                this->kvs_map->retain();
-            }
-            virtual ~MatchFunc(){
-                kvs_map->release();
-            }
-        protected:
-            Base * run(Node * args){
-                String* key=static_cast<String*>(args->First());
-                return kvs::find1st(kvs_map,key->StdStr());
-            }
-        };
+	namespace library{
         /*带有缓存性质的函数，副作用的集中*/
         class CacheReturnFunc:public LibFunction{
         public:
@@ -97,12 +60,5 @@ namespace s{
                 return crf;
             }
         };
-        Node* buildIn(){
-            Node *m=NULL;
-            m=kvs::extend("true", Bool::True,m);
-            m=kvs::extend("false", Bool::False,m);
-            m=kvs::extend("cache",new CacheFunc(),m);
-            return m;
-        }
-    };
-};
+	}
+}

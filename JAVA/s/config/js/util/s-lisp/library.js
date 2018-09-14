@@ -326,7 +326,7 @@
                             return function(){
                                 var r=null;
                                 for(var i=arguments.length-1;i>-1;i--){
-                                    r=new Node(arguments[i],r);
+                                    r=Node.extend(arguments[i],r);
                                 }
                                 return v.exec(r);
                             }

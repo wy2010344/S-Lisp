@@ -3,7 +3,8 @@ namespace s{
     namespace str{
         char kvs_find1st(const string & kvs,const char c,bool & unfind){
             char x=' ';
-            for(unsigned i=0;i<kvs.size();i++){
+            unsigned i=0;
+            while(i<kvs.size() && unfind){
                 char key=kvs[i];
                 i++;
                 char value=kvs[i];
@@ -11,6 +12,7 @@ namespace s{
                     unfind=false;
                     x=value;
                 }
+                i++;
             }
             return x;
         }

@@ -8,6 +8,9 @@
 > 4. []内方便的DSL，具体参见文档与示例
 > 5. 其它创新（参见文档与示例）
 
+交流QQ群：635052381
+微信群：S-Lisp
+
 > 好消息，Java版的S-Lisp粗糙地从私有项目里分离出来了，可以在控制台交互地使用，也执行文件，[详情](./JAVA/README.md)
 
 貌似大家都没有gitee的账号，看来只有转到[github](https://github.com/wangyang2010344/S-Lisp)。

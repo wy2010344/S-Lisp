@@ -1,7 +1,7 @@
 package s;
 
 public class Node<T> {
-	public Node(T v,Node<T> n) {
+	private Node(T v,Node<T> n) {
 		this.value=v;
 		this.next=n;
 		if(n!=null) {
@@ -33,6 +33,35 @@ public class Node<T> {
 		return sb.toString();
 	}
 	
+	public static <T> Node<T> extend(T x,Node<T> xs){
+		return new Node<T>(x,xs);
+	}
+	public static Node<Object> kvs_extend(String key,Object value,Node<Object> kvs){
+		return extend(key,extend(value,kvs));
+	}
+	public static Object kvs_find1st(Node<Object> kvs,String key) {
+    	if(kvs==null) {
+    		return null;
+    	}else {
+    		Node<Object> r_kvs=kvs.Rest();
+    		if(r_kvs==null) {
+    			System.out.println("as:"+key+":"+kvs.toString());
+    		}
+    		if(key.equals(kvs.First())) {
+    			return r_kvs.First();
+    		}else {
+    			return kvs_find1st(r_kvs.Rest(),key);
+    		}
+    	}
+	}
+    /*反转*/
+    public static <T> Node<T> reverse(Node<T> node) {
+    	Node<T> r=null;
+    	for(Node<T> t=node;t!=null;t=t.Rest()) {
+    		r=extend(t.First(),r);
+    	}
+    	return r;
+    }
 	//嵌套不换行
 	public void toString(StringBuilder sb) {
 		sb.append("[ ");

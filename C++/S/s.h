@@ -13,6 +13,17 @@
 
 #include "./util/list.h"
 #include "./util/kvs.h"
+
+#include "./util/lib_function.h"
 namespace s{
-    const string line_splits= "\n";
+    void logException(Exception* e){
+        cout<<"出现异常："<<e->Msg();
+        if(e->type()==Exception::Exception_Location){
+            LocationException* ex=static_cast<LocationException*>(e);
+            cout<<"在位置"<<ex->Loc()->toString()<<endl;
+        }else{
+            cout<<endl;
+        }
+        delete e;
+    }
 };

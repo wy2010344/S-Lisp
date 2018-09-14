@@ -3,10 +3,15 @@
 namespace s{
     //为了支持控制台
     class QueueRun{
-        bool iswait(const string & x){
-            if(x.size()>3){
-                if (x[0]=='.' && x[1]=='.' && x[2]=='.') {
-                    return true;
+        bool iswait(Exp * e){
+            if(e->exp_type()==Exp::Exp_Id){
+                string &x=e->Value();
+                if(x.size()>3){
+                    if (x[0]=='.' && x[1]=='.' && x[2]=='.') {
+                        return true;
+                    }else{
+                        return false;
+                    }
                 }else{
                     return false;
                 }
@@ -36,34 +41,32 @@ namespace s{
                 return ret;
             }
         }
-        Node* bracket_match(Node * scope,Exp * key,Node *vas){
-            BracketExp * sq=static_cast<BracketExp *>(key);
-            Node *xs=sq->Children();
-            while (xs!=NULL) {
-                Exp * x=static_cast<Exp *>(xs->First());
-                const string &vk=x->Value();
-                Base *v=NULL;
-                if (xs->Rest()==NULL && iswait(vk))
+        Node* when_bracket_match(Node * scope,Node *keys,Node *values){
+            while (keys!=NULL) {
+                Exp * key=static_cast<Exp *>(keys->First());
+                Base *value=NULL;
+                if (keys->Rest()==NULL && iswait(key))
                 {
                     /*
                     最后一个是匹配(可能还是kvs_match匹配，但不是bracket_match)
                     */
+                    const string &vk=key->Value();
                     string subvk=vk.substr(3,vk.size());//不能是引用，只能是复制
                     if(subvk[subvk.size()-1]=='*'){
-                        scope=when_kvs_match(scope,subvk,vas);
+                        scope=when_kvs_match(scope,subvk,values);
                     }else{
                         //普通匹配
-                        scope=when_normal_match(scope,subvk,vas);
+                        scope=when_normal_match(scope,subvk,values);
                     }
                 }else
                 {
-                    if(vas!=NULL){
-                        v=vas->First();
-                        vas=vas->Rest();
+                    if(values!=NULL){
+                        value=values->First();
+                        values=values->Rest();
                     }
-                    scope=match(scope,x,v);
+                    scope=match(scope,key,value);
                 }
-                xs=xs->Rest();
+                keys=keys->Rest();
             }
             return scope;
         }
@@ -112,25 +115,26 @@ namespace s{
             return scope;
         }
 #endif
-        Node * match(Node *scope,Exp *key,Base *vas){
+        Node * match(Node *scope,Exp *key,Base *value){
             //值为空，仍然需要增加定义
             if (key->exp_type()==Exp::Exp_Id) {
                 string id=key->Value();
                 if(id[id.size()-1]=='*') {
-                    scope=when_kvs_match(scope,id,vas);
+                    scope=when_kvs_match(scope,id,value);
                 }else{
                     //单值匹配
-                    scope=when_normal_match(scope,id,vas);
+                    scope=when_normal_match(scope,id,value);
                 }
             }else{
                 if (key->exp_type()==Exp::Exp_Small) {
                     //括号匹配
-                    if(vas!=NULL){
-                        vas->retain();
-                        scope=bracket_match(scope,key,static_cast<Node *>(vas));
-                        vas->release();
+                    Node* keys=static_cast<BracketExp*>(key)->Children();
+                    if(value!=NULL){
+                        value->retain();
+                        scope=when_bracket_match(scope,keys,static_cast<Node *>(value));
+                        value->release();
                     }else{
-                        scope=bracket_match(scope,key,NULL);
+                        scope=when_bracket_match(scope,keys,NULL);
                     }
                 }else{
                     throw new DefinedException(key->Value()+"不是合法的类型");

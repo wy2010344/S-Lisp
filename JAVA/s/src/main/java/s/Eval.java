@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import s.Exp.BracketsExp;
 import s.util.Code;
 import s.util.Location;
 
@@ -123,28 +122,28 @@ public class Eval {
 	            Location loc=code.currentLoc();
 	            String s=parseStr(code,'"');
 	            loc.setLength(s.length()+2);
-	            tokens=new s.Node<Token>(new Token(s,loc,Token.Type.Str),tokens);
+	            tokens=Node.extend(new Token(s,loc,Token.Type.Str),tokens);
 	        }else
 	        if(code.current()=='`'){
 	            //注释
 	            Location loc=code.currentLoc();
 	            String s=parseStr(code,'`');
 	            loc.setLength(s.length()+2);
-	            tokens=new s.Node<Token>(new Token(s,loc,Token.Type.Comment),tokens);
+	            tokens=Node.extend(new Token(s,loc,Token.Type.Comment),tokens);
 	            //不处理
 	        }else
 	        if(has(code.current(),brackets_in)){
 	            //([{
 	            Location loc=code.currentLoc();
 	            loc.setLength(1);
-	            tokens=new s.Node<Token>(new Token(code.current()+"",loc,Token.Type.BraL),tokens);
+	            tokens=Node.extend(new Token(code.current()+"",loc,Token.Type.BraL),tokens);
 	            code.shift();
 	        }else
 	        if(has(code.current(),brackets_out)){
 	            //)]}
 	            Location loc=code.currentLoc();
 	            loc.setLength(1);
-	            tokens=new s.Node<Token>(new Token(code.current()+"",loc,Token.Type.BraR),tokens);
+	            tokens=Node.extend(new Token(code.current()+"",loc,Token.Type.BraR),tokens);
 	            code.shift();
 	        }else
 	        {
@@ -163,11 +162,11 @@ public class Eval {
 	                    code.msgThrow('\'');
 	                }else{
 	                    s=s.substring(1);
-	                    tokens=new s.Node<Token>(new Token(s,loc,Token.Type.Quote),tokens);
+	                    tokens=Node.extend(new Token(s,loc,Token.Type.Quote),tokens);
 	                }
 	            }else
 	            if((!s.equals("-"))&&isInt(s)){
-	                tokens=new s.Node<Token>(new Token(s,loc,Token.Type.Int),tokens);
+	                tokens=Node.extend(new Token(s,loc,Token.Type.Int),tokens);
 	            }else
 	            /*
 	            if(isFloat(s)){
@@ -176,7 +175,7 @@ public class Eval {
 	            else
 	            */
 	            {
-	            	tokens=new s.Node<Token>(new Token(s,loc,Token.Type.Id),tokens);
+	            	tokens=Node.extend(new Token(s,loc,Token.Type.Id),tokens);
 	            }
 	        }
 	    }
@@ -216,7 +215,7 @@ public class Eval {
 	 */
 	public static Exp.FunctionExp parse(final Node<Token> tokens) throws Exception{
 		//栈(括号,列表)
-		Node<Cache> caches=new Node<Cache>(
+		Node<Cache> caches=Node.extend(
 			new Cache(
 				new Token(
 					"}",
@@ -234,7 +233,7 @@ public class Eval {
 			Token x=xs.First();
 			xs=xs.Rest();
 			if(x.Type()==Token.Type.BraR) {
-				caches=new Node<Cache>(
+				caches=Node.extend(
 					new Cache(x,children),
 					caches
 				);
@@ -269,7 +268,7 @@ public class Eval {
 						);
 					}
 					caches=caches.Rest();
-					children=new Node<Exp>(e,cache.Children());
+					children=Node.extend(e,cache.Children());
 				}else {
 					String msg="括号不匹配"+x.Value()+":"+c_right+"在位置:"+x.Loc().toString();
 					System.out.println(msg);
@@ -311,7 +310,7 @@ public class Eval {
 						throw new Exception(msg);
 					}
 				}else {
-					children=new Node<Exp>(e,children);
+					children=Node.extend(e,children);
 				}
 			}
 		}
@@ -399,7 +398,7 @@ public class Eval {
 	  */
 	 public static Object run(final String path,final Node<Object> library) throws Exception{
 		 String codes=mb.Util.readTxt(path, "\n", "UTF-8");
-		 Node<Object> pkg=Library.kvs_extend("calculate-path", new Function() {
+		 Node<Object> pkg=Node.kvs_extend("pathOf", new Function() {
 			@Override
 			public Object exec(Node<Object> node) throws Exception {
 				// TODO Auto-generated method stub
@@ -412,7 +411,7 @@ public class Eval {
 				return Function.Type.buildIn;
 			}
 		 },library);
-		 pkg=Library.kvs_extend("load", new Function() {
+		 pkg=Node.kvs_extend("load", new Function() {
 			@Override
 			public Object exec(Node<Object> node) throws Exception{
 				// TODO Auto-generated method stub

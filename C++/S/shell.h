@@ -6,22 +6,25 @@
 #include <csignal>
 #include <signal.h>
 #endif
-#include "./load.h"
+#include "./s.h"
+#include"./tokenize/tokenize.h"
+#include"./parse/parse.h"
+#include "./interpret.h"
 namespace s{
     namespace shell{
         bool come;
         Node *baseScope;
         QueueRun *qr;
         char buff[500];
-        void init(){
-            baseScope=load();
+        void init(Node *bScope){
+            baseScope=bScope;
             qr=new QueueRun(baseScope);
             come=true;
         }
         void destroy(){
             baseScope->retain();
             baseScope->release();
-            Node *t=LoadFunc::core;
+            Node *t=library::LoadFunc::core;
             if(t!=NULL){
                 t->retain();
                 t->release();
@@ -34,11 +37,11 @@ namespace s{
             cout<<"输入任意字符，按回车退出"<<endl;
             cin>>buff;
         }
-        void _run(const string lineSplits){
-		    string cache="";
+        void _run(const char lineSplit){
+            string cache="";
             while(come){
-			    string tmp="";
-			    cout<<"<=";
+                string tmp="";
+                cout<<"<=";
                 cin.getline(buff,500);
                 tmp=string(buff);
                 if(tmp=="``"){
@@ -49,7 +52,7 @@ namespace s{
                         if(tmp=="``"){
                             will=false;
                         }else{
-                            cache=cache+tmp+lineSplits;
+                            cache=cache+tmp+lineSplit;
                         }
                     }
                     //多行
@@ -59,7 +62,7 @@ namespace s{
                 if(cache=="exit"){
                     come=false;
                 }else{
-                    Node * tokens=Tokenize().run(cache,lineSplits[0]);
+                    Node * tokens=Tokenize().run(cache,lineSplit);
                     if(tokens!=NULL){
                         tokens->retain();
                         BracketExp * exp=Parse(tokens);
@@ -88,12 +91,12 @@ namespace s{
                         exp->release();
                         tokens->release();
                         Base::print_node();
-                        
+
                         cache="";
                         cout<<endl;
                     }
                 }
-		    }
+            }
         }
 #ifdef WIN32
         bool ctrlhandler( DWORD fdwctrltype )
@@ -120,11 +123,11 @@ CTRL_SHUTDOWN_EVENT - 当系统被关闭时.
                 return false;
             }
         }
-        void run(){
-            init();
+        void run(Node* bScope,char line_split){
+            init(bScope);
             if(SetConsoleCtrlHandler((PHANDLER_ROUTINE)ctrlhandler,true))
             {
-        	    _run(line_splits);
+                _run(line_split);
             }
             destroy();
         }
@@ -136,7 +139,7 @@ CTRL_SHUTDOWN_EVENT - 当系统被关闭时.
             destroy();
             exit(0);
         }
-        void run(){
+        void run(Node* bScope){
             /**
             https://zhidao.baidu.com/question/1766690354480323100.html
 主要信号及说明：
@@ -178,8 +181,8 @@ SIGUSR1 用户信号1
             signal(SIGQUIT,sig_handler);//3
             signal(SIGTERM,sig_handler);//15
             */
-            init();
-            _run(line_splits);
+            init(bScope);
+            _run(line_split);
             destroy();
         }
 #endif

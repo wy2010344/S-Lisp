@@ -2,10 +2,9 @@
     delay:true,
     success:function(){
         var Node=Java.type("s.Node");
-        var Library=Java.type("s.Library");
         return {
             reverse:function(v){
-                return Library.reverse(v);
+                return Node.reverse(v);
 	        },
             o_from_kvs:function(kvs){
                 var o={};
@@ -20,18 +19,18 @@
             kvs_from_o:function(o){
                 var r=null;
                 mb.Object.forEach(o,function(v,k){
-                    r=new Node(k,new Node(v,r));
+                    r=Node.kvs_extend(k,v,r);
                 });
                 return r;
             },
             kvs_find1st:function(kvs,key){
-                return Library.kvs_find1st(kvs,key);
+                return Node.kvs_find1st(kvs,key);
             },
             kvs_extend:function(k,v,scope){
-	            return new Node(k,new Node(v,scope));
+	            return Node.kvs_extend(k,v,scope);
 	        },
             extend:function(v,vs){
-                return new Node(v,vs);
+                return Node.extend(v,vs);
             }
         }
     }

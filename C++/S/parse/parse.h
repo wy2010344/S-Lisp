@@ -66,11 +66,11 @@ namespace s{
             {
                 Exp::Exp_Type tp;
                 bool deal=true;
-                if(x->token_type()==Token::Token_Str)
+                if(x->token_type()==Token::Token_String)
                 {
                     tp=Exp::Exp_String;
                 }else
-                if(x->token_type()==Token::Token_Num)
+                if(x->token_type()==Token::Token_Int)
                 {
                     tp=Exp::Exp_Int;
                 }else{

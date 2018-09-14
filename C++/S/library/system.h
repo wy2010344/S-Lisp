@@ -1,59 +1,7 @@
 
 #pragma once
-#include "./buildIn.h"
 namespace s{
     namespace library{
-            
-
-            class WriteFunc: public LibFunction {
-            private:
-                static WriteFunc * _in_;
-            public:    
-                static WriteFunc*instance(){
-                    return _in_;
-                }
-                string toString(){
-                    return "write";
-                }
-                Fun_Type ftype(){
-                    return Function::fBuildIn;
-                }
-            protected:
-                Base * run(Node * args){
-                    
-                String * path=static_cast<String*>(args->First());
-                args=args->Rest();
-                String * content=static_cast<String*>(args->First());
-                file::write(path->StdStr(),content->StdStr());
-                return NULL;
-            
-                }
-            };
-            WriteFunc* WriteFunc::_in_=new WriteFunc();
-            
-
-            class ReadFunc: public LibFunction {
-            private:
-                static ReadFunc * _in_;
-            public:    
-                static ReadFunc*instance(){
-                    return _in_;
-                }
-                string toString(){
-                    return "read";
-                }
-                Fun_Type ftype(){
-                    return Function::fBuildIn;
-                }
-            protected:
-                Base * run(Node * args){
-                    
-                String * path=static_cast<String*>(args->First());
-                return new String(file::read(path->StdStr(),line_splits));
-            
-                }
-            };
-            ReadFunc* ReadFunc::_in_=new ReadFunc();
             
 
             class TypeFunc: public LibFunction {
@@ -442,6 +390,38 @@ namespace s{
             IsemptyFunc* IsemptyFunc::_in_=new IsemptyFunc();
             
 
+            class Str_substrFunc: public LibFunction {
+            private:
+                static Str_substrFunc * _in_;
+            public:    
+                static Str_substrFunc*instance(){
+                    return _in_;
+                }
+                string toString(){
+                    return "str-substr";
+                }
+                Fun_Type ftype(){
+                    return Function::fBuildIn;
+                }
+            protected:
+                Base * run(Node * args){
+                    
+                String * stre=static_cast<String*>(args->First());
+                args=args->Rest();
+                Int * begin=static_cast<Int*>(args->First());
+                args=args->Rest();
+                if(args==NULL){
+                    return new String(stre->StdStr().substr(begin->Value()));
+                }else{
+                    Int * len=static_cast<Int*>(args->First());
+                    return new String(stre->StdStr().substr(begin->Value(),len->Value()));
+                }
+            
+                }
+            };
+            Str_substrFunc* Str_substrFunc::_in_=new Str_substrFunc();
+            
+
             class Str_reduce_rightFunc: public LibFunction {
             private:
                 static Str_reduce_rightFunc * _in_;
@@ -763,15 +743,15 @@ namespace s{
             AddFunc* AddFunc::_in_=new AddFunc();
             
 
-            class Retain_countFunc: public LibFunction {
+            class Ref_countFunc: public LibFunction {
             private:
-                static Retain_countFunc * _in_;
+                static Ref_countFunc * _in_;
             public:    
-                static Retain_countFunc*instance(){
+                static Ref_countFunc*instance(){
                     return _in_;
                 }
                 string toString(){
-                    return "retain-count";
+                    return "ref-count";
                 }
                 Fun_Type ftype(){
                     return Function::fBuildIn;
@@ -780,11 +760,11 @@ namespace s{
                 Base * run(Node * args){
                     
             Base *b=args->First();
-            return new Int(b->count);
+            return new Int(b->ref_count());
             
                 }
             };
-            Retain_countFunc* Retain_countFunc::_in_=new Retain_countFunc();
+            Ref_countFunc* Ref_countFunc::_in_=new Ref_countFunc();
             
 
             class LengthFunc: public LibFunction {
@@ -879,10 +859,10 @@ namespace s{
             FirstFunc* FirstFunc::_in_=new FirstFunc();
             
         Node * library(){
-            Node * m=buildIn();
+            Node * m=NULL;
+            m=kvs::extend("true",Bool::True,m);
+            m=kvs::extend("false",Bool::False,m);
             
-            m=kvs::extend("write",WriteFunc::instance(),m);
-            m=kvs::extend("read",ReadFunc::instance(),m);
             m=kvs::extend("type",TypeFunc::instance(),m);
             m=kvs::extend("stringify",StringifyFunc::instance(),m);
             m=kvs::extend("apply",ApplyFunc::instance(),m);
@@ -895,6 +875,7 @@ namespace s{
             m=kvs::extend("log",LogFunc::instance(),m);
             m=kvs::extend("exist?",IsexistFunc::instance(),m);
             m=kvs::extend("empty?",IsemptyFunc::instance(),m);
+            m=kvs::extend("str-substr",Str_substrFunc::instance(),m);
             m=kvs::extend("str-reduce-right",Str_reduce_rightFunc::instance(),m);
             m=kvs::extend("str-reduce-left",Str_reduce_leftFunc::instance(),m);
             m=kvs::extend("not",NotFunc::instance(),m);
@@ -905,7 +886,7 @@ namespace s{
             m=kvs::extend(">",MBiggerFunc::instance(),m);
             m=kvs::extend("-",SubFunc::instance(),m);
             m=kvs::extend("+",AddFunc::instance(),m);
-            m=kvs::extend("retain-count",Retain_countFunc::instance(),m);
+            m=kvs::extend("ref-count",Ref_countFunc::instance(),m);
             m=kvs::extend("length",LengthFunc::instance(),m);
             m=kvs::extend("extend",ExtendFunc::instance(),m);
             m=kvs::extend("rest",RestFunc::instance(),m);

@@ -2,7 +2,7 @@
 #include <fstream>/*file*/
 namespace s{
     namespace file{
-        string read(string & path,const string lineSplits){
+        string read(string & path,const char lineSplits){
             ifstream myfile(path.c_str());
             string tmp;
             if (!myfile.is_open())

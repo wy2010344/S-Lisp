@@ -32,7 +32,7 @@ public class QueueRun {
 	Node<Object> match(Node<Object> scope,Exp y,Object values) throws Exception {
 		if(y.xtype()==Exp.Exp_Type.Call) {
 			//小括号，多匹配
-			scope=bracket_match(scope,((Exp.CallExp)y).Children(),(Node<Object>)values);
+			scope=when_bracket_match(scope,((Exp.CallExp)y).Children(),(Node<Object>)values);
 		}else 
 		if(y.xtype()==Exp.Exp_Type.ID){
 			String key=((Exp.IdExp)y).Value();
@@ -80,6 +80,18 @@ public class QueueRun {
 			return r;
 		}
 	}
+	
+	boolean isWait(Exp e) {
+		if(e.xtype()==Exp.Exp_Type.ID){
+			if(e.to_value().startsWith("...")) {
+				return true;
+			}else {
+				return false;
+			}
+		}else {
+			return false;
+		}
+	}
 	/**
 	 * 匹配括号
 	 * @param scope
@@ -88,29 +100,29 @@ public class QueueRun {
 	 * @return
 	 * @throws Exception
 	 */
-	Node<Object> bracket_match(Node<Object> scope,Node<Exp> key_nodes,Node<Object> val_nodes) throws Exception {
-		Node<Object> kv=val_nodes;
-		for(Node<Exp> kt=key_nodes;kt!=null;kt=kt.Rest()) {
-			Exp key_exp=kt.First();
-			String key=key_exp.to_value();
-			if(key.startsWith("...") && kt.Rest()==null) {
+	Node<Object> when_bracket_match(Node<Object> scope,Node<Exp> keys,Node<Object> values) throws Exception {
+		while(keys!=null) {
+			Exp key=keys.First();
+			if(isWait(key) && keys.Rest()==null) {
 				//以...xx结尾，匹配后续的列表
-				key=key.substring(3);
-				if(key.endsWith("*")) {
+				String key_name=key.to_value();
+				key_name=key_name.substring(3);
+				if(key_name.endsWith("*")) {
 					//字典匹配
-					scope=when_kvs_match(scope,key,kv);
+					scope=when_kvs_match(scope,key_name,values);
 				}else {
 					//普通匹配
-					scope=when_normal_match(scope,key,kv);
+					scope=when_normal_match(scope,key_name,values);
 				}
 			}else {
 				Object value=null;
-				if(kv!=null) {
-					value=kv.First();
-					kv=kv.Rest();
+				if(values!=null) {
+					value=values.First();
+					values=values.Rest();
 				}
-				scope=match(scope,key_exp,value);
+				scope=match(scope,key,value);
 			}
+			keys=keys.Rest();
 		}
 		return scope;
 	}
@@ -125,7 +137,7 @@ public class QueueRun {
 	 */
 	Node<Object> when_normal_match(Node<Object> scope,String key,Object kv) throws Exception {
 		if(isValidKey(key)) {
-			scope=Library.kvs_extend(key, kv,scope);
+			scope=Node.kvs_extend(key, kv,scope);
 		}else {
 			throw new Exception(key+"不是合法的id");
 		}
@@ -167,11 +179,11 @@ public class QueueRun {
 		/**
 		 * 附加一个查询字典的函数
 		 */
-		scope=Library.kvs_extend(key_prefix, new Function() {
+		scope=Node.kvs_extend(key_prefix, new Function() {
 			@Override
 			public Object exec(Node<Object> node)throws Exception {
 				// TODO Auto-generated method stub
-				return Library.kvs_find1st(kvs, (String)node.First());
+				return Node.kvs_find1st(kvs, (String)node.First());
 			}
 			@Override
 			public String toString() {
@@ -184,7 +196,7 @@ public class QueueRun {
 				return Function.Type.user;
 			}
 		},scope);
-		final Node<Object> svk=Library.reverse((Node<Object>)values);
+		final Node<Object> svk=Node.reverse((Node<Object>)values);
 		Node<Object> tmp_svk=svk;
 		while(tmp_svk!=null) {
 			Object vk=tmp_svk.First();
@@ -195,7 +207,7 @@ public class QueueRun {
 				String k=(String)tmp_svk.First();
 				if(isValidKey(k)) {
 					//命名合法，还需要去除空格等情况。
-					scope=Library.kvs_extend(key_prefix+"."+k,vk,scope);//添加分割符，似乎又显得不和谐，与用户自己的风格
+					scope=Node.kvs_extend(key_prefix+"."+k,vk,scope);//添加分割符，似乎又显得不和谐，与用户自己的风格
 				}else {
 					//忽略
 				}
@@ -211,7 +223,7 @@ public class QueueRun {
 		for(Node<Exp> x=list;x!=null;x=x.Rest()) {
 			Exp xe=x.First();
 			Object xv=interpret(xe,scope);
-			r=new Node<Object>(xv,r);
+			r=Node.extend(xv,r);
 		}
 		return r;
 		//return Library.reverse(r);
@@ -251,7 +263,7 @@ public class QueueRun {
 		}else {
 			if(exp.xtype()==Exp.Exp_Type.ID) {
 				Exp.IdExp tmp=(Exp.IdExp)exp;
-				return Library.kvs_find1st(scope, tmp.Value());
+				return Node.kvs_find1st(scope, tmp.Value());
 			}else
 	        if(exp.xtype()==Exp.Exp_Type.String){
 	            return ((Exp.StrExp)exp).Value();

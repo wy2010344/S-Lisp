@@ -129,7 +129,7 @@ public abstract class Exp {
     public static class CallExp extends BracketsExp{
 		public CallExp(Token first, Node<Exp> children, Token last) {
 			super(first, children, last);
-			this.r_children=Library.reverse(children);
+			this.r_children=Node.reverse(children);
 		}
 		private Node<Exp> r_children;
 		public Node<Exp> R_children(){
@@ -158,7 +158,7 @@ public abstract class Exp {
     public static class ListExp extends BracketsExp{
 		public ListExp(Token first, Node<Exp> children, Token last) {
 			super(first, children, last);
-			this.r_children=Library.reverse(children);
+			this.r_children=Node.reverse(children);
 		}
 		private Node<Exp> r_children;
 		public Node<Exp> R_children(){
