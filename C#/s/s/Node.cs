@@ -65,6 +65,10 @@ namespace s
                     }
                     sb.Append(v.ToString());
                 }
+                else if (f.Function_type() == Function.Function_Type.Fun_Better)
+                {
+                    sb.Append(v.ToString());
+                }
                 else if (f.Function_type() == Function.Function_Type.Fun_User)
                 {
                     (f as UserFunction).toString(sb);
@@ -115,7 +119,18 @@ namespace s
         {
             return new Node<T>(value, scope);
         }
-
+        public static Node<T> list(params T[] ps)
+        {
+            return extends(ps, null);
+        }
+        public static Node<T> extends(T[] ps, Node<T> r)
+        {
+            for (int i = ps.Length-1; i >-1; i--)
+            {
+                r = new Node<T>(ps[i], r);
+            }
+            return r;
+        }
         public static Object kvs_find1st(Node<Object> kvs, String k)
         {
             if (kvs == null)

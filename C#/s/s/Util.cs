@@ -111,21 +111,57 @@ namespace s
             sb.Append(end);
             return sb.ToString();
         }
+
+        static string absolute_from_relative(String base_path, String relative_path)
+        {
+            if (relative_path.StartsWith("."))
+            {
+                if(base_path.EndsWith("/")){
+                    base_path = base_path.Substring(0, base_path.Length - 1);
+                }
+                String[] nodes = base_path.Split('/');
+                String[] names = relative_path.Split('/');
+                List<String> list = new List<string>(nodes);
+                for (int i = 0; i < names.Length; i++)
+                {
+                    String n = names[i];
+                    if (n == ".")
+                    {
+                    }
+                    else if (n == "..")
+                    {
+                        list.RemoveAt(list.Count - 1);
+                    }
+                    else if (n == "")
+                    {
+                    }
+                    else
+                    {
+                        list.Add(n);
+                    }
+                }
+                return String.Join("/", list.ToArray());
+            }
+            else
+            {
+                return relative_path;
+            }
+        }
         /// <summary>
         /// 可执行exe路径
         /// </summary>
         /// <returns></returns>
-        public static string exe_path()
+        public static string exe_path(String relative_path)
         {
-            return AppDomain.CurrentDomain.BaseDirectory;  
+            return absolute_from_relative(AppDomain.CurrentDomain.BaseDirectory.Replace('\\','/'),relative_path);  
         }
         /// <summary>
         /// 文件路径
         /// </summary>
         /// <returns></returns>
-        public static string file_path()
+        public static string file_path(String relative_path)
         {
-            return Environment.CurrentDirectory;
+            return absolute_from_relative(Environment.CurrentDirectory.Replace('\\', '/'), relative_path);
         }
         public static String readTxt(String path, char linesplit, Encoding encode)
         {

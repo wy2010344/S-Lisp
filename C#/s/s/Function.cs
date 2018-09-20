@@ -10,6 +10,7 @@ namespace s
         {
             Fun_User,
             Fun_BuildIn,
+            Fun_Better,
             Fun_Cache
         }
         public abstract Object exec(Node<Object> args);

@@ -106,7 +106,7 @@
          )
 )
 (write
-    (pathOf './system.cs)
+    (pathOf './System.cs)
     (str-join
         [
 "
@@ -125,6 +125,91 @@ namespace s.library
             Node<Object> m = null;
             m = Node<Object>.kvs_extend(\"true\",true, m);
             m = Node<Object>.kvs_extend(\"false\", false, m);
+            "
+            (str-join fun)
+            "
+            return m;
+        }
+    }
+}"        
+        
+        ]
+    )
+)
+
+
+(let
+    system (load './better.lisp)
+    (cls fun)
+        (kvs-reduce
+            system
+            {
+                (let (init v k i) args)
+                (let (cls fun) init)
+                (let C#-run (kvs-path v [C# run]))
+                (if-run (exist? C#-run)
+                    {
+                        (let key (kvs-path v [alias]))
+                        (let key
+                            (if-run (exist? key)
+                                {key}
+                                {(transKey k)}
+                           )
+                        )
+                        (let lispfun (kvs-path v [lisp]))
+                        (let (ftype toStr)
+                            (if-run (exist? lispfun)
+                                {
+                                    [Fun_Better {(stringify lispfun)}]
+                                }
+                                {
+                                    [Fun_BuildIn {k}]
+                                }
+                             )
+                        )
+                        (list
+                            (extend
+                                (str-join
+                                    (build-cls
+                                        key
+                                        C#-run
+                                        ftype
+                                        toStr
+                                    )
+                                )
+                                cls
+                            )
+                            (extend
+                                (str-join
+                                    (build-m k key)
+                                )
+                                fun
+                            )
+                        )
+                    }
+                    {init}
+                )
+            }
+            []
+         )
+)
+(write
+    (pathOf './Better.cs)
+    (str-join
+        [
+"
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace s.library
+{
+    public class Better
+    {
+    "
+        (str-join cls)
+    "
+        public static Node<Object> build(Node<Object> m){
             "
             (str-join fun)
             "

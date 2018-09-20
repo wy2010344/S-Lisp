@@ -9,7 +9,7 @@ namespace shell
     {
         static void Main(string[] args)
         {
-            s.Shell.run(s.library.System.library(),'\n');
+            (new s.S('\n')).shell();
         }
     }
 }

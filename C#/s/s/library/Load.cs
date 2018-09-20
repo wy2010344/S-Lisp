@@ -27,7 +27,7 @@ namespace s.library
         {
             String r_path = args.First() as String;
             String path = calAbsolutePath(base_path, r_path);
-            return run_e(path, baseScope);
+            return run_e(path, baseScope,lineSpilt);
         }
 
         static Node<String> StringSplit(String str, char sp)
@@ -77,9 +77,9 @@ namespace s.library
             }
             return sb.ToString();
         }
-        bool onLoad = false;
+        static bool onLoad = false;
         static Node<Object> core;
-        public object run_e(String path, Node<Object> baseScope)
+        public static object run_e(String path, Node<Object> baseScope, char lineSpilt)
         {
             if (onLoad)
             {

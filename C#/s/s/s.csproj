@@ -36,6 +36,7 @@
     <Compile Include="Code.cs" />
     <Compile Include="Exp.cs" />
     <Compile Include="Function.cs" />
+    <Compile Include="library\Better.cs" />
     <Compile Include="library\Cache.cs" />
     <Compile Include="library\Parse.cs" />
     <Compile Include="library\System.cs" />
@@ -44,13 +45,14 @@
     <Compile Include="LocationException.cs" />
     <Compile Include="Node.cs" />
     <Compile Include="QueueRun.cs" />
-    <Compile Include="Shell.cs" />
+    <Compile Include="S.cs" />
     <Compile Include="Token.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UserFunction.cs" />
     <Compile Include="Util.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="library\better.lisp" />
     <None Include="library\index.lisp" />
     <None Include="library\system.lisp" />
   </ItemGroup>

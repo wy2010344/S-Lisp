@@ -44,27 +44,6 @@
 		)
 	}
 	`
-	
-	`异步的reduce`
-	async-reduce {
-		(let (notice xs run init) args async-reduce this)
-		(if-run (exist? xs)
-			{
-				(let (x ...xs) xs)
-				(run 
-					{
-						`单个的notice`
-						(let (init) args)
-						(async-reduce notice xs run init)
-					}
-					init x
-				)
-			}
-			{
-				(notice init)
-			}
-		)
-	}
 
 	reduce-right {
 		(let (xs run init) args reduce-right this)
@@ -89,26 +68,6 @@
 				(kvs-reduce kvs run init)
 			}
 			{init}
-		)
-	}
-
-	async-kvs-reduce {
-		(let (notice kvs run init) args async-kvs-reduce this)
-		(if-run (exist? kvs)
-			{
-				(let (k v ...kvs) kvs)
-				(run 
-					{
-						`单个的notice`
-						(let (init) args)
-						(async-kvs-reduce notice kvs run init)
-					}
-					init v k
-				)
-			}
-			{
-				(notice init)
-			}
 		)
 	}
 	
@@ -228,10 +187,54 @@
 	`reduce-left就是reduce`
 	reduce-left 'reduce
 	reduce-right 'reduce-right
+
+	
+	`异步的reduce`
+	async-reduce {
+		(let (notice xs run init) args async-reduce this)
+		(if-run (exist? xs)
+			{
+				(let (x ...xs) xs)
+				(run 
+					{
+						`单个的notice`
+						(let (init) args)
+						(async-reduce notice xs run init)
+					}
+					init x
+				)
+			}
+			{
+				(notice init)
+			}
+		)
+	}
+
 	`与列表的reduce对应`
 	kvs-reduce 'kvs-reduce
 	kvs-reduce-left 'kvs-reduce
 	kvs-reduce-right 'kvs-reduce-right
+
+	async-kvs-reduce {
+		(let (notice kvs run init) args async-kvs-reduce this)
+		(if-run (exist? kvs)
+			{
+				(let (k v ...kvs) kvs)
+				(run 
+					{
+						`单个的notice`
+						(let (init) args)
+						(async-kvs-reduce notice kvs run init)
+					}
+					init v k
+				)
+			}
+			{
+				(notice init)
+			}
+		)
+	}
+
 	`类似js中的some，已经包含`
 	some {
 		(let (xs run) args)
@@ -273,20 +276,10 @@
 
 	`类似js-Array的splice:list,offset,count,...adds，先不考虑异常`
 	splice  {
-		(let 
-			(xs i count ...adds) args
-			index (+ i count)
-		)
-		(if-run (< index (length xs))
-			{
-				(let olds  (offset xs (+ i count)))
-				(let olds (combine-two adds olds))
-				(combine-two (slice-to xs i) olds)
-			}
-			{
-				(slice-to xs (- i 1))
-			}
-		)
+		(let (xs i count ...adds) args)
+		(let olds  (offset xs (+ i count)))
+		(let olds (combine-two adds olds))
+		(combine-two (slice-to xs i) olds)
 	}
 	
 	`其实是与splice-last对应`

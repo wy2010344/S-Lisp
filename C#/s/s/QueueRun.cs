@@ -151,6 +151,11 @@ namespace s
             }
             return r;
         }
+
+        LocationException error_throw(String msg, Exp exp)
+        {
+            return new LocationException(exp.Loc(), msg + ":" + exp.Children().First() + "\r\n" + exp.Children().ToString());
+        }
         Object interpret(Exp exp, Node<Object> scope)
         {
             if (exp.Exp_type() == Exp.Exp_Type.Exp_Small)
@@ -160,20 +165,29 @@ namespace s
                 
                 if (o is Function)
                 {
-                    return ((Function)o).exec(children.Rest());
+                    try
+                    {
+                        return ((Function)o).exec(children.Rest());
+                    }
+                    catch (LocationException lex)
+                    {
+                        throw lex;
+                    }
+                    catch (Exception ex)
+                    {
+                        throw error_throw("函数执行内部错误" + ex.Message,exp);
+                    }
                 }
                 else
                 {
-                    string msg = "";
                     if (o == null)
                     {
-                        msg = "未找到函数定义";
+                        throw error_throw("未找到函数定义", exp);
                     }
                     else
                     {
-                        msg = "不是函数";
+                        throw error_throw("不是函数", exp);
                     }
-                    throw new LocationException(exp.Loc(), msg+":" + exp.R_children().First() + "\r\n" + exp.R_children().ToString());
                 }
             }
             else if (exp.Exp_type() == Exp.Exp_Type.Exp_Medium)
