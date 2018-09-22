@@ -133,7 +133,7 @@ namespace s{
             if (Id[0]=='\'') {
                 //阻止求值
                 if(Id.size()==1){
-                    throw new DefinedException("单个'不允许");
+                    throw new LocationException("单个'不允许",loc);
                 }else{
                     token=new Token(Id.substr(1,Id.size()-1),Token::Token_Prevent,loc);
                 }

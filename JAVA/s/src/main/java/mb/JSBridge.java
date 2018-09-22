@@ -1,7 +1,7 @@
 package mb;
 
 import java.io.File;
-import java.io.FileOutputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 
@@ -19,7 +19,8 @@ public class JSBridge {
     protected static CompiledScript cScript=null;
     static boolean first_run=true;//编译事件
     static String server_path;
-    
+    static boolean first_from_cache;
+    static String jsx_path;
     protected HashMap<String,Object> init(){
         if(engine==null){
             ScriptEngineManager manager=new ScriptEngineManager();
@@ -35,10 +36,13 @@ public class JSBridge {
         ini.put("file_sp",File.separator);
         ini.put("engine_name", engine.getFactory().getEngineName());
         ini.put("me",new Helper());
+    	ini.put("jsx_path",jsx_path);
         return ini;
     }
-    public JSBridge(String path){
+    public JSBridge(String path,boolean from_cache){
     	server_path=path;
+    	first_from_cache=from_cache;
+    	jsx_path=server_path+"/out.jsx";
     }
     public HashMap<String,Object> run_map(HashMap<String,String> request,String act,Logger log){
         //构造初始化
@@ -55,11 +59,18 @@ public class JSBridge {
             ini.put("act", act);
             ini.put("request",request);
             ini.put("response",response);
-            param(ini);
-            run("".equals(act),ini);
+            
+            Bindings scriptParams=scriptParamsFromIni(ini);
             if("".equals(act)) {
+            	//手动刷新，重新加载
+            	StringBuilder msg=new StringBuilder("手动:");
+            	load_from_package(scriptParams,msg);
+            	
                 response.put("code", 0);
                 response.put("description","刷新成功");
+            }else {
+            	//执行具体方法
+            	run(scriptParams);
             }
         } catch (Exception e) {
             response.put("code", -2);
@@ -70,22 +81,36 @@ public class JSBridge {
         }
 		return response;
     }
-    protected void run(boolean reload,HashMap<String,Object> ini) throws ScriptException, IOException {
+    protected void param(HashMap<String,Object> ini){
+    	/*
+    	 */
+    }
+    protected Bindings scriptParamsFromIni(HashMap<String,Object> ini) {
+        param(ini);
         Bindings scriptParams = engine.createBindings();
         scriptParams.put("ini", ini);
-        if(reload || first_run) {
-        	try {
-				reload(scriptParams);
-			} catch (ScriptException e) {
-				// TODO Auto-generated catch block
-                System.out.println("编译时出的错");
-				throw e;
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-                System.out.println("编译时出的错");
-				throw e;
-			}
-        }
+        return scriptParams;
+    }
+    /**
+     * 执行具体方法
+     * @param scriptParams
+     * @throws FileNotFoundException
+     * @throws IOException
+     * @throws ScriptException
+     */
+    protected void run(Bindings scriptParams) throws FileNotFoundException, IOException, ScriptException {
+    	if(first_run) {
+        	//第一次
+        	first_run=false;
+        	StringBuilder msg=new StringBuilder("第一次:");
+        	File jsx=new File(jsx_path);
+        	if(jsx.exists() && first_from_cache) {
+        		load_from_jsx(jsx,msg);
+        	}else {
+        		load_from_package(scriptParams,msg);
+        	}
+    	}
+
         if(cScript!=null){
             try {
 				cScript.eval(scriptParams);
@@ -96,23 +121,27 @@ public class JSBridge {
 			}
         }
     }
-    protected void param(HashMap<String,Object> ini){
-    	/*
-    	 */
-    }
-    static void reload(Bindings scriptParams) throws ScriptException, IOException {
-        //作用域保证并发线程不冲突。
+    
+    static void load_from_package(Bindings scriptParams,StringBuilder msg) throws ScriptException, IOException {
         engine.eval(Util.readTxt(server_path+File.separator+"mb"+File.separator+"lib.js","\r\n","UTF-8"),scriptParams);
         String content=engine.eval("mb.compile.save();",scriptParams).toString();
+
+        msg.append("重新打包");
+        load_cScript(content,msg);
+    }
+    static void load_from_jsx(File jsx,StringBuilder msg) throws FileNotFoundException, IOException, ScriptException {
+    	String content=Util.readTxt(jsx, "\r\n", "UTF-8");
+    	
+        msg.append("加载jsx");
+    	load_cScript(content,msg);
+    }
+    static void load_cScript(String content,StringBuilder msg) throws ScriptException {
         Compilable comp = (Compilable) engine;
         cScript = comp.compile(content);
-        if(first_run){
-            System.out.print("reload:第一次"+server_path);
-        }else {
-            System.out.print("reload:手动"+server_path);
-        }
-        System.out.println();
-        first_run=false;
+        
+        msg.append(":");
+        msg.append(server_path);
+        System.out.println(msg.toString());
     }
     public static class Helper{
     	public Character charAt(String string,int index) {
@@ -120,12 +149,10 @@ public class JSBridge {
     	}
         public void saveText(String content,String path){
             try{
-                FileOutputStream fout=new FileOutputStream(path);
-                fout.write((new java.lang.String(content).getBytes()));
-                fout.flush();
-                fout.close();
+            	mb.Util.saveTxt(path, content, "UTF-8");
             }catch(Exception ex){
                 ex.printStackTrace();
+                System.out.println("保存"+path+"出错:"+ex.getMessage());
             }
         }
         public File fileFromPath(String path){

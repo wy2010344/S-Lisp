@@ -38,7 +38,7 @@ namespace s{
                         bool unfind=true;
                         char x=kvs_find1st(trans_map,c,unfind);
                         if(unfind){
-                            throw new DefinedException("非法转义"+v);
+                            throw "非法转义"+v;
                         }else{
                             buff[ref]=x;
                         }

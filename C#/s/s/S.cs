@@ -15,13 +15,18 @@ namespace s
                             library.System.library()
                            );
         }
-        public S loadLib(String relative_path, String key, bool delay)
+        private Object loadValue(String relative_path,bool delay)
         {
-            Object value = s.library.Load.run_e(s.Util.exe_path(relative_path) , scope, lineSplit);
+            Object value = s.library.Load.run_e(s.Util.exe_path(relative_path), scope, lineSplit);
             if (delay)
             {
                 value = (value as Function).exec(null);
             }
+            return value;
+        }
+        public S loadLib(String relative_path, String key, bool delay)
+        {
+            Object value = loadValue(relative_path, delay);
             scope = s.Node<Object>.kvs_extend(key, value, scope);
             return this;
         }
@@ -29,9 +34,9 @@ namespace s
         {
             return loadLib(relative_path, key, false);
         }
-        public S loadLib(String relative_path)
+        public S loadLib(String relative_path, bool delay)
         {
-            s.Node<Object> kvs = s.library.Load.run_e(s.Util.exe_path(relative_path), scope, lineSplit) as s.Node<Object>;
+            s.Node<Object> kvs = loadValue(relative_path, delay) as s.Node<Object>;
             s.Node<Object> tmp = kvs;
             while (tmp != null)
             {
@@ -42,6 +47,10 @@ namespace s
                 scope = s.Node<Object>.kvs_extend(key, value, scope);
             }
             return this;
+        }
+        public S loadLib(String relative_path)
+        {
+            return loadLib(relative_path, false);
         }
         public S addDef(String key, Object value)
         {

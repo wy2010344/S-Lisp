@@ -122,8 +122,15 @@ namespace s.library
         }
         public override object exec(Node<object> args)
         {
-            String r_path = args.First() as String;
-            return Load.calAbsolutePath(basePath, r_path);
+            if (args == null)
+            {
+                return basePath;
+            }
+            else
+            {
+                String r_path = args.First() as String;
+                return Load.calAbsolutePath(basePath, r_path);
+            }
         }
         public override Function_Type Function_type()
         {

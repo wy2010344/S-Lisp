@@ -40,13 +40,14 @@ namespace s{
         pwd=pwd+"/";
         if(file[0]=='.')
         {
-            file=library::LoadFunc::calAbsolutePath(pwd,file);
+            file=library::PathOfFunc::calAbsolutePath(pwd,file);
             cout<<"绝对路径"<<file<<endl;
         }
         try{
             library::LoadFunc::run_e(file,baseScope,line_split);
-        }catch(Exception* e){
-            logException(e);
+        }catch(LocationException* e){
+            cout<<"出现异常\r\n"<<e->toString();
+            delete e;
         }catch(...){
             cout<<"出现未能捕获异常"<<endl;
         }

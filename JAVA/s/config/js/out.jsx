@@ -506,7 +506,7 @@ mb.compile=(function(){
     //»º´æµ½ÎÄ¼ş
     ret.save=function(){
         var x=ret();
-        saveTxt(x,base_path+sp+"out.jsx");
+        saveTxt(x,ini.get("jsx_path"));
         return x;
     };
     return ret;

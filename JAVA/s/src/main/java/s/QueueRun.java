@@ -228,15 +228,37 @@ public class QueueRun {
 		return r;
 		//return Library.reverse(r);
 	}
-	private void errorMessage(String message,Exp.CallExp exp,Node<Object> children) throws Exception {
+	private LocationException errorMessage(String message,Exp.CallExp exp,Node<Object> children){
 		String exp_msg=exp.toString();
 		String result_msg=children.toString();
-		throw new Exception(
-			message+":\n"+
-		    exp_msg+"\n"+
-		    result_msg+"\n"+
-		    exp.First().Loc().toString()
-		);
+		LocationException lox= new LocationException(
+						message+":\n"+
+					    exp_msg+"\n"+
+					    result_msg+"\n"+
+					    exp.First().Loc().toString(),
+					    exp.First().Loc());
+		return lox;
+	}
+	String getPath(Node<Object> scope) {
+		String path=null;
+		Node<Object> tmp=scope;
+		while(tmp!=null && path==null) {
+			String key=(String)tmp.First();
+			tmp=tmp.Rest();
+			if("pathOf".equals(key)) {
+				if(tmp.First() instanceof Function) {
+					Function pathOf=(Function)tmp.First();
+					try {
+						path=(String) pathOf.exec(null);
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+			tmp=tmp.Rest();
+		}
+		return path;
 	}
 	private Object interpret(Exp exp,Node<Object> scope) throws Exception{ 
 		if(exp.isBracket()) {
@@ -245,12 +267,19 @@ public class QueueRun {
 				Node<Object> children=calNode(tmp.R_children(),scope);
 				Object first=children.First();
 				if(first==null) {
-					errorMessage("函数1未找到定义",tmp,children);
+					throw errorMessage("函数1未找到定义",tmp,children);
 				}else
 				if(first instanceof Function) {
-					return ((Function)first).exec(children.Rest());
+					try {
+						return ((Function)first).exec(children.Rest());
+					}catch(LocationException ex) {
+						ex.addStack(getPath(scope), tmp.First().Loc(), exp.toString());
+						throw ex;
+					}catch(Exception e) {
+						throw errorMessage(e.getMessage(),tmp,children);
+					}
 				}else {
-					errorMessage("参数1的结果必须是函数",tmp,children);
+					throw errorMessage("参数1的结果必须是函数",tmp,children);
 				}
 			}else
 			if(exp.xtype()==Exp.Exp_Type.List) {

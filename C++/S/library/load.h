@@ -6,62 +6,19 @@
 #endif
 namespace s{
 	namespace library{
-	    class LoadFunc:public LibFunction{
-	        string base_path;
-	        Node *baseScope;
-	        static bool onLoad;
-	        char line_split;
-	    public:
-	        string toString(){
-	            return "load";
-	        }
-	        Fun_Type ftype(){
-	            return Function::fBuildIn;
-	        }
-	        LoadFunc(string path,Node *scope,char split){
-	            base_path=path;
-	            baseScope=scope;
-	            line_split=split;
-	        }
-	        static Node * core;
-	        static Base *run_e(string file_path,Node *baseScope,char line_split)
-	        {
-	            if(onLoad){
-	                throw new DefinedException("禁止在加载期间加载，避免循环加载的问题");
-	            }else{
-	                Node * x=static_cast<Node*>(kvs::find1st(core,file_path));
-	                if(x!=NULL)
-	                {
-	                    return x->First();
-	                }else{
-	                    onLoad=true;
-	                    string sb=file::read(file_path,line_split);
-	                    Node* scope=kvs::extend(new String("load"),new LoadFunc(file_path,baseScope,line_split),baseScope);
-	                    Node *tokens=Tokenize().run(sb,line_split);
-	                    tokens->retain();
-	                    BracketExp *exp=Parse(tokens);
-	                    exp->retain();
-	                    UserFunction *f=new UserFunction(exp,scope);
-	                    f->retain();
-	                    Base * base=NULL;
-	                    try{
-	                        base=f->exec(NULL);
-	                    }catch(Exception* ex){
-	                        ex->Msg(file_path+":"+ex->Msg());
-	                        throw ex;
-	                    }
-	                    core=kvs::extend(new String(file_path),new Node(base,NULL),core);
-	                    if(base!=NULL){
-	                        base->release();
-	                    }
-	                    f->release();
-	                    exp->release();
-	                    tokens->release();
-	                    onLoad=false;
-	                    return base;
-	                }
-	            }
-	        }
+		class PathOfFunc:public LibFunction{
+			string base_path;
+		public:
+			PathOfFunc(string base_path):LibFunction(){
+				this->base_path=base_path;
+			}
+			string toString(){
+				return "pathOf";
+			}
+			Fun_Type ftype(){
+				return Function::fBuildIn;
+			}
+
 			static Node * StringSplit(string & in,char sp)
 		    {
 		        Node *r=NULL;
@@ -115,8 +72,69 @@ namespace s{
 	        }
 	    protected:
 	        Base * run(Node * args){
+	        	if(args==NULL){
+	        		return new String(base_path);
+	        	}else{
+	        		return new String(calAbsolutePath(base_path,static_cast<String*>(args->First())->StdStr()));
+	        	}
+	        }
+		};
+	    class LoadFunc:public LibFunction{
+	        string base_path;
+	        Node *baseScope;
+	        static bool onLoad;
+	        char line_split;
+	    public:
+	        string toString(){
+	            return "load";
+	        }
+	        Fun_Type ftype(){
+	            return Function::fBuildIn;
+	        }
+	        LoadFunc(string path,Node *scope,char split){
+	            base_path=path;
+	            baseScope=scope;
+	            line_split=split;
+	        }
+	        static Node * core;
+	        static Base *run_e(string file_path,Node *baseScope,char line_split)
+	        {
+	            if(onLoad){    
+	                throw "禁止在加载期间加载，避免循环加载的问题";
+	            }else{
+	                Node * x=static_cast<Node*>(kvs::find1st(core,file_path));
+	                if(x!=NULL)
+	                {
+	                    return x->First();
+	                }else{
+	                    onLoad=true;
+	                    string sb=file::read(file_path,line_split);
+	                    Node* scope=kvs::extend(new String("load"),new LoadFunc(file_path,baseScope,line_split),baseScope);
+	                    scope=kvs::extend(new String("pathOf"),new PathOfFunc(file_path),scope);
+	                    Node *tokens=Tokenize().run(sb,line_split);
+	                    tokens->retain();
+	                    BracketExp *exp=Parse(tokens);
+	                    exp->retain();
+	                    UserFunction *f=new UserFunction(exp,scope);
+	                    f->retain();
+	                    Base * base=NULL;
+	                    base=f->exec(NULL);
+	                    core=kvs::extend(new String(file_path),new Node(base,NULL),core);
+	                    if(base!=NULL){
+	                        base->release();
+	                    }
+	                    f->release();
+	                    exp->release();
+	                    tokens->release();
+	                    onLoad=false;
+	                    return base;
+	                }
+	            }
+	        }
+	    protected:
+	        Base * run(Node * args){
 	            String* r_path=static_cast<String*>(args->First());
-	            string path=calAbsolutePath(base_path,r_path->StdStr());
+	            string path=PathOfFunc::calAbsolutePath(base_path,r_path->StdStr());
 	            return run_e(path,baseScope,line_split);
 	        }
 	    };

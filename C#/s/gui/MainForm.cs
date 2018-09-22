@@ -14,18 +14,27 @@ namespace gui
         public MainForm()
         {
             InitializeComponent();
+            SetStyle(ControlStyles.SupportsTransparentBackColor, true);
             s.S slib = new s.S('\n');
             slib.loadLib("./s/lib/index.lisp");
             slib.addDef("cache",new s.library.Cache());
-            slib.addDef("build-element", new BuildElement());
-            slib.loadLib("./s/lib/mve/index.lisp", "mve",true);
+            //slib.addDef("build-element", new BuildElement());
+            slib.addDef("DOM", new DOM());
+            slib.loadLib("./s/lib/mve_win.lisp",true);
             s.Function fun=slib.run("./s/index/index.lisp") as s.Function;
             s.Node<Object> o = fun.exec(null) as s.Node<Object>;
 
-            Control els = (s.Node<Object>.kvs_find1st(o, "getElement") as s.Function).exec(null) as Control;
+            s.Function getElement=o.First() as s.Function;
+            o = o.Rest();
+            s.Function init = o.First() as s.Function;
+            o = o.Rest();
+            s.Function destroy = o.First() as s.Function;
+
+            Control els = getElement.exec(null) as Control;
             this.Controls.Add(els);
-            (s.Node<Object>.kvs_find1st(o, "init") as s.Function).exec(null);
-            this.destroy = (s.Node<Object>.kvs_find1st(o, "destroy") as s.Function);
+            els.Dock = DockStyle.Fill;
+            init.exec(null);
+            this.destroy = destroy;
         }
 
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
@@ -44,73 +53,230 @@ namespace gui
 
         public void run(object sender, EventArgs e)
         {
-            this.fun.exec(null);
+            try
+            {
+                this.fun.exec(null);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
         }
     }
-    class BuildElement : s.Function
-    {
+    class DOM : s.Function {
         public override object exec(s.Node<object> args)
         {
-            /*inits destroy watch k mve*/
-            s.Node<Object> ext = args.Rest();
-            s.Node<Object> inits = ext.First() as s.Node<Object>;
-            ext = ext.Rest();
-            s.Node<Object> destroys = ext.First() as s.Node<Object>;
-            /*watch k mve*/
-            ext = ext.Rest();
-
-
-            s.Function watch = ext.First() as s.Function;
-            s.Function k = ext.Rest().First() as s.Function;
-
-            /*type params id*/
-            s.Node<Object> es = args.First() as s.Node<Object>;
-            String type = es.First() as String;
-            es = es.Rest();
-            s.Node<Object> ps = es.First() as s.Node<Object>;
-            es = es.Rest();
-            String id = null;
-            if (es != null)
+            String method = args.First() as String;
+            args = args.Rest();
+            if ("createElement" == method)
             {
-                id = es.First() as String;
-            }
-
-            Control div=null;
-            if (type == "div")
-            {
-                Panel p = new Panel();
-
-                s.Node<Object> children = s.Node<Object>.kvs_find1st(ps, "children") as s.Node<Object>;
-                for (s.Node<Object> tmp = children; tmp != null; tmp = tmp.Rest())
+                String type = args.First() as String;
+                if (type == "button")
                 {
-                    s.Node<Object> child = this.exec(
-                        s.Node<Object>.extends(new Object[]{ tmp.First(), inits, destroys },ext)
-                     ) as s.Node<Object>;
-                    Control c = child.First() as Control;
-                    child = child.Rest();
-                    inits = child.First() as s.Node<Object>;
-                    child = child.Rest();
-                    destroys = child.First() as s.Node<Object>;
-                    p.Controls.Add(c);
+                    return new Button();
                 }
-                div=p;
-            }
-            else if (type == "button")
-            {
-                Button b = new Button();
-                b.Text = s.Node<Object>.kvs_find1st(ps, "text") as String;
-                s.Function fun = s.Node<Object>.kvs_find1st(ps, "click") as s.Function;
-                if (fun != null)
+                else if (type == "div")
                 {
-                    b.Click += new EventHandler(new SEventHandle(fun).run);
+                    return new Panel();
                 }
-                Object left=s.Node<Object>.kvs_find1st(ps,"left");
-                if(left!=null){
-                    b.Left = (int)(left);
+                else if (type == "flow")
+                {
+                    return new FlowLayoutPanel();
                 }
-                div=b;
+                else if (type == "input")
+                {
+                    TextBox t= new TextBox();
+                    t.ImeMode = ImeMode.HangulFull;
+                    return t;
+                }
+            }else if ("attr" == method)
+            {
+                Control c = args.First() as Control;
+                args = args.Rest();
+                String key = args.First() as String;
+                args = args.Rest();
+                if (args == null)
+                {
+                    if (key == "dock")
+                    {
+                        return c.Dock.ToString();
+                    }
+                    else if (key == "width")
+                    {
+                        return c.Width;
+                    }else if(key =="height")
+                    {
+                        return c.Height;
+                    }
+                    else if (key == "back-color")
+                    {
+                        return System.Drawing.ColorTranslator.ToHtml(c.BackColor);
+                    }
+                }
+                else
+                {
+                    Object value = args.First();
+                    if (key == "dock")
+                    {
+                        /*
+                         * Dock是反常的，是从最后一个组件排，通常第一个组件是Fill，填充剩下的位置。
+                         * 而常用的方式比如顺序向下，最后一个Fill，则恰巧相反
+                         * 因此第一个Fill在最上，下面的都是Bottom，这样符合预期
+                         */
+                        String v=value as String;
+                        if (v == "Bottom")
+                        {
+                            c.Dock = DockStyle.Bottom;
+                        }
+                        else if(v=="Top")
+                        {
+                            c.Dock = DockStyle.Top;
+                        }
+                        else if (v == "Left")
+                        {
+                            c.Dock = DockStyle.Left;
+                        }
+                        else if (v == "Right")
+                        {
+                            c.Dock = DockStyle.Right;
+                        }
+                        else if (v == "Fill")
+                        {
+                            c.Dock = DockStyle.Fill;
+                        }
+                        else if (v == "None")
+                        {
+                            c.Dock = DockStyle.None;
+                        }
+                    }
+                    else if (key == "width")
+                    {
+                        c.Width = (int)value;
+                    }
+                    else if (key == "height")
+                    {
+                        c.Height = (int)value;
+                    }
+                    else if (key == "back-color")
+                    {
+                        String color = value as String;
+                        if(color.StartsWith("#")){
+                            c.BackColor = System.Drawing.ColorTranslator.FromHtml(color);
+                        }else
+                        if(color.StartsWith("rgba")){
+                            int start=color.IndexOf("(")+1;
+                            int end=color.IndexOf(")");
+                            color=color.Substring(start, end - start);
+                            String[] cs=color.Split(',');
+                            if (cs.Length == 4)
+                            {
+                                
+                                c.BackColor = Color.FromArgb((int)(double.Parse(cs[3])*255/100),int.Parse(cs[0]), int.Parse(cs[1]), int.Parse(cs[2]));
+                            }
+                            else if (cs.Length == 3)
+                            {
+                                c.BackColor = Color.FromArgb(int.Parse(cs[0]), int.Parse(cs[1]), int.Parse(cs[2]));
+                            }
+                        }
+                    }
+                }
             }
-            return s.Node<Object>.list(div,inits,destroys);
+            else if ("action" == method)
+            {
+                Control c = args.First() as Control;
+                args = args.Rest();
+                String key = args.First() as String;
+                args = args.Rest();
+                s.Function act = args.First() as s.Function;
+                if (key == "click")
+                {
+                    c.Click += new EventHandler(new SEventHandle(act).run);
+                }
+            }
+            else if ("appendChild" == method)
+            {
+                Control el = args.First() as Control;
+                args = args.Rest();
+                Control child = args.First() as Control;
+                el.Controls.Add(child);
+            }
+            else if ("replaceWith" == method)
+            {
+                Control old_e = args.First() as Control;
+                args = args.Rest();
+                Control new_e = args.First() as Control;
+                int old_idx=old_e.Parent.Controls.IndexOf(old_e);
+                old_e.Parent.Controls.Add(new_e);
+                old_e.Parent.Controls.SetChildIndex(new_e, old_idx);
+                old_e.Parent.Controls.Remove(old_e);
+            }
+            else if ("removeChild" == method)
+            {
+                Control el = args.First() as Control;
+                args = args.Rest();
+                Control child = args.First() as Control;
+                el.Controls.Remove(child);
+            }
+            else if ("text" == method)
+            {
+                Control c = args.First() as Control;
+                args=args.Rest();
+                if (args == null)
+                {
+                    if (c is Button)
+                    {
+                        return (c as Button).Text;
+                    }
+                }
+                else
+                {
+                    String text = args.First() as String;
+                    if (c is Button)
+                    {
+                        (c as Button).Text = text;
+                    }
+
+                }
+            }
+            else if ("value" == method)
+            {
+                Control c = args.First() as Control;
+                args=args.Rest();
+                if (args == null)
+                {
+                    if (c is TextBox)
+                    {
+                        return (c as TextBox).Text;
+                    }
+                }
+                else
+                {
+                    String value = args.First() as String;
+                    if (c is TextBox)
+                    {
+                        (c as TextBox).Text = value;
+                    }
+                }
+            }
+            else if ("alert" == method)
+            {
+                String msg = args.First() as String;
+                MessageBox.Show(msg);
+            }
+            else if ("confirm" == method)
+            {
+                String msg = args.First() as String;
+                DialogResult dr= MessageBox.Show(msg, "", MessageBoxButtons.OKCancel);
+                if (dr == DialogResult.OK)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            return null;
         }
 
         public override Function_Type Function_type()
@@ -120,7 +286,7 @@ namespace gui
 
         public override string ToString()
         {
-            return "build-element";
+            return "DOM";
         }
     }
 }

@@ -72,8 +72,9 @@ namespace s{
                         /*想要每次回收，似乎并不容易*/
                         try{
                             r=qr->exec(exp);
-                        }catch(Exception* e){
-                            logException(e);
+                        }catch(LocationException* e){
+                            cout<<"出现异常\r\n"<<e->toString();
+                            delete e;
                         }catch(...){
                             cout<<"出现异常"<<endl;
                         }

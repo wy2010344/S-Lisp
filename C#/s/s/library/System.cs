@@ -177,7 +177,7 @@ namespace s.library
                     
                 Function f=args.First() as Function;
                 args=args.Rest();
-                return f.exec(args);
+                return f.exec(args.First() as Node<Object>);
             
                 }
             }

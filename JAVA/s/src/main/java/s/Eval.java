@@ -402,7 +402,11 @@ public class Eval {
 			@Override
 			public Object exec(Node<Object> node) throws Exception {
 				// TODO Auto-generated method stub
-				return calculate_path(path,(String)node.First());
+				if(node==null) {
+					return path;
+				}else {
+					return calculate_path(path,(String)node.First());
+				}
 			}
 
 			@Override
@@ -452,17 +456,6 @@ public class Eval {
 				return Function.Type.buildIn;
 			}
 		 },pkg);
-		 try {
-			return run(codes,pkg,'\n');
-		} catch (LocationException e) {
-			// TODO Auto-generated catch block
-			e.setFile(path);
-			e.printStackTrace();
-			throw e;
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			throw e;
-		}
+		 return run(codes,pkg,'\n');
 	 }
 }

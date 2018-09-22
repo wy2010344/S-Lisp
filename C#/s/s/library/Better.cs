@@ -9,6 +9,24 @@ namespace s.library
     {
     
 
+            class ReverseFunc:Function{
+                private static ReverseFunc _ini_=new ReverseFunc();
+                public static ReverseFunc instance(){return _ini_;}
+                public override string ToString(){return "reverse";}
+                public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+                public override object exec(Node<object> args){
+                    
+                Node<Object> r=null;
+                for (Node<Object> tmp = (args.First() as Node<Object>); tmp != null; tmp = tmp.Rest())
+                {
+                    r=Node<Object>.extend(tmp.First(),r);
+                }
+                return r;
+            
+                }
+            }
+            
+
             class Kvs_extendFunc:Function{
                 private static Kvs_extendFunc _ini_=new Kvs_extendFunc();
                 public static Kvs_extendFunc instance(){return _ini_;}
@@ -70,6 +88,7 @@ namespace s.library
             
         public static Node<Object> build(Node<Object> m){
             
+            m=Node<Object>.kvs_extend("reverse",ReverseFunc.instance(),m);
             m=Node<Object>.kvs_extend("kvs-extend",Kvs_extendFunc.instance(),m);
             m=Node<Object>.kvs_extend("kvs-find1st",Kvs_find1stFunc.instance(),m);
             m=Node<Object>.kvs_extend("list",ListFunc.instance(),m);

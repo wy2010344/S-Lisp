@@ -505,7 +505,7 @@ mb.compile=(function(){
     //缓存到文件
     ret.save=function(){
         var x=ret();
-        saveTxt(x,base_path+sp+"out.jsx");
+        saveTxt(x,ini.get("jsx_path"));
         return x;
     };
     return ret;

@@ -235,7 +235,13 @@
 		)
 	}
 
-	`类似js中的some，已经包含`
+	`
+	类似js中的some，已经包含，
+	这会对所有检查，即使已经存在了
+	收集所有符合条件的，是filter
+	统计符合条件的个数？
+	检查存在的some
+	`
 	some {
 		(let (xs run) args)
 		(reduce xs {

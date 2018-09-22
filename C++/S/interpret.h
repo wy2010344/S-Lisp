@@ -41,6 +41,24 @@ namespace s{
                 return ret;
             }
         }
+        string getPath(Node * scope){
+            string path="";
+            Node* tmp=scope;
+            while(tmp!=NULL && path==""){
+                String * key=static_cast<String*>(tmp->First());
+                tmp=tmp->Rest();
+                if("pathOf"==key->StdStr()){
+                    if(tmp->First()->stype()==Base::sFunction){
+                        Function * pathOf=static_cast<Function*>(tmp->First());
+                        String* Path=static_cast<String*>(pathOf->exec(NULL));
+                        path=Path->StdStr();
+                        Path->release();
+                    }
+                }
+                tmp=tmp->Rest();
+            }
+            return path;
+        }
         Node* when_bracket_match(Node * scope,Node *keys,Node *values){
             while (keys!=NULL) {
                 Exp * key=static_cast<Exp *>(keys->First());
@@ -56,7 +74,7 @@ namespace s{
                         scope=when_kvs_match(scope,subvk,values);
                     }else{
                         //普通匹配
-                        scope=when_normal_match(scope,subvk,values);
+                        scope=when_normal_match(scope,subvk,values,key->Loc());
                     }
                 }else
                 {
@@ -105,16 +123,22 @@ namespace s{
                     scope=kvs_match(scope,id,NULL);
                 }
             }else{
-                throw new DefinedException(id+"不是合法的key");
+                throw id+"不是合法的key";
             }
             return scope;
         }
 #else
         Node *when_kvs_match(Node* scope,string &id,Base *vas){
-            throw new DefinedException("为了雪藏的kvs-math，暂时不支持以*号结尾");
+            throw "为了雪藏的kvs-math，暂时不支持以*号结尾";
             return scope;
         }
 #endif
+        LocationException *match_Exception(string msg,Location *loc,Node * scope)
+        {
+            LocationException* lex=new LocationException(getPath(scope)+":\t"+msg,loc);
+            return lex;
+        }
+
         Node * match(Node *scope,Exp *key,Base *value){
             //值为空，仍然需要增加定义
             if (key->exp_type()==Exp::Exp_Id) {
@@ -123,7 +147,7 @@ namespace s{
                     scope=when_kvs_match(scope,id,value);
                 }else{
                     //单值匹配
-                    scope=when_normal_match(scope,id,value);
+                    scope=when_normal_match(scope,id,value,key->Loc());
                 }
             }else{
                 if (key->exp_type()==Exp::Exp_Small) {
@@ -137,17 +161,17 @@ namespace s{
                         scope=when_bracket_match(scope,keys,NULL);
                     }
                 }else{
-                    throw new DefinedException(key->Value()+"不是合法的类型");
+                    throw match_Exception(key->Value()+"不是合法的类型",key->Loc(),scope);
                 }
             }
             return scope;
         }
         /*vas可为空*/
-        Node *when_normal_match(Node *scope,string & id,Base *vas){
+        Node *when_normal_match(Node *scope,string & id,Base *vas,Location * loc){
             if(isValidKey(id)){
                 scope=kvs::extend(id,vas,scope);
             }else{
-                throw new DefinedException(id+"不是合法的key");
+                throw match_Exception(id+"不是合法的key",loc,scope);
             }
             return scope;
         }
@@ -302,8 +326,11 @@ namespace s{
                 }
                 try{
                     b=exec(func,rst,children);
-                }catch(Exception *e){
-                    throw e;
+                }catch(LocationException *lex){
+                    lex->addStack(getPath(scope),be->Loc(),be->toString());
+                    throw lex;
+                }catch(string & err_str){
+                    throw call_exception(err_str,be,children,scope);
                 }catch(...){
                     //无法捕获到，怎么处理？
                     throw call_exception("调用出错",be,children,scope);

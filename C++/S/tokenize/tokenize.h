@@ -73,7 +73,7 @@ namespace s{
     			}
     		}
     		if(unbreak){
-    			throw new DefinedException("超出范围");
+                throw new LocationException("超出范围",loc);
     		}
             return rest;
     	}

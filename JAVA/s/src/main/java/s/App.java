@@ -1,47 +1,17 @@
 package s;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 
-import javax.script.Bindings;
-import javax.script.Compilable;
-import javax.script.ScriptException;
-
 import org.apache.log4j.Logger;
-
-import mb.Util;
 
 public class App {
 	public static void main(final String[] args) {
 		String path=mb.Util.resource("../../config/js");
-		final File jsx=new File(path+"/out.jsx");
-		final mb.JSBridge bridge=new mb.JSBridge(path) {
+		final mb.JSBridge bridge=new mb.JSBridge(path,true) {
 			@Override
 			protected void param(HashMap<String,Object> ini){
 				ini.put("bridge", this);
 				//ini.put("package", true);
-			}
-		    public HashMap<String,Object> run_map(HashMap<String,String> request,String act,Logger log){
-		    	if("".equals(act)) {
-		    		jsx.delete();
-		    	}
-		    	return super.run_map(request, act, log);
-		    }
-			@Override
-			protected void run(boolean reload,HashMap<String,Object> ini) throws ScriptException, IOException {	
-				if(jsx.exists())
-				{
-					Bindings scriptParams = engine.createBindings();
-			        scriptParams.put("ini", ini);
-			        Compilable comp = (Compilable) engine;
-			        String content=Util.readTxt(jsx, "\r\n","UTF-8");
-			        cScript = comp.compile(content);
-			        cScript.eval(scriptParams);
-				}else
-				{
-					super.run(reload, ini);
-				}
 			}
 		};
 		Logger log=Logger.getLogger("js");

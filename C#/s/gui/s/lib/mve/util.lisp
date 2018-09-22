@@ -25,7 +25,8 @@
 						{
 						 	(if-run (contain (Dep-target))
 						 		{
-						 			(log '已经包含了)
+						 			`一个watch包含两个观察节点时`
+						 			`(log '已经包含了)`
 						 		}
 						 		{
 						 			(subs 
@@ -46,6 +47,12 @@
     				(forEach old_subs 
     					{
     						(let (id update) (first args))
+    						`
+    							调用每个Watcher的update
+    							每个Watcher将Dep-Target设置成自己
+    							Watcher计算期间，所有依赖的Value进行depend，每个Value将这个Watcher加入自己的通知链
+    							本值节点通知期间，重新收集通知链。而其它值节点，可能不需要收集（已经存在）
+    						`
     						(update)
     					}
     				)
@@ -98,7 +105,9 @@
 					(if-run (enable)
 						{
 							(let bo (before))
-							(Dep-target ['id 'update])
+							(Dep-target 
+								(list id update)
+							)
 							(let ao (p-exp bo))
 							(Dep-target [])
 							(after ao)
@@ -107,13 +116,13 @@
 				}
 			)
 			(update)
-			[
-				id 'id
-				update 'update
-				disable {
+			(list
+				id
+				update
+				{
 					(enable false)
 				}
-			]
+			)
 		}
 	})
 
@@ -178,28 +187,20 @@
 			`用户函数返回`
 			(let user-result 
 				(user-func 
-					({
-						(let kvs 
-							(list 
-								'k {
-									(let (str) args)
-									(kvs-find1st (k) str)
-								}
-								'Value Value
-								'Watch Watch
-								'Cache Cache
-							)
-						)
-						{
-							(let (key ...params) args)
-							(apply (kvs-find1st kvs key) params)
-						}
-					})
+					Value
+					`k`
+					{
+						(let (str) args)
+						(kvs-find1st (k) str)
+					}
+					Cache
+					Watch
 				)
 			)
 			`locsize部分`
 			(let me  
-				(reduce locsize 
+				(reduce 
+					locsize 
 					{
 						(let (init str) args)
 						(let fun (kvs-find1st user-result str))
@@ -212,6 +213,7 @@
 							init
 						)
 					}
+					[]
 				)
 			)
 			(let user-result (kvs-match user-result))
@@ -246,28 +248,25 @@
 				user-init (default (user-result 'init) empty-fun)
 				user-destroy (default (user-result 'destroy) empty-fun)
 			)
-			(kvs-reduce 
-				[
-					getElement (quote getElement)
-					init {
-						(element-init)
-						(user-init)
-					}
-					destroy {
-						(user-destroy)
-						(element-destroy)
-						(forEach (watchPool) 
-							{
-								(let disable (kvs-find1st (first args) 'disable))
-								(disable)
-							}
-						)
-					}
-				]
+			(list 
+				getElement
+				`init`
 				{
-					(let (init v k) args)
-					(kvs-extend k v init)
+					(element-init)
+					(user-init)
 				}
+				`destroy`
+				{
+					(user-destroy)
+					(element-destroy)
+					(forEach (watchPool) 
+						{
+							(let (id update disable) (first args))
+							(disable)
+						}
+					)
+				}
+				`out`
 				me
 			)
 		})

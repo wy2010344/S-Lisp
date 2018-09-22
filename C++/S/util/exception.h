@@ -2,51 +2,66 @@
 #include <iostream>
 using namespace std;
 namespace s{
-    class Exception{
+    class LocationException{
     private:
+        Location* loc;
         string msg;
+        class Stack{
+            Stack *next;
+            string path;
+            Location *loc;
+            string exp;
+        public:
+            Stack(string path,Location * loc,string exp,Stack * before){
+                this->next=before;
+                this->path=path;
+                loc->retain();
+                this->loc=loc;
+                this->exp=exp;
+            }
+            ~Stack(){
+                loc->release();
+                if(next!=NULL){
+                    delete next;
+                }
+            }
+            Stack * Next(){return next;}
+            string & Path(){return path;}
+            Location * Loc(){return loc;}
+            string & Exp(){return exp;}
+        };
+        Stack * stacks;
     public:
-        Exception(string msg){
+        LocationException(string msg,Location* loc)
+        {
+            this->loc=loc;
             this->msg=msg;
+            stacks=NULL;
+            loc->retain();
         }
         string& Msg(){
             return msg;
         }
-        enum Exception_Type{
-            Exception_Location,
-            Exception_Defined
-        };
-        virtual Exception_Type type()=0;
-        void Msg(string _msg)
-        {
-            msg=_msg;
-        }
-        virtual ~Exception(){}
-    };
-    class LocationException:public Exception{
-    private:
-        Location* loc;
-    public:
-        LocationException(string msg,Location* loc):Exception(msg)
-        {
-            this->loc=loc;
-            loc->retain();
-        }
-        Exception_Type type(){
-            return Exception::Exception_Location;
+        void addStack(string path,Location * loc,string exp){
+            stacks=new Stack(path,loc,exp,stacks);
         }
         Location* Loc(){
             return loc;
         }
+        string toString(){
+            string e="";
+            for(Stack * tmp=stacks;tmp!=NULL;tmp=tmp->Next()){
+                e=e+tmp->Path()+"\t"+tmp->Loc()->toString()+"\t"+tmp->Exp()+"\r\n";
+            }
+            e=e+loc->toString()+"\r\n";
+            e=e+msg+"\r\n";
+            return e;
+        }
         ~LocationException(){
             loc->release();
-        }
-    };
-    class DefinedException:public Exception{
-    public:
-        DefinedException(string msg):Exception(msg){}
-        Exception_Type type(){
-            return Exception::Exception_Defined;
+            if(stacks!=NULL){
+                delete stacks;
+            }
         }
     };
 };

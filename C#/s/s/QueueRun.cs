@@ -152,9 +152,31 @@ namespace s
             return r;
         }
 
-        LocationException error_throw(String msg, Exp exp)
+        String getPath(Node<Object> scope)
         {
-            return new LocationException(exp.Loc(), msg + ":" + exp.Children().First() + "\r\n" + exp.Children().ToString());
+            String path = null;
+            Node<Object> tmp = scope;
+            while (tmp != null && path==null)
+            {
+                String key = tmp.First() as String;
+                tmp = tmp.Rest();
+                if (key == "pathOf")
+                {
+                    if (tmp.First() is Function)
+                    {
+                        Function pathOf = tmp.First() as Function;
+                        path = pathOf.exec(null) as String;
+                    }
+                }
+                tmp = tmp.Rest();
+            }
+            return path;
+        }
+        LocationException error_throw(String msg, Exp exp,Node<Object> scope,Node<Object> children)
+        {
+            LocationException locexp=new LocationException(exp.Loc(),  msg + ":\r\n"+children.ToString()+"\r\n"+ exp.Children().First() + "\r\n" + exp.Children().ToString());
+            locexp.addStack(getPath(scope),exp.Loc(),exp.ToString());
+            return locexp;
         }
         Object interpret(Exp exp, Node<Object> scope)
         {
@@ -171,22 +193,23 @@ namespace s
                     }
                     catch (LocationException lex)
                     {
+                        lex.addStack(getPath(scope), exp.Loc(), exp.ToString());
                         throw lex;
                     }
                     catch (Exception ex)
                     {
-                        throw error_throw("函数执行内部错误" + ex.Message,exp);
+                        throw error_throw("函数执行内部错误" + ex.Message, exp, scope, children);
                     }
                 }
                 else
                 {
                     if (o == null)
                     {
-                        throw error_throw("未找到函数定义", exp);
+                        throw error_throw("未找到函数定义", exp, scope, children);
                     }
                     else
                     {
-                        throw error_throw("不是函数", exp);
+                        throw error_throw("不是函数", exp, scope, children);
                     }
                 }
             }

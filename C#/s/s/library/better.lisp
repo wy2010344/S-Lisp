@@ -41,4 +41,17 @@
             "
         ]
     ]
+    
+    reverse [
+        C# [
+            run "
+                Node<Object> r=null;
+                for(Node<Object> tmp=(args.First() as Node<Object>);tmp!=null;tmp=tmp.Rest())
+                {
+                    r=Node<Object>.extend(tmp.First(),r);
+                }
+                return r;
+            "
+        ]
+    ]
 ]
