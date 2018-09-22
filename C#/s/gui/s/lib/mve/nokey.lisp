@@ -1,7 +1,8 @@
 
 {
 	`与js的array不同，使用倒置的顺序`
-	(let (p-build p-after p-getDestroy p-appendChild p-removeChild) args)
+	`build after update-data destroy appendChild removeChild`
+	(let (p) args)
 	(let 
 		caches (cache [])
 		views (cache [])
@@ -13,8 +14,7 @@
 					(if-run (exist? vs)
 						{
 							(let (v ...vs) vs (a ...as) as)
-							(let ((data index) obj) v)
-							(data a)
+							(p.update-data v a)
 							(circle vs as)
 						}
 					)
@@ -38,12 +38,7 @@
 					`多出的`
 					(let more (slice-from (views) (len array)))
 					`移除视图上的元素`
-					(forEach more 
-						{
-							(let (v) args)
-							(p-removeChild v)
-						}
-					)
+					(forEach more p.removeChild)
 					`更新视图上数据`
 					(views (slice-to (views) (len array)))
 					(update-views array)
@@ -55,12 +50,7 @@
 							`向caches上增加`
 							(let new-view (slice-to (caches) (len array)))
 							(let more (slice-from new-view (len-c views)))
-							(forEach more
-								{
-									(let (v) args)
-									(p-appendChild v)
-								}
-							)
+							(forEach more p.appendChild)
 							(views new-view)
 							(update-views array)
 						}
@@ -70,12 +60,7 @@
 								views-len (len-c views)
 								more (slice-from (caches) views-len)
 							)
-							(forEach more
-								{
-									(let (v) args)
-									(p-appendChild v)
-								}
-							)
+							(forEach more p.appendChild)
 							(views (caches))
 							(update-views array)
 							`新增加`
@@ -87,11 +72,11 @@
 									{
 										(let 
 											((init i) a) args
-											v (p-build a i)
+											v (p.build a i)
 											i (+ i c-l 1)
 										)
-										(p-appendChild v)
-										(p-after v)
+										(p.appendChild v)
+										(p.after v)
 										`因为把新增加的追加到后面了`
 										(list 
 											(extend v init)
@@ -110,11 +95,7 @@
 		}
 		`destroy`
 		{
-			(forEach (caches)
-				{
-					((apply p-getDestroy args))
-				}
-			)
+			(forEach (caches) p.destroy)
 		}
 	]
 }

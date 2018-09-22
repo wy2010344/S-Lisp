@@ -13,32 +13,16 @@ namespace s
             Exp_Small,
             Exp_String,
             Exp_Int,
-            Exp_Id
+            Exp_Id/*id包含kvs-path*/
         }
-        private Exp_Type type;
-        private String value;
-        private Location loc;
-        public Exp(
-            Exp_Type type, 
-            String value,
-            Location loc,
-            Token.Token_Type original_type
-        )
-        {
-            this.type = type;
-            this.value = value;
-            this.loc = loc;
-            this.original_type = original_type;
-            this.children = null;
-            this.r_children = null;
-        }
-        public Exp(
+        private Exp(
             Exp_Type type, 
             String value, 
             Location loc,
             Token.Token_Type original_type,
             Node<Exp> children, 
-            Node<Exp> r_children
+            Node<Exp> r_children,
+            Node<String> kvs_paths
         )
         {
             this.type = type;
@@ -47,13 +31,49 @@ namespace s
             this.original_type = original_type;
             this.children = children;
             this.r_children = r_children;
+            this.kvs_paths = kvs_paths;
         }
+
+
+        /*基本组*/
+        public Exp(
+            Exp_Type type,
+            String value,
+            Location loc,
+            Token.Token_Type original_type
+            )
+            : this(type, value, loc, original_type, null, null, null) { }
+        private Exp_Type type;
+        private String value;
+        private Location loc;
         public Exp_Type Exp_type() { return type; }
         public Location Loc() { return loc; }
         public String Value() { return value; }
+
         Token.Token_Type original_type;
         public Token.Token_Type Original_type() { return original_type; }
 
+        /*kvs-path组*/
+        public Exp(
+            Exp_Type type,
+            String value,
+            Location loc,
+            Token.Token_Type original_type,
+            Node<String> kvs_paths)
+            : this(type, value, loc, original_type, null, null, kvs_paths) { }
+
+        private Node<String> kvs_paths;
+        public Node<String> KVS_paths() { return kvs_paths; }
+
+        /*children组*/
+        Exp(
+            Exp_Type type,
+            String value,
+            Location loc,
+            Token.Token_Type original_type,
+            Node<Exp> children,
+            Node<Exp> r_children)
+            : this(type, value, loc, original_type, children, r_children, null) { }
         private Node<Exp> children;
         private Node<Exp> r_children;
         public Node<Exp> Children() { return children; }
@@ -95,6 +115,50 @@ namespace s
             StringBuilder sb = new StringBuilder();
             toString(sb);
             return sb.ToString();
+        }
+
+        /**
+         *此处的id会用于定义，剩余匹配，所以不能报错
+         */
+        static Node<String> isKVS_path(String id, Location loc)
+        {
+            if (id[0] == '.' || id[id.Length - 1] == '.')
+            {
+                //throw new LocationException(loc,"不是合法的id类型，不能以.开始或结束");
+                return null;
+            }
+            int i = 0;
+            int last_i = 0;
+            Node<String> r = null;
+            bool has_error = false;
+            while (i < id.Length)
+            {
+                char c = id[i];
+                if (c == '.')
+                {
+                    String node = id.Substring(last_i, i - last_i);
+                    last_i = i + 1;
+                    if (node == "")
+                    {
+                        has_error = true;
+                    }
+                    else
+                    {
+                        r = Node<String>.extend(node, r);
+                    }
+                }
+                i++;
+            }
+            /*最后一个，默认匹配*/
+            r = Node<String>.extend(id.Substring(last_i), r);
+            if (has_error)
+            {
+                throw new LocationException(loc, id + "不是合法的id类型，不允许连续的.号");
+            }
+            else
+            {
+                return Node<String>.reverse(r);
+            }
         }
         public static Exp Parse(Node<Token> tokens)
         {
@@ -201,8 +265,13 @@ namespace s
 
                     if (deal)
                     {
+                        Node<String> kvs_path=null;
+                        if (tp == Exp_Type.Exp_Id)
+                        {
+                            kvs_path = isKVS_path(x.Value(), x.Loc());
+                        }
                         children =Node<Exp>.extend(
-                            new Exp(tp, x.Value(), x.Loc(), x.Token_type()),
+                            new Exp(tp, x.Value(), x.Loc(), x.Token_type(),kvs_path),
                             children
                         );
                     }

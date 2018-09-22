@@ -15,29 +15,34 @@ namespace s
                             library.System.library()
                            );
         }
-        private Object loadValue(String relative_path,bool delay)
+        private Object loadValue(String relative_path,bool delay,s.Node<Object> delay_args)
         {
             Object value = s.library.Load.run_e(s.Util.exe_path(relative_path), scope, lineSplit);
             if (delay)
             {
-                value = (value as Function).exec(null);
+                value = (value as Function).exec(delay_args);
             }
             return value;
         }
-        public S loadLib(String relative_path, String key, bool delay)
+        /*将值挂载到指定节点上*/
+        private S loadLibKey(String key,Object value)
         {
-            Object value = loadValue(relative_path, delay);
             scope = s.Node<Object>.kvs_extend(key, value, scope);
             return this;
         }
+        public S loadLib(String relative_path, String key, s.Node<Object> delay_args)
+        {
+            return loadLibKey(key,loadValue(relative_path, true,delay_args));
+        }
         public S loadLib(String relative_path,String key)
         {
-            return loadLib(relative_path, key, false);
+            return loadLibKey(key,loadValue(relative_path, false, null));
         }
-        public S loadLib(String relative_path, bool delay)
+
+        /*将值作为kvs挂载*/
+        private S loadLibKVS(Object kvs)
         {
-            s.Node<Object> kvs = loadValue(relative_path, delay) as s.Node<Object>;
-            s.Node<Object> tmp = kvs;
+            s.Node<Object> tmp = kvs as s.Node<Object>;
             while (tmp != null)
             {
                 String key = tmp.First() as String;
@@ -48,9 +53,13 @@ namespace s
             }
             return this;
         }
+        public S loadLib(String relative_path, s.Node<Object> delay_args)
+        {
+            return loadLibKVS(loadValue(relative_path, true,delay_args));
+        }
         public S loadLib(String relative_path)
         {
-            return loadLib(relative_path, false);
+            return loadLibKVS(loadValue(relative_path, false, null));
         }
         public S addDef(String key, Object value)
         {

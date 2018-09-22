@@ -3,10 +3,10 @@
 {
     (log 98)
     (mve {
-        (let (Value k Cache Watch) args)
+        (let me args)
         (let 
-            a (Value 9)
-            array (Value 
+            a (me.Value 9)
+            array (me.Value 
                 [
                     a b c d e f
                 ]
@@ -26,7 +26,7 @@
                         children [
                             array 'array
                             repeat {
-                                (let (data index) args)
+                                (let o args)
                                 [
                                     type button
                                     attr [
@@ -34,14 +34,14 @@
                                     ]
                                     action [
                                         click {
-                                            (array (splice (array) (index) 1))
+                                            (array (splice (array) (o.index) 1))
                                         }
                                     ]
                                     text {
                                         (str-join 
                                             [
-                                                (stringify (index))
-                                                (data)
+                                                (stringify (o.index))
+                                                (o.data)
                                             ]
                                         )
                                     }
@@ -95,16 +95,16 @@
                                 action [
                                     click {
                                         (let
-                                            input (k 'input)
-                                            v (DOM 'value input)
+                                            input (me.k 'input)
+                                            v (me.DOM.value input)
                                         )
                                         (if-run (str-eq v "")
                                             {
-                                                (DOM 'alert "不允许为空")
+                                                (me.DOM.alert "不允许为空")
                                             }
                                             {
                                                 (array  (extend v (array)))
-                                                (DOM 'value input "")
+                                                (me.DOM.value input "")
                                             }
                                         )
                                     }

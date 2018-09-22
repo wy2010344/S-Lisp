@@ -100,7 +100,12 @@ namespace s{
                 //普通的值节点，返回解析后继节点
                 if(deal)
                 {
-                    Exp* e=new Exp(tp,x->Value(),x->Loc());
+                    Exp* e=NULL;
+                    if(tp==Exp::Exp_Id){
+                        e=new IDExp(x->Value(),x->Loc());
+                    }else{
+                        e=new Exp(tp,x->Value(),x->Loc());
+                    }
                     e->original_type=x->token_type();
                     children=new Node(e,children);
                 }

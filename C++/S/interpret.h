@@ -19,28 +19,6 @@ namespace s{
                 return false;
             }
         }
-        bool isValidKey(const string & key)
-        {
-            if(key[0]=='.' || key[key.size()-1]=='.'){
-                //为了模拟js中多层字典，第一与最后不能是.
-                return false;
-            }else{
-                bool ret=true;
-                for(unsigned i=0;i<key.size();i++)
-                {
-                    char c=key[i];
-                    if(c=='*')//c=='.' || 为了模拟js中多层字典访问，还是把.这个限制给去掉了。
-                    {
-                        ret=false;
-                    }else
-                    if(Tokenize::isBlank(c))
-                    {
-                        ret=false;
-                    }
-                }
-                return ret;
-            }
-        }
         string getPath(Node * scope){
             string path="";
             Node* tmp=scope;
@@ -70,12 +48,7 @@ namespace s{
                     */
                     const string &vk=key->Value();
                     string subvk=vk.substr(3,vk.size());//不能是引用，只能是复制
-                    if(subvk[subvk.size()-1]=='*'){
-                        scope=when_kvs_match(scope,subvk,values);
-                    }else{
-                        //普通匹配
-                        scope=when_normal_match(scope,subvk,values,key->Loc());
-                    }
+                    scope=when_normal_match(scope,subvk,values,key->Loc());
                 }else
                 {
                     if(values!=NULL){
@@ -88,51 +61,6 @@ namespace s{
             }
             return scope;
         }
-#ifdef WITH_KVS_MATCH
-        /*如果要考虑性能，可能这里，酌情添加*/
-        Node* kvs_match(Node *scope,string & id,Node *kvs)
-        {
-            Node *svk=list::reverse(kvs);//必须先倒置
-            scope=kvs::extend(id,new library::MatchFunc(kvs),scope);
-            svk->retain();
-            Node *svt=svk;
-            while (svt!=NULL) {
-                Base *sv=svt->First();
-                svt=svt->Rest();
-                string & k=static_cast<String*>(svt->First())->StdStr();//如果不是string，肯定会报错
-                if(isValidKey(k)){
-                    scope=kvs::extend(id+"."+k, sv,scope);
-                }else{
-                    //忽略
-                }
-                svt=svt->Rest();
-            }
-            svk->release();
-            return scope;
-        }
-        /*感觉kvs-match问题越来越多，不好用！vas可为空*/
-        Node *when_kvs_match(Node* scope,string & id,Base *vas){
-            id=id.substr(0,id.size()-1);//去掉星号
-            if(isValidKey(id)){
-                //字典增加前缀
-                if(vas!=NULL){
-                    vas->retain();
-                    scope=kvs_match(scope,id,(Node*)vas);
-                    vas->release();
-                }else{
-                    scope=kvs_match(scope,id,NULL);
-                }
-            }else{
-                throw id+"不是合法的key";
-            }
-            return scope;
-        }
-#else
-        Node *when_kvs_match(Node* scope,string &id,Base *vas){
-            throw "为了雪藏的kvs-math，暂时不支持以*号结尾";
-            return scope;
-        }
-#endif
         LocationException *match_Exception(string msg,Location *loc,Node * scope)
         {
             LocationException* lex=new LocationException(getPath(scope)+":\t"+msg,loc);
@@ -143,12 +71,7 @@ namespace s{
             //值为空，仍然需要增加定义
             if (key->exp_type()==Exp::Exp_Id) {
                 string id=key->Value();
-                if(id[id.size()-1]=='*') {
-                    scope=when_kvs_match(scope,id,value);
-                }else{
-                    //单值匹配
-                    scope=when_normal_match(scope,id,value,key->Loc());
-                }
+                scope=when_normal_match(scope,id,value,key->Loc());
             }else{
                 if (key->exp_type()==Exp::Exp_Small) {
                     //括号匹配
@@ -168,7 +91,7 @@ namespace s{
         }
         /*vas可为空*/
         Node *when_normal_match(Node *scope,string & id,Base *vas,Location * loc){
-            if(isValidKey(id)){
+            if(id.find('.')==string::npos){
                 scope=kvs::extend(id,vas,scope);
             }else{
                 throw match_Exception(id+"不是合法的key",loc,scope);
@@ -364,6 +287,27 @@ namespace s{
         }else
         if(e->exp_type()==Exp::Exp_Id)
         {
+            IDExp * idexp=static_cast<IDExp*>(e);
+            Node* paths=idexp->Paths();
+            if(paths==NULL){
+                throw match_Exception(idexp->Value()+"不是合法的ID类型",e->Loc(),scope);
+            }else{
+                Node * c_scope=scope;
+                Base * value=NULL;
+                while(paths!=NULL){
+                    String* key=static_cast<String*>(paths->First());
+                    value=kvs::find1st(c_scope,key->StdStr());
+                    paths=paths->Rest();
+                    if(paths!=NULL){
+                        if(value==NULL || value->stype()==Base::sList){
+                            c_scope=static_cast<Node*>(value);
+                        }else{
+                            throw match_Exception("计算"+paths->toString()+"出错，"+value->toString()+"不是kvs类型:\t"+e->toString(),e->Loc(),scope);
+                        }
+                    }
+                }
+                return value;
+            }
             return kvs::find1st(scope,e->Value());
         }else{
             return NULL;

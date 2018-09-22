@@ -60,14 +60,41 @@ namespace s
                 return interpret(exp, scope);
             }
         }
-
-        Node<Object> when_kvs_match(Node<Object> scope, String id, Object Value)
+        String getPath(Node<Object> scope)
         {
-            throw new Exception("为了雪藏的kvs-math，暂时不支持以*号结尾");
+            String path = null;
+            Node<Object> tmp = scope;
+            while (tmp != null && path == null)
+            {
+                String key = tmp.First() as String;
+                tmp = tmp.Rest();
+                if (key == "pathOf")
+                {
+                    if (tmp.First() is Function)
+                    {
+                        Function pathOf = tmp.First() as Function;
+                        path = pathOf.exec(null) as String;
+                    }
+                }
+                tmp = tmp.Rest();
+            }
+            return path;
         }
-        Node<Object> when_normal_match(Node<Object> scope, String id, Object Value)
+        LocationException match_Exception(Node<Object> scope, String msg, Location loc)
         {
-            return Node<object>.extend(id, Node<object>.extend(Value, scope));
+            LocationException lox = new LocationException(loc, getPath(scope) + ":\t" + msg);
+            return lox;
+        }
+        Node<Object> when_normal_match(Node<Object> scope, String id, Object Value,Location loc)
+        {
+            if (id.IndexOf('.') < 0)
+            {
+                return Node<object>.extend(id, Node<object>.extend(Value, scope));
+            }
+            else
+            {
+                throw match_Exception(scope, id + "不是合法的id声明，不允许包含.",loc);
+            }
         }
 
         static bool isWait(Exp exp)
@@ -90,14 +117,7 @@ namespace s
                 if (keys.Rest() == null && isWait(key))
                 {
                     String subvk = key.Value().Substring(3);
-                    if (subvk[subvk.Length - 1] == '*')
-                    {
-                        scope = when_kvs_match(scope, subvk, values);
-                    }
-                    else
-                    {
-                        scope = when_normal_match(scope, subvk, values);
-                    }
+                    scope = when_normal_match(scope, subvk, values,key.Loc());
                 }
                 else
                 {
@@ -117,14 +137,7 @@ namespace s
             if (key.Exp_type() == Exp.Exp_Type.Exp_Id)
             {
                 String id = key.Value();
-                if (id[id.Length - 1] == '*')
-                {
-                    scope = when_kvs_match(scope, id, value);
-                }
-                else
-                {
-                    scope = when_normal_match(scope, id, value);
-                }
+                scope = when_normal_match(scope, id, value,key.Loc());
             }
             else
             {
@@ -134,7 +147,7 @@ namespace s
                 }
                 else
                 {
-                    throw new Exception(key.Value() + "不是合法匹配类型");
+                    throw match_Exception(scope,key.Value() + "不是合法匹配类型",key.Loc());
                 }
             }
             return scope;
@@ -150,27 +163,6 @@ namespace s
                 );
             }
             return r;
-        }
-
-        String getPath(Node<Object> scope)
-        {
-            String path = null;
-            Node<Object> tmp = scope;
-            while (tmp != null && path==null)
-            {
-                String key = tmp.First() as String;
-                tmp = tmp.Rest();
-                if (key == "pathOf")
-                {
-                    if (tmp.First() is Function)
-                    {
-                        Function pathOf = tmp.First() as Function;
-                        path = pathOf.exec(null) as String;
-                    }
-                }
-                tmp = tmp.Rest();
-            }
-            return path;
         }
         LocationException error_throw(String msg, Exp exp,Node<Object> scope,Node<Object> children)
         {
@@ -231,9 +223,35 @@ namespace s
             }
             else if (exp.Exp_type() == Exp.Exp_Type.Exp_Id)
             {
-                return Node<Object>.kvs_find1st(scope, exp.Value());
-            }
-            else
+                Node<String> paths = exp.KVS_paths();
+                if (paths == null)
+                {
+                    throw match_Exception(scope, exp.Value() + "不是合法的ID类型:\t"+exp.ToString(), exp.Loc());
+                }
+                else
+                {
+                    Node<Object> c_scope = scope;
+                    Object value = null;
+                    while (paths != null)
+                    {
+                        String key = paths.First();
+                        value = Node<Object>.kvs_find1st(c_scope, key);
+                        paths = paths.Rest();
+                        if (paths != null)
+                        {
+                            if (value==null || value is Node<Object>)
+                            {
+                                c_scope = value as Node<Object>;
+                            }
+                            else
+                            {
+                                throw match_Exception(scope, "计算"+paths.ToString()+"，其中"+value + "不是kvs类型:\t"+exp.ToString(), exp.Loc());
+                            }
+                        }
+                    }
+                    return value;
+                }
+            }else
             {
                 return null;
             }

@@ -114,19 +114,6 @@
 			}
 		)
 	}
-	kvs-path {
-		(let (e paths) args kvs-path this)
-		(if-run (exist? paths)
-			{
-				(let (path ...paths) paths)
-				(kvs-path 
-					(kvs-find1st e path)
-					paths
-				)
-			}
-			{e}
-		)
-	}
 	
 	reverse-join {
 		(reduce args
@@ -152,14 +139,6 @@
 		(let (x n) args)
 		(str-eq (type x) n)
 	}
-	`不想使用*的kvs-match，可以用这个kvs-match`
-	kvs-match {
-		(let (kvs) args)
-		{
-			(let (k) args)
-			(kvs-find1st kvs k)
-		}
-	}
 	`兼容空列表的长度判断`
 	len {
 		(let (cs) args)
@@ -169,12 +148,6 @@
 			}
 			{0}
 		)
-	}
-	`访问字典路径`
-	kvs-path 'kvs-path
-	kvs-path-run {
-		(let (e paths ...ps) args)
-		(apply (kvs-path e paths) ps)
 	}
 	`如果没有，设置默认值`
 	default 'default

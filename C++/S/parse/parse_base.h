@@ -52,6 +52,49 @@ namespace s{
             return Base::sExp;
         }
     };
+    class IDExp:public Exp{
+        Node* paths;
+    public:
+        IDExp(string value,Location* loc):Exp(Exp::Exp_Id,value,loc){
+            if(value[0]=='.' || value[value.size()-1]=='.'){
+                paths=NULL;
+            }else{
+                unsigned i=0;
+                unsigned last_i=0;
+                Node * r=NULL;
+                bool has_error=false;
+                while(i<value.size()){
+                    char c=value[i];
+                    if(c=='.'){
+                        string node=value.substr(last_i,i-last_i);
+                        last_i=i+1;
+                        if(node==""){
+                            has_error=true;
+                        }else{
+                            r=new Node(new String(node),r);
+                        }
+                    }
+                    i++;
+                }
+                r=new Node(new String(value.substr(last_i)),r);
+                if(has_error){
+                    throw new LocationException(value+"不是合法的ID，不允许.连续",loc);
+                }else{
+                    paths=list::reverseAndDelete(r);
+                }
+            }
+        }
+        Node * Paths(){
+            return paths;
+        }
+
+        virtual ~IDExp(){
+            if(paths!=NULL){
+                paths->retain();
+                paths->release();
+            }
+        }
+    };
     class BracketExp:public Exp{
     private:
         Node *children;

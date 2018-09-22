@@ -1,5 +1,7 @@
 package s;
 
+import s.util.Location;
+
 public class QueueRun {
 	public QueueRun(Node<Object> scope) {
 		this.scope=scope;
@@ -29,20 +31,22 @@ public class QueueRun {
 		}
 	}
 
+	LocationException match_Exception(Node<Object> scope,String msg,Location loc) {
+		LocationException lox=new LocationException(getPath(scope)+":\t"+msg,loc);
+		return lox;
+	}
 	Node<Object> match(Node<Object> scope,Exp y,Object values) throws Exception {
-		if(y.xtype()==Exp.Exp_Type.Call) {
-			//小括号，多匹配
-			scope=when_bracket_match(scope,((Exp.CallExp)y).Children(),(Node<Object>)values);
-		}else 
 		if(y.xtype()==Exp.Exp_Type.ID){
-			String key=((Exp.IdExp)y).Value();
-			if(key.endsWith("*")) {
-				scope=when_kvs_match(scope,key,values);
-			}else {
-				scope=when_normal_match(scope,key,values);
-			}
+			Exp.IdExp id_exp=(Exp.IdExp)y;
+			String key=id_exp.Value();
+			scope=when_normal_match(scope,key,values,id_exp.Loc());
 		}else{
-			throw new Exception("类型不正确");
+			if(y.xtype()==Exp.Exp_Type.Call) {
+				//小括号，多匹配
+				scope=when_bracket_match(scope,((Exp.CallExp)y).Children(),(Node<Object>)values);
+			}else {
+				throw match_Exception(scope,y.toString()+"类型不正确",y.Loc());
+			}
 		}
 		return scope;
 	}
@@ -57,30 +61,6 @@ public class QueueRun {
 		}
 		return ret;
 	}
-	/**
-	 * 是否是合法的标识符。
-	 * 不允许.与*
-	 * @param key
-	 * @return
-	 */
-	boolean isValidKey(String key) {
-		boolean r=true;
-		if(key.charAt(0)=='.' || key.charAt(key.length()-1)=='.') {
-			return false;
-		}else {
-			for(int i=0;i<key.length();i++) {
-				char c=key.charAt(i);
-				if(c =='*') {
-					r=false;
-				}else
-				if(Character.isWhitespace(c)) {
-					r=false;
-				}
-			}
-			return r;
-		}
-	}
-	
 	boolean isWait(Exp e) {
 		if(e.xtype()==Exp.Exp_Type.ID){
 			if(e.to_value().startsWith("...")) {
@@ -107,13 +87,8 @@ public class QueueRun {
 				//以...xx结尾，匹配后续的列表
 				String key_name=key.to_value();
 				key_name=key_name.substring(3);
-				if(key_name.endsWith("*")) {
-					//字典匹配
-					scope=when_kvs_match(scope,key_name,values);
-				}else {
-					//普通匹配
-					scope=when_normal_match(scope,key_name,values);
-				}
+				//普通匹配
+				scope=when_normal_match(scope,key_name,values,key.Loc());
 			}else {
 				Object value=null;
 				if(values!=null) {
@@ -126,7 +101,6 @@ public class QueueRun {
 		}
 		return scope;
 	}
-	
 	/**
 	 * 普通匹配
 	 * @param scope
@@ -135,89 +109,15 @@ public class QueueRun {
 	 * @return
 	 * @throws Exception
 	 */
-	Node<Object> when_normal_match(Node<Object> scope,String key,Object kv) throws Exception {
-		if(isValidKey(key)) {
+	Node<Object> when_normal_match(Node<Object> scope,String key,Object kv,Location loc) throws Exception {
+		if(key.indexOf('.')<0) {
 			scope=Node.kvs_extend(key, kv,scope);
 		}else {
-			throw new Exception(key+"不是合法的id");
+			throw match_Exception(scope,key+"不是合法的id",loc);
 		}
 		return scope;
 	}
 	
-	final boolean WITH_KVS_MATCH=false;
-	/**
-	 * kvs-match匹配
-	 * @param scope
-	 * @param key
-	 * @param values
-	 * @return
-	 * @throws Exception
-	 */
-	Node<Object> when_kvs_match(Node<Object> scope,String key,Object values) throws Exception {
-		if(WITH_KVS_MATCH) {
-			key=key.substring(0, key.length()-1);
-			if(isValidKey(key)) {
-				scope=kvs_match(scope,key,values);
-			}else {
-				throw new Exception(key+"不是合法的id");
-			}
-			return scope;
-		}else {
-			throw new Exception("为了雪藏的kvs-match，暂时不允许以*号结尾");
-		}
-	}
-	/**
-	 * 匹配字典
-	 * @param scope
-	 * @param key_prefix
-	 * @param values
-	 * @return
-	 * @throws Exception
-	 */
-	Node<Object> kvs_match(Node<Object> scope,final String key_prefix,Object values) throws Exception {
-		final Node<Object> kvs=(Node<Object>)values;
-		/**
-		 * 附加一个查询字典的函数
-		 */
-		scope=Node.kvs_extend(key_prefix, new Function() {
-			@Override
-			public Object exec(Node<Object> node)throws Exception {
-				// TODO Auto-generated method stub
-				return Node.kvs_find1st(kvs, (String)node.First());
-			}
-			@Override
-			public String toString() {
-				//其中kvs为何？依赖闭包，在列表中会被转成'xx
-				return "{ (kvs-find1st kvs (first args)) }";
-			}
-			@Override
-			public Type ftype() {
-				// TODO Auto-generated method stub
-				return Function.Type.user;
-			}
-		},scope);
-		final Node<Object> svk=Node.reverse((Node<Object>)values);
-		Node<Object> tmp_svk=svk;
-		while(tmp_svk!=null) {
-			Object vk=tmp_svk.First();
-			tmp_svk=tmp_svk.Rest();
-			Object tmp_k=tmp_svk.First();
-			if(tmp_k instanceof String) {
-				//是String类型
-				String k=(String)tmp_svk.First();
-				if(isValidKey(k)) {
-					//命名合法，还需要去除空格等情况。
-					scope=Node.kvs_extend(key_prefix+"."+k,vk,scope);//添加分割符，似乎又显得不和谐，与用户自己的风格
-				}else {
-					//忽略
-				}
-			}else {
-				throw new Exception(tmp_k+"不是字符串类型");
-			}
-			tmp_svk=tmp_svk.Rest();
-		}
-		return scope;
-	}
 	private Node<Object> calNode(Node<Exp> list,Node<Object> scope) throws Exception {
 		Node<Object> r=null;
 		for(Node<Exp> x=list;x!=null;x=x.Rest()) {
@@ -290,16 +190,35 @@ public class QueueRun {
 				return new Function.UserFunction((Exp.FunctionExp)exp, scope);
 			}
 		}else {
-			if(exp.xtype()==Exp.Exp_Type.ID) {
-				Exp.IdExp tmp=(Exp.IdExp)exp;
-				return Node.kvs_find1st(scope, tmp.Value());
-			}else
 	        if(exp.xtype()==Exp.Exp_Type.String){
 	            return ((Exp.StrExp)exp).Value();
 	        }else
 	        if(exp.xtype()==Exp.Exp_Type.Int){
 	            return ((Exp.IntExp)exp).Value();
-	        }
+	        }else
+	        if(exp.xtype()==Exp.Exp_Type.ID) {
+				Exp.IdExp tmp=(Exp.IdExp)exp;
+				Node<String> paths=tmp.Paths();
+				if(paths==null) {
+					throw match_Exception(scope,tmp.Value()+"不是合法的id类型:\t"+exp.toString(),tmp.Loc());
+				}else {
+					Node<Object> c_scope=scope;
+					Object value=null;
+					while(paths!=null) {
+						String key=paths.First();
+						value=Node.kvs_find1st(c_scope, key);
+						paths=paths.Rest();
+						if(paths!=null) {
+							if(value instanceof Node) {
+								c_scope=(Node<Object>)value;
+							}else {
+								throw match_Exception(scope,"计算"+paths.toString()+"，其中"+value + "不是kvs类型:\t"+exp.toString(), exp.Loc());
+							}
+						}
+					}
+					return value;
+				}
+			}
 		}
         /*
         else

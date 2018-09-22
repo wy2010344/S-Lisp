@@ -5,16 +5,14 @@
 		(if-run (type? value 'function)
 				{
 					(watch 
-						`before`
-						[]
-						`exp`
-						{
-							(value)
-						}
-						`after`
-						{
-							(f (first args))
-						}
+						[
+							exp {
+								(value)
+							}
+							after {
+								(f (first args))
+							}
+						]
 					)
 				}
 				{
@@ -101,49 +99,44 @@
 			(let (fun watch inits destroys mve) args)
 			(let change (cache []))
 			(watch
-				`before` 
-				[]
-				`exp`
-				fun 
-				`after` 
-				{
-					(let (element) args)
-					(let newObj 
-						(mve 
-							{ 
-								[ element 'element] 
+				[
+					exp 'fun 
+					after {
+						(let (element) args)
+						(let newObj 
+							(mve 
+								{ 
+									[ element 'element] 
+								}
+							)
+						)
+						(let obj (change))
+						(change newObj)
+						(if-run (exist? obj)
+							{
+								`非第一次生成`
+								(DOM.replaceWith 
+									(obj.getElement)
+									(newObj.getElement)
+								)
+								`mve生成，都是有init函数与destroy函数的`
+								(obj.destroy)
+								(newObj.init)
 							}
 						)
-					)
-					(let obj (change))
-					(change newObj)
-					(let (newObj-getElement newObj-init newObj-destroy) newObj)
-					(if-run (exist? obj)
-						{
-							`非第一次生成`
-							(let (obj-getElement obj-init obj-destroy) obj)
-							(DOM 
-								'replaceWith 
-								(obj-getElement)
-								(newObj-getElement)
-							)
-							`mve生成，都是有init函数与destroy函数的`
-							(obj-destroy)
-							(newObj-init)
-						}
-					)
-				}
+					}
+				]
 			)
-			(let (getElement init destroy) (change))
+			(let obj (change))
 			(list 
 				change 
 				`绑定第一个生成`
-				(extend init inits ) 
+				(extend obj.init inits ) 
 				`销毁最后一个`
 				(extend 
 					{
-						(let (getElement init destroy) (change))
-						(destroy)
+						(let obj (change))
+						(obj.destroy)
 					} 
 					destroys
 				)
@@ -157,21 +150,18 @@
 			(if-run (type? json 'list)
 				{
 					`列表情况，对应js中字典`
-					(let j (kvs-match json))
-					(if-run (type? (j 'type) 'function)
+					(let j json)
+					(if-run (type? j.type 'function)
 							{
 								`自定义组件`
-								(let 
-									(getElement init destroy obj) 
-									((j 'type) (j 'params))
-								)
+								(let obj (j.type j.params))
 								`绑定id`
-								(if-run (exist? (j 'id))
+								(if-run (exist? j.id)
 									{
-										(k (kvs-extend (j 'id) obj (k)))
+										(k (kvs-extend j.id obj (k)))
 									}
 								)
-								(let e (getElement))
+								(let e (obj.getElement))
 								`绑定locsize`
 								(build-locsize 
 									locsize 
@@ -187,88 +177,85 @@
 											{
 												(let (v) args)
 												(ef v)
-												(DOM 'style e str (str-join ['v px]))
+												(DOM.style e str (str-join ['v px]))
 											}
 										)
 									}
 								)
 								(list 
 									e
-									(extend init inits)
-									(extend destroy destroys)
+									(extend obj.init inits)
+									(extend obj.destroy destroys)
 								)
 							}
 							{
 								`原生组件`
 								(let e 
-									(DOM 
-										'createElement 
-										(j 'type)
-									)
+									(DOM.createElement j.type)
 								)
 								`绑定id`
-								(if-run (exist? (j 'id))
+								(if-run (exist? j.id)
 									{
-										(k (kvs-extend (j 'id) e (k)))
+										(k (kvs-extend j.id e (k)))
 									}
 								)
 								`attr属性`
-								(bindMap watch (j 'attr) 
+								(bindMap watch j.attr 
 									{
 										(let (k v) args)
-										(DOM 'attr e k v)
+										(DOM.attr e k v)
 									}
 								)
 								`style属性`
-								(bindMap watch (j 'style)
+								(bindMap watch j.style
 									{
 										(let (k v) args)
-										(DOM 'style e k v)
+										(DOM.style e k v)
 									}
 								)
 								`动作`
-								(bindEvent (j 'action)
+								(bindEvent j.action
 									{
 										(let (k v) args)
-										(DOM 'action e k v)
+										(DOM.action e k v)
 									}
 								)
 								`内部字符`
-								(if-bind watch (j 'text) 
+								(if-bind watch j.text 
 									{
 										(let (v) args)
-										(DOM 'text e v)
+										(DOM.text e v)
 									}
 								)
 								`内部值`
-								(if-bind watch (j 'value)
+								(if-bind watch j.value
 									{
 										(let (v) args)
-										(DOM 'value e v)
+										(DOM.value e v)
 									}
 								)
 								`innerHTML`
-								(if-bind watch (j 'html)
+								(if-bind watch j.html
 									{
 										(let (v) args)
-										(DOM 'html e v)
+										(DOM.html e v)
 									}
 								)
 								`children`
 								(let (inits destroys) 
-									(if-run (str-eq 'kvs (j 'children-type))
+									(if-run (str-eq 'kvs j.children-type)
 										{
 											`children-type是kvs，即repeat`
-											(build-children e (j 'children) inits destroys mve)
+											(build-children e j.children inits destroys mve)
 										}
 										{
 											`children是列表`
-											(reduce (j 'children)
+											(reduce j.children
 												{
 													(let (ini child) args)
 													(let (inits destroys) ini)
 													(let (ce inits destroys) (Parse child watch k inits destroys mve))
-													(DOM 'appendChild e ce)
+													(DOM.appendChild e ce)
 													(list inits destroys)
 												}
 												(list inits destroys)
@@ -287,7 +274,7 @@
 											vf 
 											{
 												(let (v) args)
-												(DOM 'style e str (str-join ['v px]))
+												(DOM.style e str (str-join ['v px]))
 											}
 										)
 									}
@@ -300,9 +287,12 @@
 					(if-run (type? json 'function)
 						{
 							`函数节点`
-							(let (change inits destroys) (Parse-fun json watch inits destroys mve))
+							(let 
+								(change inits destroys) (Parse-fun json watch inits destroys mve)
+								obj (change)
+							)
 							(list 
-								((first (change)))
+								(obj.getElement)
 								inits
 								destroys
 							)
@@ -310,7 +300,7 @@
 						{
 							`值节点`
 							(list 
-								(DOM 'createTextNode json)
+								(DOM.createTextNode json)
 								inits
 								destroys
 							)
@@ -332,7 +322,8 @@
 				(let (change inits destroys) (Parse-fun json watch [] [] mve))
 				(list
 					{
-						((first (change)))
+						(let obj (change))
+						(obj.getElement)
 					}
 					(forEach-run inits)
 					(forEach-run destroys)
