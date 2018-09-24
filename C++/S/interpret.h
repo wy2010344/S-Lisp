@@ -68,6 +68,7 @@ namespace s{
             }else{
                 throw new LocationException("尚不支持的Let-key类型"+key->toString(),key->Loc());
             }
+            return scope;
         }
         Node * & scope;
         Base* run(Exp * e){
