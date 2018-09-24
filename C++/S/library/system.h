@@ -1,25 +1,597 @@
 
 #pragma once
 namespace s{
-    namespace library{
+    namespace system{
             
 
-            class TypeFunc: public LibFunction {
-            private:
-                static TypeFunc * _in_;
-            public:    
-                static TypeFunc*instance(){
-                    return _in_;
+        class FirstFun: public LibFunction {
+        private:
+            static FirstFun * _in_;
+        public:    
+            static FirstFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "first";
+            }
+            Fun_Type ftype(){
+                return Function::fBuildIn;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+                return (static_cast<Node *>(args->First()))->First();
+			
+            }
+        };
+        FirstFun* FirstFun::_in_=new FirstFun();
+        
+
+        class RestFun: public LibFunction {
+        private:
+            static RestFun * _in_;
+        public:    
+            static RestFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "rest";
+            }
+            Fun_Type ftype(){
+                return Function::fBuildIn;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+				return (static_cast<Node *>(args->First()))->First();
+			
+            }
+        };
+        RestFun* RestFun::_in_=new RestFun();
+        
+
+        class ExtendFun: public LibFunction {
+        private:
+            static ExtendFun * _in_;
+        public:    
+            static ExtendFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "extend";
+            }
+            Fun_Type ftype(){
+                return Function::fBuildIn;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+				return new Node(args->First(),static_cast<Node*>(args->Rest()->First()));
+			
+            }
+        };
+        ExtendFun* ExtendFun::_in_=new ExtendFun();
+        
+
+        class LengthFun: public LibFunction {
+        private:
+            static LengthFun * _in_;
+        public:    
+            static LengthFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "length";
+            }
+            Fun_Type ftype(){
+                return Function::fBuildIn;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+                return new Int(((Node *)args->First())->Length());
+			
+            }
+        };
+        LengthFun* LengthFun::_in_=new LengthFun();
+        
+
+        class Ref_countFun: public LibFunction {
+        private:
+            static Ref_countFun * _in_;
+        public:    
+            static Ref_countFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "ref-count";
+            }
+            Fun_Type ftype(){
+                return Function::fBuildIn;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+            Base *b=args->First();
+            return new Int(b->ref_count());
+            
+            }
+        };
+        Ref_countFun* Ref_countFun::_in_=new Ref_countFun();
+        
+
+        class AddFun: public LibFunction {
+        private:
+            static AddFun * _in_;
+        public:    
+            static AddFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "+";
+            }
+            Fun_Type ftype(){
+                return Function::fBuildIn;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+                int all=0;
+                for(Node * t=args;t!=NULL;t=t->Rest()){
+                    Int * it=static_cast<Int*>(t->First());
+                    all=all+it->Value();
                 }
-                string toString(){
-                    return "type";
+                return new Int(all);
+            
+            }
+        };
+        AddFun* AddFun::_in_=new AddFun();
+        
+
+        class SubFun: public LibFunction {
+        private:
+            static SubFun * _in_;
+        public:    
+            static SubFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "-";
+            }
+            Fun_Type ftype(){
+                return Function::fBuildIn;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+                int all=static_cast<Int*>(args->First())->Value();
+                args=args->Rest();
+                for(Node * t=args;t!=NULL;t=t->Rest()){
+                    Int * it=static_cast<Int*>(t->First());
+                    all=all-it->Value();
                 }
-                Fun_Type ftype(){
-                    return Function::fBuildIn;
+                return new Int(all);
+            
+            }
+        };
+        SubFun* SubFun::_in_=new SubFun();
+        
+
+        class MBiggerFun: public LibFunction {
+        private:
+            static MBiggerFun * _in_;
+        public:    
+            static MBiggerFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return ">";
+            }
+            Fun_Type ftype(){
+                return Function::fBuildIn;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+                bool ret=true;
+                Int* last=static_cast<Int*>(args->First());
+                args=args->Rest();
+                while(args!=NULL && ret){
+                    Int* current=static_cast<Int*>(args->First());
+                    ret=(last->Value()>current->Value());
+                    last=current;
+                    args=args->Rest();
                 }
-            protected:
-                Base * run(Node * args){
-                    
+                return Bool::trans(ret);
+            
+            }
+        };
+        MBiggerFun* MBiggerFun::_in_=new MBiggerFun();
+        
+
+        class MSmallerFun: public LibFunction {
+        private:
+            static MSmallerFun * _in_;
+        public:    
+            static MSmallerFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "<";
+            }
+            Fun_Type ftype(){
+                return Function::fBuildIn;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+                bool ret=true;
+                Int* last=static_cast<Int*>(args->First());
+                args=args->Rest();
+                while(args!=NULL && ret){
+                    Int* current=static_cast<Int*>(args->First());
+                    ret=(last->Value()<current->Value());
+                    last=current;
+                    args=args->Rest();
+                }
+                return Bool::trans(ret);
+            
+            }
+        };
+        MSmallerFun* MSmallerFun::_in_=new MSmallerFun();
+        
+
+        class MEqFun: public LibFunction {
+        private:
+            static MEqFun * _in_;
+        public:    
+            static MEqFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "=";
+            }
+            Fun_Type ftype(){
+                return Function::fBuildIn;
+            }
+            
+            static bool base_run(Node* args){
+                bool ret=true;
+                Int* last=static_cast<Int*>(args->First());
+                args=args->Rest();
+                while(args!=NULL && ret){
+                    Int* current=static_cast<Int*>(args->First());
+                    ret=(last->Value()==current->Value());
+                    last=current;
+                    args=args->Rest();
+                }
+                return ret;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+                return Bool::trans(base_run(args));
+            
+            }
+        };
+        MEqFun* MEqFun::_in_=new MEqFun();
+        
+
+        class AndFun: public LibFunction {
+        private:
+            static AndFun * _in_;
+        public:    
+            static AndFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "and";
+            }
+            Fun_Type ftype(){
+                return Function::fBuildIn;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+                bool init=true;
+                Node *t=args;
+                while(t!=NULL && init){
+                    Bool *b=static_cast<Bool*>(t->First());
+                    init=b->Value();
+                    t=t->Rest();
+                }
+                return Bool::trans(init);
+            
+            }
+        };
+        AndFun* AndFun::_in_=new AndFun();
+        
+
+        class OrFun: public LibFunction {
+        private:
+            static OrFun * _in_;
+        public:    
+            static OrFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "or";
+            }
+            Fun_Type ftype(){
+                return Function::fBuildIn;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+                bool init=false;
+                Node *t=args;
+                while(t!=NULL && (!init)){
+                    Bool *b=static_cast<Bool*>(t->First());
+                    init=b->Value();
+                    t=t->Rest();
+                }
+                return Bool::trans(init);
+            
+            }
+        };
+        OrFun* OrFun::_in_=new OrFun();
+        
+
+        class NotFun: public LibFunction {
+        private:
+            static NotFun * _in_;
+        public:    
+            static NotFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "not";
+            }
+            Fun_Type ftype(){
+                return Function::fBuildIn;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+                Bool *b=static_cast<Bool*>(args->First());
+                return Bool::trans(!b->Value());
+            
+            }
+        };
+        NotFun* NotFun::_in_=new NotFun();
+        
+
+        class IsemptyFun: public LibFunction {
+        private:
+            static IsemptyFun * _in_;
+        public:    
+            static IsemptyFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "empty?";
+            }
+            Fun_Type ftype(){
+                return Function::fBuildIn;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+                return Bool::trans(args->First()==NULL);
+			
+            }
+        };
+        IsemptyFun* IsemptyFun::_in_=new IsemptyFun();
+        
+
+        class IsexistFun: public LibFunction {
+        private:
+            static IsexistFun * _in_;
+        public:    
+            static IsexistFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "exist?";
+            }
+            Fun_Type ftype(){
+                return Function::fBuildIn;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+                return Bool::trans(args->First()!=NULL);
+			
+            }
+        };
+        IsexistFun* IsexistFun::_in_=new IsexistFun();
+        
+
+        class LogFun: public LibFunction {
+        private:
+            static LogFun * _in_;
+        public:    
+            static LogFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "log";
+            }
+            Fun_Type ftype(){
+                return Function::fBuildIn;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+                for (Node * tmp=args; tmp!=NULL; tmp=tmp->Rest()) {
+                    Base * v=tmp->First();
+                    if(v==NULL){
+                        cout<<"[]";
+                    }else{
+                        cout<<v->toString();
+                    }
+                    cout<<"  ";
+                }
+                cout<<endl;
+                return NULL;
+			
+            }
+        };
+        LogFun* LogFun::_in_=new LogFun();
+        
+
+        class IfFun: public LibFunction {
+        private:
+            static IfFun * _in_;
+        public:    
+            static IfFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "if";
+            }
+            Fun_Type ftype(){
+                return Function::fBuildIn;
+            }
+            
+            static Base * base_run(Node * args){
+                Bool * cond=static_cast<Bool*>(args->First());
+                Base * ret=NULL;
+                args=args->Rest();
+                if (cond==Bool::True) {
+                    ret=args->First();
+                }else{
+                    args=args->Rest();
+                    if(args!=NULL){
+                        ret=args->First();
+                    }
+                }
+                return ret;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+                return base_run(args);
+			
+            }
+        };
+        IfFun* IfFun::_in_=new IfFun();
+        
+
+        class EqFun: public LibFunction {
+        private:
+            static EqFun * _in_;
+        public:    
+            static EqFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "eq";
+            }
+            Fun_Type ftype(){
+                return Function::fBuildIn;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+                Base * a=args->First();
+                Base * b=args->Rest()->First();
+                return Bool::trans(a==b);
+            
+            }
+        };
+        EqFun* EqFun::_in_=new EqFun();
+        
+
+        class ApplyFun: public LibFunction {
+        private:
+            static ApplyFun * _in_;
+        public:    
+            static ApplyFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "apply";
+            }
+            Fun_Type ftype(){
+                return Function::fBuildIn;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+                Function *f=static_cast<Function*>(args->First());
+                Node *f_args=static_cast<Node*>(args->Rest()->First());
+                Base* b=f->exec(f_args);
+                if(b!=NULL){
+                    b->eval_release();/*从函数出来都默认加了1，故需要eval_release再传递给下一个表达式*/
+                }
+                return b;
+            
+            }
+        };
+        ApplyFun* ApplyFun::_in_=new ApplyFun();
+        
+
+        class StringifyFun: public LibFunction {
+        private:
+            static StringifyFun * _in_;
+        public:    
+            static StringifyFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "stringify";
+            }
+            Fun_Type ftype(){
+                return Function::fBuildIn;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+                return new String(args->First()->toString());
+			
+            }
+        };
+        StringifyFun* StringifyFun::_in_=new StringifyFun();
+        
+
+        class TypeFun: public LibFunction {
+        private:
+            static TypeFun * _in_;
+        public:    
+            static TypeFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "type";
+            }
+            Fun_Type ftype(){
+                return Function::fBuildIn;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
                 Base *b=args->First();
                 string s;
                 if(b==NULL){
@@ -59,187 +631,147 @@ namespace s{
 
                 return new String(s);
             
-                }
-            };
-            TypeFunc* TypeFunc::_in_=new TypeFunc();
-            
+            }
+        };
+        TypeFun* TypeFun::_in_=new TypeFun();
+        
 
-            class StringifyFunc: public LibFunction {
-            private:
-                static StringifyFunc * _in_;
-            public:    
-                static StringifyFunc*instance(){
-                    return _in_;
-                }
-                string toString(){
-                    return "stringify";
-                }
-                Fun_Type ftype(){
-                    return Function::fBuildIn;
-                }
-            protected:
-                Base * run(Node * args){
-                    
-                return new String(args->First()->toString());
-			
-                }
-            };
-            StringifyFunc* StringifyFunc::_in_=new StringifyFunc();
+        class Str_eqFun: public LibFunction {
+        private:
+            static Str_eqFun * _in_;
+        public:    
+            static Str_eqFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "str-eq";
+            }
+            Fun_Type ftype(){
+                return Function::fBuildIn;
+            }
             
-
-            class ApplyFunc: public LibFunction {
-            private:
-                static ApplyFunc * _in_;
-            public:    
-                static ApplyFunc*instance(){
-                    return _in_;
-                }
-                string toString(){
-                    return "apply";
-                }
-                Fun_Type ftype(){
-                    return Function::fBuildIn;
-                }
-            protected:
-                Base * run(Node * args){
-                    
-                Function *f=static_cast<Function*>(args->First());
-                Node *f_args=static_cast<Node*>(args->Rest()->First());
-                Base* b=f->exec(f_args);
-                if(b!=NULL){
-                    b->eval_release();/*从函数出来都默认加了1，故需要eval_release再传递给下一个表达式*/
-                }
-                return b;
-            
-                }
-            };
-            ApplyFunc* ApplyFunc::_in_=new ApplyFunc();
-            
-
-            class Str_eqFunc: public LibFunction {
-            private:
-                static Str_eqFunc * _in_;
-            public:    
-                static Str_eqFunc*instance(){
-                    return _in_;
-                }
-                string toString(){
-                    return "str-eq";
-                }
-                Fun_Type ftype(){
-                    return Function::fBuildIn;
-                }
-            protected:
-                Base * run(Node * args){
-                    
+        protected:
+            Base * run(Node * args){
+                
                 String *s1=static_cast<String*>(args->First());
                 args=args->Rest();
                 String *s2=static_cast<String*>(args->First());
                 return Bool::trans(s1->StdStr()==s2->StdStr());
-			
-                }
-            };
-            Str_eqFunc* Str_eqFunc::_in_=new Str_eqFunc();
             
+            }
+        };
+        Str_eqFun* Str_eqFun::_in_=new Str_eqFun();
+        
 
-            class EqFunc: public LibFunction {
-            private:
-                static EqFunc * _in_;
-            public:    
-                static EqFunc*instance(){
-                    return _in_;
-                }
-                string toString(){
-                    return "eq";
-                }
-                Fun_Type ftype(){
-                    return Function::fBuildIn;
-                }
-            protected:
-                Base * run(Node * args){
-                    
-                Base * a=args->First();
-                Base * b=args->Rest()->First();
-                return Bool::trans(a==b);
+        class Str_lengthFun: public LibFunction {
+        private:
+            static Str_lengthFun * _in_;
+        public:    
+            static Str_lengthFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "str-length";
+            }
+            Fun_Type ftype(){
+                return Function::fBuildIn;
+            }
             
-                }
-            };
-            EqFunc* EqFunc::_in_=new EqFunc();
+        protected:
+            Base * run(Node * args){
+                
+                String *str=static_cast<String*>(args->First());
+                return new Int(str->StdStr().size());
             
+            }
+        };
+        Str_lengthFun* Str_lengthFun::_in_=new Str_lengthFun();
+        
 
-            class Char_atFunc: public LibFunction {
-            private:
-                static Char_atFunc * _in_;
-            public:    
-                static Char_atFunc*instance(){
-                    return _in_;
-                }
-                string toString(){
-                    return "char-at";
-                }
-                Fun_Type ftype(){
-                    return Function::fBuildIn;
-                }
-            protected:
-                Base * run(Node * args){
-                    
+        class Str_charAtFun: public LibFunction {
+        private:
+            static Str_charAtFun * _in_;
+        public:    
+            static Str_charAtFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "str-charAt";
+            }
+            Fun_Type ftype(){
+                return Function::fBuildIn;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
                 String *str=static_cast<String*>(args->First());
                 Int * i=static_cast<Int*>(args->Rest()->First());
                 char x[]={str->StdStr()[i->Value()],'\0'};
                 return new String(x);
-			
-                }
-            };
-            Char_atFunc* Char_atFunc::_in_=new Char_atFunc();
             
+            }
+        };
+        Str_charAtFun* Str_charAtFun::_in_=new Str_charAtFun();
+        
 
-            class Str_lengthFunc: public LibFunction {
-            private:
-                static Str_lengthFunc * _in_;
-            public:    
-                static Str_lengthFunc*instance(){
-                    return _in_;
-                }
-                string toString(){
-                    return "str-length";
-                }
-                Fun_Type ftype(){
-                    return Function::fBuildIn;
-                }
-            protected:
-                Base * run(Node * args){
-                    
-                String *str=static_cast<String*>(args->First());
-                return new Int(str->StdStr().size());
-			
-                }
-            };
-            Str_lengthFunc* Str_lengthFunc::_in_=new Str_lengthFunc();
+        class Str_substrFun: public LibFunction {
+        private:
+            static Str_substrFun * _in_;
+        public:    
+            static Str_substrFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "str-substr";
+            }
+            Fun_Type ftype(){
+                return Function::fBuildIn;
+            }
             
+        protected:
+            Base * run(Node * args){
+                
+                String * stre=static_cast<String*>(args->First());
+                args=args->Rest();
+                Int * begin=static_cast<Int*>(args->First());
+                args=args->Rest();
+                if(args==NULL){
+                    return new String(stre->StdStr().substr(begin->Value()));
+                }else{
+                    Int * len=static_cast<Int*>(args->First());
+                    return new String(stre->StdStr().substr(begin->Value(),len->Value()));
+                }
+            
+            }
+        };
+        Str_substrFun* Str_substrFun::_in_=new Str_substrFun();
+        
 
-            class Str_joinFunc: public LibFunction {
-            private:
-                static Str_joinFunc * _in_;
-            public:    
-                static Str_joinFunc*instance(){
-                    return _in_;
-                }
-                string toString(){
-                    return "str-join";
-                }
-                Fun_Type ftype(){
-                    return Function::fBuildIn;
-                }
-            protected:
-                Base * run(Node * args){
-                    
+        class Str_joinFun: public LibFunction {
+        private:
+            static Str_joinFun * _in_;
+        public:    
+            static Str_joinFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "str-join";
+            }
+            Fun_Type ftype(){
+                return Function::fBuildIn;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
                 Node * vs=static_cast<Node*>(args->First());
-                Node * split_base=args->Rest();
+                args=args->Rest();
                 int split_size=0;
                 String *split=NULL;
-                if(split_base!=NULL)
+                if(args!=NULL)
                 {
-                    split=static_cast<String*>(split_base->First());
+                    split=static_cast<String*>(args->First());
                     split_size=split->StdStr().size();
                 }
                 int size=0;
@@ -272,214 +804,29 @@ namespace s{
                 string str(cs);
                 delete [] cs;
                 return new String(str);
-			
-                }
-            };
-            Str_joinFunc* Str_joinFunc::_in_=new Str_joinFunc();
             
+            }
+        };
+        Str_joinFun* Str_joinFun::_in_=new Str_joinFun();
+        
 
-            class IfFunc: public LibFunction {
-            private:
-                static IfFunc * _in_;
-            public:    
-                static IfFunc*instance(){
-                    return _in_;
-                }
-                string toString(){
-                    return "if";
-                }
-                Fun_Type ftype(){
-                    return Function::fBuildIn;
-                }
-            protected:
-                Base * run(Node * args){
-                    
-                Bool * cond=static_cast<Bool*>(args->First());
-                Base * ret=NULL;
-                if (cond==Bool::True) {
-                    ret=args->Rest()->First();
-                }else{
-                    args=args->Rest()->Rest();
-                    if(args!=NULL){
-                        ret=args->First();
-                    }
-                }
-                return ret;
-			
-                }
-            };
-            IfFunc* IfFunc::_in_=new IfFunc();
+        class Str_reduce_leftFun: public LibFunction {
+        private:
+            static Str_reduce_leftFun * _in_;
+        public:    
+            static Str_reduce_leftFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "str-reduce-left";
+            }
+            Fun_Type ftype(){
+                return Function::fBuildIn;
+            }
             
-
-            class LogFunc: public LibFunction {
-            private:
-                static LogFunc * _in_;
-            public:    
-                static LogFunc*instance(){
-                    return _in_;
-                }
-                string toString(){
-                    return "log";
-                }
-                Fun_Type ftype(){
-                    return Function::fBuildIn;
-                }
-            protected:
-                Base * run(Node * args){
-                    
-                for (Node * tmp=args; tmp!=NULL; tmp=tmp->Rest()) {
-                    Base * v=tmp->First();
-                    if(v==NULL){
-                        cout<<"[]";
-                    }else{
-                        cout<<v->toString();
-                    }
-                    cout<<"  ";
-                }
-                cout<<endl;
-                return NULL;
-			
-                }
-            };
-            LogFunc* LogFunc::_in_=new LogFunc();
-            
-
-            class IsexistFunc: public LibFunction {
-            private:
-                static IsexistFunc * _in_;
-            public:    
-                static IsexistFunc*instance(){
-                    return _in_;
-                }
-                string toString(){
-                    return "exist?";
-                }
-                Fun_Type ftype(){
-                    return Function::fBuildIn;
-                }
-            protected:
-                Base * run(Node * args){
-                    
-                return Bool::trans(args->First()!=NULL);
-			
-                }
-            };
-            IsexistFunc* IsexistFunc::_in_=new IsexistFunc();
-            
-
-            class IsemptyFunc: public LibFunction {
-            private:
-                static IsemptyFunc * _in_;
-            public:    
-                static IsemptyFunc*instance(){
-                    return _in_;
-                }
-                string toString(){
-                    return "empty?";
-                }
-                Fun_Type ftype(){
-                    return Function::fBuildIn;
-                }
-            protected:
-                Base * run(Node * args){
-                    
-                return Bool::trans(args->First()==NULL);
-			
-                }
-            };
-            IsemptyFunc* IsemptyFunc::_in_=new IsemptyFunc();
-            
-
-            class Str_substrFunc: public LibFunction {
-            private:
-                static Str_substrFunc * _in_;
-            public:    
-                static Str_substrFunc*instance(){
-                    return _in_;
-                }
-                string toString(){
-                    return "str-substr";
-                }
-                Fun_Type ftype(){
-                    return Function::fBuildIn;
-                }
-            protected:
-                Base * run(Node * args){
-                    
-                String * stre=static_cast<String*>(args->First());
-                args=args->Rest();
-                Int * begin=static_cast<Int*>(args->First());
-                args=args->Rest();
-                if(args==NULL){
-                    return new String(stre->StdStr().substr(begin->Value()));
-                }else{
-                    Int * len=static_cast<Int*>(args->First());
-                    return new String(stre->StdStr().substr(begin->Value(),len->Value()));
-                }
-            
-                }
-            };
-            Str_substrFunc* Str_substrFunc::_in_=new Str_substrFunc();
-            
-
-            class Str_reduce_rightFunc: public LibFunction {
-            private:
-                static Str_reduce_rightFunc * _in_;
-            public:    
-                static Str_reduce_rightFunc*instance(){
-                    return _in_;
-                }
-                string toString(){
-                    return "str-reduce-right";
-                }
-                Fun_Type ftype(){
-                    return Function::fBuildIn;
-                }
-            protected:
-                Base * run(Node * args){
-                    
-                String * stre=static_cast<String*>(args->First());
-                args=args->Rest();
-                Function * f=static_cast<Function*>(args->First());
-                args=args->Rest();
-                Base * init=args->First();
-                unsigned size=stre->StdStr().size();
-                for(unsigned i=size-1;i!=0;i--){
-                    char c[]={stre->StdStr()[i],'\0'};
-                    String *cs=new String(string(c));
-                    Int* is=new Int(i);
-                    Node *targs=new Node(init,new Node(cs,new Node(is,NULL)));
-                    targs->retain();
-                    Base *new_init=f->exec(targs);
-                    targs->release();
-                    if(new_init!=NULL){
-                        new_init->eval_release();
-                    }
-                    init=new_init;
-                }
-                return init;
-            
-                }
-            };
-            Str_reduce_rightFunc* Str_reduce_rightFunc::_in_=new Str_reduce_rightFunc();
-            
-
-            class Str_reduce_leftFunc: public LibFunction {
-            private:
-                static Str_reduce_leftFunc * _in_;
-            public:    
-                static Str_reduce_leftFunc*instance(){
-                    return _in_;
-                }
-                string toString(){
-                    return "str-reduce-left";
-                }
-                Fun_Type ftype(){
-                    return Function::fBuildIn;
-                }
-            protected:
-                Base * run(Node * args){
-                    
+        protected:
+            Base * run(Node * args){
+                
                 String * stre=static_cast<String*>(args->First());
                 args=args->Rest();
                 Function * f=static_cast<Function*>(args->First());
@@ -501,396 +848,444 @@ namespace s{
                 }
                 return init;
             
-                }
-            };
-            Str_reduce_leftFunc* Str_reduce_leftFunc::_in_=new Str_reduce_leftFunc();
-            
+            }
+        };
+        Str_reduce_leftFun* Str_reduce_leftFun::_in_=new Str_reduce_leftFun();
+        
 
-            class NotFunc: public LibFunction {
-            private:
-                static NotFunc * _in_;
-            public:    
-                static NotFunc*instance(){
-                    return _in_;
-                }
-                string toString(){
-                    return "not";
-                }
-                Fun_Type ftype(){
-                    return Function::fBuildIn;
-                }
-            protected:
-                Base * run(Node * args){
-                    
-                Bool *b=static_cast<Bool*>(args->First());
-                return Bool::trans(!b->Value());
+        class Str_reduce_rightFun: public LibFunction {
+        private:
+            static Str_reduce_rightFun * _in_;
+        public:    
+            static Str_reduce_rightFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "str-reduce-right";
+            }
+            Fun_Type ftype(){
+                return Function::fBuildIn;
+            }
             
-                }
-            };
-            NotFunc* NotFunc::_in_=new NotFunc();
-            
-
-            class OrFunc: public LibFunction {
-            private:
-                static OrFunc * _in_;
-            public:    
-                static OrFunc*instance(){
-                    return _in_;
-                }
-                string toString(){
-                    return "or";
-                }
-                Fun_Type ftype(){
-                    return Function::fBuildIn;
-                }
-            protected:
-                Base * run(Node * args){
-                    
-                bool init=false;
-                Node *t=args;
-                while(t!=NULL && (!init)){
-                    Bool *b=static_cast<Bool*>(t->First());
-                    init=b->Value();
-                    t=t->Rest();
-                }
-                return Bool::trans(init);
-            
-                }
-            };
-            OrFunc* OrFunc::_in_=new OrFunc();
-            
-
-            class AndFunc: public LibFunction {
-            private:
-                static AndFunc * _in_;
-            public:    
-                static AndFunc*instance(){
-                    return _in_;
-                }
-                string toString(){
-                    return "and";
-                }
-                Fun_Type ftype(){
-                    return Function::fBuildIn;
-                }
-            protected:
-                Base * run(Node * args){
-                    
-                bool init=true;
-                Node *t=args;
-                while(t!=NULL && init){
-                    Bool *b=static_cast<Bool*>(t->First());
-                    init=b->Value();
-                    t=t->Rest();
-                }
-                return Bool::trans(init);
-            
-                }
-            };
-            AndFunc* AndFunc::_in_=new AndFunc();
-            
-
-            class MEqFunc: public LibFunction {
-            private:
-                static MEqFunc * _in_;
-            public:    
-                static MEqFunc*instance(){
-                    return _in_;
-                }
-                string toString(){
-                    return "=";
-                }
-                Fun_Type ftype(){
-                    return Function::fBuildIn;
-                }
-            protected:
-                Base * run(Node * args){
-                    
-                bool ret=true;
-                Int* last=static_cast<Int*>(args->First());
+        protected:
+            Base * run(Node * args){
+                
+                String * stre=static_cast<String*>(args->First());
                 args=args->Rest();
-                while(args!=NULL && ret){
-                    Int* current=static_cast<Int*>(args->First());
-                    ret=(last->Value()==current->Value());
-                    last=current;
-                    args=args->Rest();
+                Function * f=static_cast<Function*>(args->First());
+                args=args->Rest();
+                Base * init=args->First();
+                unsigned size=stre->StdStr().size();
+                for(unsigned i=size-1;i!=0;i--){
+                    char c[]={stre->StdStr()[i],'\0'};
+                    String *cs=new String(string(c));
+                    Int* is=new Int(i);
+                    Node *targs=new Node(init,new Node(cs,new Node(is,NULL)));
+                    targs->retain();
+                    Base *new_init=f->exec(targs);
+                    targs->release();
+                    if(new_init!=NULL){
+                        new_init->eval_release();
+                    }
+                    init=new_init;
+                }
+                return init;
+            
+            }
+        };
+        Str_reduce_rightFun* Str_reduce_rightFun::_in_=new Str_reduce_rightFun();
+        
+
+        class QuoteFun: public LibFunction {
+        private:
+            static QuoteFun * _in_;
+        public:    
+            static QuoteFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "{(first args ) }";
+            }
+            Fun_Type ftype(){
+                return Function::fUser;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+                return args->First();
+            
+            }
+        };
+        QuoteFun* QuoteFun::_in_=new QuoteFun();
+        
+
+        class ListFun: public LibFunction {
+        private:
+            static ListFun * _in_;
+        public:    
+            static ListFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "{args }";
+            }
+            Fun_Type ftype(){
+                return Function::fUser;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+                return args;
+			
+            }
+        };
+        ListFun* ListFun::_in_=new ListFun();
+        
+
+        class IstypeFun: public LibFunction {
+        private:
+            static IstypeFun * _in_;
+        public:    
+            static IstypeFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "{(let (x n ) args ) (str-eq (type x ) n ) }";
+            }
+            Fun_Type ftype(){
+                return Function::fUser;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+                Base *b=args->First();
+                args=args->Rest();
+                bool ret=false;
+                string & type=static_cast<String*>(args->First())->StdStr();
+                if(b==NULL){
+                    ret=(type=="list");
+                }else{
+                    Base::S_Type t=b->stype();
+                    if(t==Base::sList){
+                        ret=(type=="list");
+                    }else
+                    if(t==Base::sFunction){
+                        ret=(type=="function");
+                    }else
+                    if(t==Base::sInt){
+                        ret=(type=="int");
+                    }else
+                    if(t==Base::sString){
+                        ret=(type=="string");
+                    }else
+                    if(t==Base::sBool){
+                        ret=(type=="bool");
+                    }else
+                    if(t==Base::sUser){
+                        ret=(type=="user");
+                    }else{
+                        if(t==Base::sToken){
+                            ret=(type=="token");
+                        }else
+                        if(t==Base::sExp){
+                            ret=(type=="exp");
+                        }else
+                        if(t==Base::sLocation){
+                            ret=(type=="location");
+                        }
+                    }
                 }
                 return Bool::trans(ret);
             
-                }
-            };
-            MEqFunc* MEqFunc::_in_=new MEqFunc();
-            
+            }
+        };
+        IstypeFun* IstypeFun::_in_=new IstypeFun();
+        
 
-            class MSmallerFunc: public LibFunction {
-            private:
-                static MSmallerFunc * _in_;
-            public:    
-                static MSmallerFunc*instance(){
-                    return _in_;
+        class MNotEqFun: public LibFunction {
+        private:
+            static MNotEqFun * _in_;
+        public:    
+            static MNotEqFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "{(not (apply = args ) ) }";
+            }
+            Fun_Type ftype(){
+                return Function::fUser;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+                return Bool::trans(!MEqFun::base_run(args));
+            
+            }
+        };
+        MNotEqFun* MNotEqFun::_in_=new MNotEqFun();
+        
+
+        class ReverseFun: public LibFunction {
+        private:
+            static ReverseFun * _in_;
+        public:    
+            static ReverseFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "{(let (xs ) args ) (reduce xs {(let (init x ) args ) (extend x init ) } [] ) }";
+            }
+            Fun_Type ftype(){
+                return Function::fUser;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+                Node * list=static_cast<Node*>(args->First());
+                Node *r=NULL;
+                while(list!=NULL){
+                    r=new Node(list->First(),r);
+                    list=list->Rest();
                 }
-                string toString(){
-                    return "<";
-                }
-                Fun_Type ftype(){
-                    return Function::fBuildIn;
-                }
-            protected:
-                Base * run(Node * args){
-                    
-                bool ret=true;
-                Int* last=static_cast<Int*>(args->First());
-                args=args->Rest();
-                while(args!=NULL && ret){
-                    Int* current=static_cast<Int*>(args->First());
-                    ret=(last->Value()<current->Value());
-                    last=current;
+                return r;
+            
+            }
+        };
+        ReverseFun* ReverseFun::_in_=new ReverseFun();
+        
+
+        class Empty_funFun: public LibFunction {
+        private:
+            static Empty_funFun * _in_;
+        public:    
+            static Empty_funFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "{}";
+            }
+            Fun_Type ftype(){
+                return Function::fUser;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+                return NULL;
+            
+            }
+        };
+        Empty_funFun* Empty_funFun::_in_=new Empty_funFun();
+        
+
+        class DefaultFun: public LibFunction {
+        private:
+            static DefaultFun * _in_;
+        public:    
+            static DefaultFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "{(let (a d ) args ) (if (exist? a ) a d ) }";
+            }
+            Fun_Type ftype(){
+                return Function::fUser;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+                Base * v=args->First();
+                if(v!=NULL){
+                    return v;
+                }else{
                     args=args->Rest();
+                    Base * d=args->First();
+                    return d;
                 }
-                return Bool::trans(ret);
             
-                }
-            };
-            MSmallerFunc* MSmallerFunc::_in_=new MSmallerFunc();
-            
+            }
+        };
+        DefaultFun* DefaultFun::_in_=new DefaultFun();
+        
 
-            class MBiggerFunc: public LibFunction {
-            private:
-                static MBiggerFunc * _in_;
-            public:    
-                static MBiggerFunc*instance(){
-                    return _in_;
+        class If_runFun: public LibFunction {
+        private:
+            static If_runFun * _in_;
+        public:    
+            static If_runFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "{(let (a b c ) args ) (let x (default (if a b c ) ) ) (x ) }";
+            }
+            Fun_Type ftype(){
+                return Function::fUser;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+                Base * fun=IfFun::base_run(args);
+                Base * b=NULL;
+                if(fun!=NULL){
+                    b=static_cast<Function*>(fun)->exec(NULL);
+                    if(b!=NULL){
+                        b->eval_release();
+                    }
                 }
-                string toString(){
-                    return ">";
-                }
-                Fun_Type ftype(){
-                    return Function::fBuildIn;
-                }
-            protected:
-                Base * run(Node * args){
-                    
-                bool ret=true;
-                Int* last=static_cast<Int*>(args->First());
+                return b;
+            
+            }
+        };
+        If_runFun* If_runFun::_in_=new If_runFun();
+        
+
+        class ReduceFun: public LibFunction {
+        private:
+            static ReduceFun * _in_;
+        public:    
+            static ReduceFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "{(let (xs run init ) args reduce this ) (if-run (exist? xs ) {(let (x ...xs ) xs ) (let init (run init x ) ) (reduce xs run init ) } {init } ) }";
+            }
+            Fun_Type ftype(){
+                return Function::fUser;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+                Node *list=static_cast<Node*>(args->First());
                 args=args->Rest();
-                while(args!=NULL && ret){
-                    Int* current=static_cast<Int*>(args->First());
-                    ret=(last->Value()>current->Value());
-                    last=current;
-                    args=args->Rest();
-                }
-                return Bool::trans(ret);
-            
-                }
-            };
-            MBiggerFunc* MBiggerFunc::_in_=new MBiggerFunc();
-            
-
-            class SubFunc: public LibFunction {
-            private:
-                static SubFunc * _in_;
-            public:    
-                static SubFunc*instance(){
-                    return _in_;
-                }
-                string toString(){
-                    return "-";
-                }
-                Fun_Type ftype(){
-                    return Function::fBuildIn;
-                }
-            protected:
-                Base * run(Node * args){
-                    
-                int all=static_cast<Int*>(args->First())->Value();
+                Function *f=static_cast<Function*>(args->First());
                 args=args->Rest();
-                for(Node * t=args;t!=NULL;t=t->Rest()){
-                    Int * it=static_cast<Int*>(t->First());
-                    all=all-it->Value();
+                Base * init=args->First();
+                while(list!=NULL){
+                    Base * x=list->First();
+                    Node *nargs=new Node(init,new Node(x,NULL));
+                    nargs->retain();
+                    Base* n_init=f->exec(nargs);
+                    nargs->release();
+                    if(n_init!=NULL){
+                        n_init->eval_release();
+                    }
+                    init=n_init;
+                    list=list->Rest();
                 }
-                return new Int(all);
+                return init;
             
-                }
-            };
-            SubFunc* SubFunc::_in_=new SubFunc();
-            
+            }
+        };
+        ReduceFun* ReduceFun::_in_=new ReduceFun();
+        
 
-            class AddFunc: public LibFunction {
-            private:
-                static AddFunc * _in_;
-            public:    
-                static AddFunc*instance(){
-                    return _in_;
-                }
-                string toString(){
-                    return "+";
-                }
-                Fun_Type ftype(){
-                    return Function::fBuildIn;
-                }
-            protected:
-                Base * run(Node * args){
-                    
-                int all=0;
-                for(Node * t=args;t!=NULL;t=t->Rest()){
-                    Int * it=static_cast<Int*>(t->First());
-                    all=all+it->Value();
-                }
-                return new Int(all);
+        class Kvs_find1stFun: public LibFunction {
+        private:
+            static Kvs_find1stFun * _in_;
+        public:    
+            static Kvs_find1stFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "{(let (key kvs ) args find1st this ) (let (k v ...kvs ) args ) (if-run (str-eq k key ) {v } {find1st key kvs } ) }";
+            }
+            Fun_Type ftype(){
+                return Function::fUser;
+            }
             
-                }
-            };
-            AddFunc* AddFunc::_in_=new AddFunc();
-            
-
-            class Ref_countFunc: public LibFunction {
-            private:
-                static Ref_countFunc * _in_;
-            public:    
-                static Ref_countFunc*instance(){
-                    return _in_;
-                }
-                string toString(){
-                    return "ref-count";
-                }
-                Fun_Type ftype(){
-                    return Function::fBuildIn;
-                }
-            protected:
-                Base * run(Node * args){
-                    
-            Base *b=args->First();
-            return new Int(b->ref_count());
-            
-                }
-            };
-            Ref_countFunc* Ref_countFunc::_in_=new Ref_countFunc();
-            
-
-            class LengthFunc: public LibFunction {
-            private:
-                static LengthFunc * _in_;
-            public:    
-                static LengthFunc*instance(){
-                    return _in_;
-                }
-                string toString(){
-                    return "length";
-                }
-                Fun_Type ftype(){
-                    return Function::fBuildIn;
-                }
-            protected:
-                Base * run(Node * args){
-                    
-                return new Int(((Node *)args->First())->Length());
+        protected:
+            Base * run(Node * args){
+                
+                Node* kvs_map=static_cast<Node*>(args->First());
+                args=args->Rest();
+                String* key=static_cast<String*>(args->First());
+                return kvs::find1st(kvs_map,key->StdStr());
 			
-                }
-            };
-            LengthFunc* LengthFunc::_in_=new LengthFunc();
-            
+            }
+        };
+        Kvs_find1stFun* Kvs_find1stFun::_in_=new Kvs_find1stFun();
+        
 
-            class ExtendFunc: public LibFunction {
-            private:
-                static ExtendFunc * _in_;
-            public:    
-                static ExtendFunc*instance(){
-                    return _in_;
-                }
-                string toString(){
-                    return "extend";
-                }
-                Fun_Type ftype(){
-                    return Function::fBuildIn;
-                }
-            protected:
-                Base * run(Node * args){
-                    
-				return new Node(args->First(),static_cast<Node*>(args->Rest()->First()));
-			
-                }
-            };
-            ExtendFunc* ExtendFunc::_in_=new ExtendFunc();
+        class Kvs_extendFun: public LibFunction {
+        private:
+            static Kvs_extendFun * _in_;
+        public:    
+            static Kvs_extendFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "{(let (k v kvs ) args ) (extend k (extend v kvs ) ) }";
+            }
+            Fun_Type ftype(){
+                return Function::fUser;
+            }
             
-
-            class RestFunc: public LibFunction {
-            private:
-                static RestFunc * _in_;
-            public:    
-                static RestFunc*instance(){
-                    return _in_;
-                }
-                string toString(){
-                    return "rest";
-                }
-                Fun_Type ftype(){
-                    return Function::fBuildIn;
-                }
-            protected:
-                Base * run(Node * args){
-                    
-				return (static_cast<Node *>(args->First()))->First();
+        protected:
+            Base * run(Node * args){
+                
+                String* key=static_cast<String*>(args->First());
+                args=args->Rest();
+                Base* val=args->First();
+                args=args->Rest();
+                Node* kvs_map=static_cast<Node*>(args->First());
+                return kvs::extend(key,val,kvs_map);
 			
-                }
-            };
-            RestFunc* RestFunc::_in_=new RestFunc();
-            
-
-            class FirstFunc: public LibFunction {
-            private:
-                static FirstFunc * _in_;
-            public:    
-                static FirstFunc*instance(){
-                    return _in_;
-                }
-                string toString(){
-                    return "first";
-                }
-                Fun_Type ftype(){
-                    return Function::fBuildIn;
-                }
-            protected:
-                Base * run(Node * args){
-                    
-                return (static_cast<Node *>(args->First()))->First();
-			
-                }
-            };
-            FirstFunc* FirstFunc::_in_=new FirstFunc();
-            
+            }
+        };
+        Kvs_extendFun* Kvs_extendFun::_in_=new Kvs_extendFun();
+        
         Node * library(){
             Node * m=NULL;
             m=kvs::extend("true",Bool::True,m);
             m=kvs::extend("false",Bool::False,m);
             
-            m=kvs::extend("type",TypeFunc::instance(),m);
-            m=kvs::extend("stringify",StringifyFunc::instance(),m);
-            m=kvs::extend("apply",ApplyFunc::instance(),m);
-            m=kvs::extend("str-eq",Str_eqFunc::instance(),m);
-            m=kvs::extend("eq",EqFunc::instance(),m);
-            m=kvs::extend("char-at",Char_atFunc::instance(),m);
-            m=kvs::extend("str-length",Str_lengthFunc::instance(),m);
-            m=kvs::extend("str-join",Str_joinFunc::instance(),m);
-            m=kvs::extend("if",IfFunc::instance(),m);
-            m=kvs::extend("log",LogFunc::instance(),m);
-            m=kvs::extend("exist?",IsexistFunc::instance(),m);
-            m=kvs::extend("empty?",IsemptyFunc::instance(),m);
-            m=kvs::extend("str-substr",Str_substrFunc::instance(),m);
-            m=kvs::extend("str-reduce-right",Str_reduce_rightFunc::instance(),m);
-            m=kvs::extend("str-reduce-left",Str_reduce_leftFunc::instance(),m);
-            m=kvs::extend("not",NotFunc::instance(),m);
-            m=kvs::extend("or",OrFunc::instance(),m);
-            m=kvs::extend("and",AndFunc::instance(),m);
-            m=kvs::extend("=",MEqFunc::instance(),m);
-            m=kvs::extend("<",MSmallerFunc::instance(),m);
-            m=kvs::extend(">",MBiggerFunc::instance(),m);
-            m=kvs::extend("-",SubFunc::instance(),m);
-            m=kvs::extend("+",AddFunc::instance(),m);
-            m=kvs::extend("ref-count",Ref_countFunc::instance(),m);
-            m=kvs::extend("length",LengthFunc::instance(),m);
-            m=kvs::extend("extend",ExtendFunc::instance(),m);
-            m=kvs::extend("rest",RestFunc::instance(),m);
-            m=kvs::extend("first",FirstFunc::instance(),m);
+            m=kvs::extend("first",FirstFun::instance(),m);
+            m=kvs::extend("rest",RestFun::instance(),m);
+            m=kvs::extend("extend",ExtendFun::instance(),m);
+            m=kvs::extend("length",LengthFun::instance(),m);
+            m=kvs::extend("ref-count",Ref_countFun::instance(),m);
+            m=kvs::extend("+",AddFun::instance(),m);
+            m=kvs::extend("-",SubFun::instance(),m);
+            m=kvs::extend(">",MBiggerFun::instance(),m);
+            m=kvs::extend("<",MSmallerFun::instance(),m);
+            m=kvs::extend("=",MEqFun::instance(),m);
+            m=kvs::extend("and",AndFun::instance(),m);
+            m=kvs::extend("or",OrFun::instance(),m);
+            m=kvs::extend("not",NotFun::instance(),m);
+            m=kvs::extend("empty?",IsemptyFun::instance(),m);
+            m=kvs::extend("exist?",IsexistFun::instance(),m);
+            m=kvs::extend("log",LogFun::instance(),m);
+            m=kvs::extend("if",IfFun::instance(),m);
+            m=kvs::extend("eq",EqFun::instance(),m);
+            m=kvs::extend("apply",ApplyFun::instance(),m);
+            m=kvs::extend("stringify",StringifyFun::instance(),m);
+            m=kvs::extend("type",TypeFun::instance(),m);
+            m=kvs::extend("str-eq",Str_eqFun::instance(),m);
+            m=kvs::extend("str-length",Str_lengthFun::instance(),m);
+            m=kvs::extend("str-charAt",Str_charAtFun::instance(),m);
+            m=kvs::extend("str-substr",Str_substrFun::instance(),m);
+            m=kvs::extend("str-join",Str_joinFun::instance(),m);
+            m=kvs::extend("str-reduce-left",Str_reduce_leftFun::instance(),m);
+            m=kvs::extend("str-reduce-right",Str_reduce_rightFun::instance(),m);
+            m=kvs::extend("quote",QuoteFun::instance(),m);
+            m=kvs::extend("list",ListFun::instance(),m);
+            m=kvs::extend("type?",IstypeFun::instance(),m);
+            m=kvs::extend("!=",MNotEqFun::instance(),m);
+            m=kvs::extend("reverse",ReverseFun::instance(),m);
+            m=kvs::extend("empty-fun",Empty_funFun::instance(),m);
+            m=kvs::extend("default",DefaultFun::instance(),m);
+            m=kvs::extend("if-run",If_runFun::instance(),m);
+            m=kvs::extend("reduce",ReduceFun::instance(),m);
+            m=kvs::extend("kvs-find1st",Kvs_find1stFun::instance(),m);
+            m=kvs::extend("kvs-extend",Kvs_extendFun::instance(),m);
             return m;
         }
     };

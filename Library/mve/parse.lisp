@@ -127,16 +127,14 @@
 					}
 				]
 			)
-			(let obj (change))
 			(list 
 				change 
 				`绑定第一个生成`
-				(extend obj.init inits ) 
+				(extend (kvs-path (change) [init]) inits ) 
 				`销毁最后一个`
 				(extend 
 					{
-						(let obj (change))
-						(obj.destroy)
+						(kvs-path-run (change) [destroy])
 					} 
 					destroys
 				)
@@ -177,7 +175,7 @@
 											{
 												(let (v) args)
 												(ef v)
-												(DOM.style e str (str-join ['v px]))
+												(DOM.locsize e str v)
 											}
 										)
 									}
@@ -274,7 +272,7 @@
 											vf 
 											{
 												(let (v) args)
-												(DOM.style e str (str-join ['v px]))
+												(DOM.locsize e str v)
 											}
 										)
 									}
@@ -322,8 +320,7 @@
 				(let (change inits destroys) (Parse-fun json watch [] [] mve))
 				(list
 					{
-						(let obj (change))
-						(obj.getElement)
+						(kvs-path-run (change) [getElement])
 					}
 					(forEach-run inits)
 					(forEach-run destroys)

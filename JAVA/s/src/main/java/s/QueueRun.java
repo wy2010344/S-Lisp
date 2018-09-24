@@ -1,15 +1,15 @@
 package s;
 
-import s.util.Location;
+import s.exp.*;
 
 public class QueueRun {
 	public QueueRun(Node<Object> scope) {
 		this.scope=scope;
 	}
 	public Node<Object> scope;
-	public Object run(Exp x) throws Exception {
+	private Object run(Exp x) throws Exception {
 		if(x.xtype()==Exp.Exp_Type.Call) {
-			Exp.CallExp sbe=(Exp.CallExp)x;
+			CallExp sbe=(CallExp)x;
 			if(isLet(sbe)) {
 				/**
 				 * 也许应该进行命名规范的约束，未来再放开吧
@@ -30,6 +30,19 @@ public class QueueRun {
 			return interpret(x, scope);
 		}
 	}
+	public Object exec(s.exp.FunctionExp exp) throws Exception {
+		Object r=null;
+		for(Node<Exp> tmp=exp.Children();tmp!=null;tmp=tmp.Rest()) {
+			Exp x=tmp.First();
+			r=run(x);
+		}
+		return r;
+	}
+	public Object exec(String str,char lineSplit) throws Exception {
+		Node<Token> tokens=Token.tokenize(str, lineSplit);
+		s.exp.FunctionExp exp=s.exp.FunctionExp.parse(tokens);
+		return exec(exp);
+	}
 
 	LocationException match_Exception(Node<Object> scope,String msg,Location loc) {
 		LocationException lox=new LocationException(getPath(scope)+":\t"+msg,loc);
@@ -37,24 +50,24 @@ public class QueueRun {
 	}
 	Node<Object> match(Node<Object> scope,Exp y,Object values) throws Exception {
 		if(y.xtype()==Exp.Exp_Type.ID){
-			Exp.IdExp id_exp=(Exp.IdExp)y;
+			IdExp id_exp=(IdExp)y;
 			String key=id_exp.Value();
 			scope=when_normal_match(scope,key,values,id_exp.Loc());
 		}else{
 			if(y.xtype()==Exp.Exp_Type.Call) {
 				//小括号，多匹配
-				scope=when_bracket_match(scope,((Exp.CallExp)y).Children(),(Node<Object>)values);
+				scope=when_bracket_match(scope,((CallExp)y).Children(),(Node<Object>)values);
 			}else {
 				throw match_Exception(scope,y.toString()+"类型不正确",y.Loc());
 			}
 		}
 		return scope;
 	}
-	boolean isLet(Exp.CallExp sbe) {
+	boolean isLet(CallExp sbe) {
 		boolean ret=false;
 		Exp sbec=(Exp)sbe.Children().First();
 		if(sbec.xtype()==Exp.Exp_Type.ID) {
-			Exp.IdExp sbec_id=(Exp.IdExp)sbec;
+			IdExp sbec_id=(IdExp)sbec;
 			if("let".equals(sbec_id.Value())) {
 				ret=true;
 			}
@@ -128,7 +141,7 @@ public class QueueRun {
 		return r;
 		//return Library.reverse(r);
 	}
-	private LocationException errorMessage(String message,Exp.CallExp exp,Node<Object> children){
+	private LocationException errorMessage(String message,CallExp exp,Node<Object> children){
 		String exp_msg=exp.toString();
 		String result_msg=children.toString();
 		LocationException lox= new LocationException(
@@ -163,7 +176,7 @@ public class QueueRun {
 	private Object interpret(Exp exp,Node<Object> scope) throws Exception{ 
 		if(exp.isBracket()) {
 			if(exp.xtype()==Exp.Exp_Type.Call) {
-				Exp.CallExp tmp=(Exp.CallExp)exp;
+				CallExp tmp=(CallExp)exp;
 				Node<Object> children=calNode(tmp.R_children(),scope);
 				Object first=children.First();
 				if(first==null) {
@@ -183,21 +196,21 @@ public class QueueRun {
 				}
 			}else
 			if(exp.xtype()==Exp.Exp_Type.List) {
-				Exp.ListExp tmp=(Exp.ListExp)exp;
+				ListExp tmp=(ListExp)exp;
 				return calNode(tmp.R_children(),scope);
 			}else
 			if(exp.xtype()==Exp.Exp_Type.Function) {
-				return new Function.UserFunction((Exp.FunctionExp)exp, scope);
+				return new Function.UserFunction((FunctionExp)exp, scope);
 			}
 		}else {
 	        if(exp.xtype()==Exp.Exp_Type.String){
-	            return ((Exp.StrExp)exp).Value();
+	            return ((StringExp)exp).Value();
 	        }else
 	        if(exp.xtype()==Exp.Exp_Type.Int){
-	            return ((Exp.IntExp)exp).Value();
+	            return ((IntExp)exp).Value();
 	        }else
 	        if(exp.xtype()==Exp.Exp_Type.ID) {
-				Exp.IdExp tmp=(Exp.IdExp)exp;
+				IdExp tmp=(IdExp)exp;
 				Node<String> paths=tmp.Paths();
 				if(paths==null) {
 					throw match_Exception(scope,tmp.Value()+"不是合法的id类型:\t"+exp.toString(),tmp.Loc());
@@ -209,7 +222,7 @@ public class QueueRun {
 						value=Node.kvs_find1st(c_scope, key);
 						paths=paths.Rest();
 						if(paths!=null) {
-							if(value instanceof Node) {
+							if(value==null || value instanceof Node) {
 								c_scope=(Node<Object>)value;
 							}else {
 								throw match_Exception(scope,"计算"+paths.toString()+"，其中"+value + "不是kvs类型:\t"+exp.toString(), exp.Loc());
@@ -222,8 +235,8 @@ public class QueueRun {
 		}
         /*
         else
-        if(exp instanceof Exp.FloatExp){
-            return ((Exp.FloatExp)exp).value;
+        if(exp instanceof FloatExp){
+            return ((FloatExp)exp).value;
         }
 		*/
 		return null;

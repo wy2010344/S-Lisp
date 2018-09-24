@@ -6,6 +6,11 @@
                 return (static_cast<Node *>(args->First()))->First();
 			"
 		]
+        C# [
+            run "
+                return (args.First() as Node<Object>).First();
+            "
+        ]
 	]
 	rest [
 		cpp [
@@ -13,6 +18,11 @@
 				return (static_cast<Node *>(args->First()))->First();
 			"
 		]
+        C# [
+            run "
+                return (args.First() as Node<Object>).Rest();
+            "
+        ]
 	]
 	extend [
 		cpp [
@@ -20,6 +30,11 @@
 				return new Node(args->First(),static_cast<Node*>(args->Rest()->First()));
 			"
 		]
+        C# [
+            run "
+                return Node<Object>.extend(args.First(),(args.Rest().First() as Node<Object>));
+            "
+        ]
 	]
 	length [
 		cpp [
@@ -27,6 +42,11 @@
                 return new Int(((Node *)args->First())->Length());
 			"
 		]
+        C# [
+            run "
+                return (args.First() as Node<Object>).Length();
+            "
+        ]
 	]
 
     ref-count [
@@ -39,7 +59,7 @@
     ]
     
     + [
-        alias AddFunc
+        alias AddFun
         cpp [
             run "
                 int all=0;
@@ -50,9 +70,20 @@
                 return new Int(all);
             "
         ]
+        C# [
+            run "
+                int all=0;
+                for(Node<Object> t=args;t!=null;t=t.Rest())
+                {
+                    int it=(int)t.First();
+                    all=all+it;
+                }
+                return all;
+            "
+        ]
     ]
     - [
-        alias SubFunc
+        alias SubFun
         cpp [
             run "
                 int all=static_cast<Int*>(args->First())->Value();
@@ -64,10 +95,22 @@
                 return new Int(all);
             "
         ]
+        C# [
+            run "
+                int all=(int)args.First();
+                args=args.Rest();
+                for(Node<Object> t=args;t!=null;t=t.Rest())
+                {
+                    int it=(int)args.First();
+                    all=all-it;
+                }
+                return all;
+            "
+        ]
     ]
 
     >  [
-        alias MBiggerFunc
+        alias MBiggerFun
         cpp [
             run "
                 bool ret=true;
@@ -82,10 +125,25 @@
                 return Bool::trans(ret);
             "
         ]
+        C# [
+            run "
+                bool ret=true;
+                int last=(int)args.First();
+                args=args.Rest();
+                while(args!=null && ret)
+                {
+                    int current=(int)args.First();
+                    ret=(last>current);
+                    last=current;
+                    args=args.Rest();
+                }
+                return ret;
+            "
+        ]
     ]
 
     < [
-        alias MSmallerFunc
+        alias MSmallerFun
         cpp [
             run "
                 bool ret=true;
@@ -100,12 +158,28 @@
                 return Bool::trans(ret);
             "
         ]
+        C# [
+            run "
+                bool ret=true;
+                int last=(int)args.First();
+                args=args.Rest();
+                while(args!=null && ret)
+                {
+                    int current=(int)args.First();
+                    ret=(last<current);
+                    last=current;
+                    args=args.Rest();
+                }
+                return ret;
+            "
+        ]
     ]
 
     = [
-        alias MEqFunc
+        alias MEqFun
         cpp [
-            run "
+            other "
+            static bool base_run(Node* args){
                 bool ret=true;
                 Int* last=static_cast<Int*>(args->First());
                 args=args->Rest();
@@ -115,7 +189,31 @@
                     last=current;
                     args=args->Rest();
                 }
-                return Bool::trans(ret);
+                return ret;
+            }
+            "
+            run "
+                return Bool::trans(base_run(args));
+            "
+        ]
+        C# [
+            other "
+            public static bool base_run(Node<Object> args){
+                bool ret=true;
+                int last=(int)args.First();
+                args=args.Rest();
+                while(args!=null && ret)
+                {
+                    int current=(int)args.First();
+                    ret=(last==current);
+                    last=current;
+                    args=args.Rest();
+                }
+                return ret;
+            }
+            "
+            run "
+                return base_run(args);
             "
         ]
     ]
@@ -130,6 +228,17 @@
                     t=t->Rest();
                 }
                 return Bool::trans(init);
+            "
+        ]
+        C# [
+            run "
+                bool ret=true;
+                while(args!=null && ret)
+                {
+                    ret=(bool)args.First();
+                    args=args.Rest();
+                }
+                return ret;
             "
         ]
     ]
@@ -147,6 +256,17 @@
                 return Bool::trans(init);
             "
         ]
+        C# [
+            run "
+                bool ret=false;
+                while(args!=null && (!ret))
+                {
+                    ret=(bool)args.First();
+                    args=args.Rest();
+                }
+                return ret;
+            "
+        ]
     ]
 
     not [
@@ -154,6 +274,11 @@
             run "
                 Bool *b=static_cast<Bool*>(args->First());
                 return Bool::trans(!b->Value());
+            "
+        ]
+        C# [
+            run "
+                return !(bool)args.First();
             "
         ]
     ]
@@ -165,6 +290,11 @@
                 return Bool::trans(args->First()==NULL);
 			"
 		]
+        C# [
+            run "
+                return args.First()==null;
+            "
+        ]
 	]
 	exist? [
 		cpp [
@@ -172,6 +302,11 @@
                 return Bool::trans(args->First()!=NULL);
 			"
 		]
+        C# [
+            run "
+                return args.First()!=null;
+            "
+        ]
 	]
 	log [
 		cpp [
@@ -189,23 +324,60 @@
                 return NULL;
 			"
 		]
+        C# [
+            run "
+                StringBuilder sb = new StringBuilder();
+                args.toString(sb);
+                Console.WriteLine(sb.ToString());
+                return null;
+            "
+        ]
 	]
 	if [
 		cpp [
-			run "
+            other "
+            static Base * base_run(Node * args){
                 Bool * cond=static_cast<Bool*>(args->First());
                 Base * ret=NULL;
+                args=args->Rest();
                 if (cond==Bool::True) {
-                    ret=args->Rest()->First();
+                    ret=args->First();
                 }else{
-                    args=args->Rest()->Rest();
+                    args=args->Rest();
                     if(args!=NULL){
                         ret=args->First();
                     }
                 }
                 return ret;
+            }
+            "
+			run "
+                return base_run(args);
 			"
 		]
+        C# [
+            other "
+            public static Object base_run(Node<Object> args){
+                bool c=(bool)args.First();
+                args=args.Rest();
+                if(c){
+                    return args.First();
+                }else{
+                    args=args.Rest();
+                    if(args!=null)
+                    {
+                        return args.First();
+                    }else{
+                        return null;
+                    }
+                }
+            }
+
+            "
+            run "
+                return base_run(args);
+            "
+        ]
 	]
     `是否是同一个内存对象`
     eq [
@@ -214,6 +386,14 @@
                 Base * a=args->First();
                 Base * b=args->Rest()->First();
                 return Bool::trans(a==b);
+            "
+        ]
+        C# [
+            run "
+                Object a=args.First();
+                args=args.Rest();
+                Object b=args.First();
+                return a==b;
             "
         ]
     ]
@@ -230,6 +410,13 @@
                 return b;
             "
         ]
+        C# [
+            run "
+                Function f=args.First() as Function;
+                args=args.Rest();
+                return f.exec(args.First() as Node<Object>);
+            "
+        ]
     ]
 	stringify [
 		cpp [
@@ -237,6 +424,13 @@
                 return new String(args->First()->toString());
 			"
 		]
+        C# [
+            run "
+                StringBuilder sb=new StringBuilder();
+                Node<Object>.toString(sb, args.First(), false);
+                return sb.ToString();
+            "
+        ]
 	]
     type [
         cpp [
@@ -281,6 +475,49 @@
                 return new String(s);
             "
         ]
+        C# [
+            other "
+                public static String base_run(Object b){
+                    if(b==null){
+                        return \"list\";
+                    }else{
+                        if(b is Node<Object>)
+                        {
+                            return \"list\";
+                        }else if(b is Function)
+                        {
+                            return \"function\";
+                        }else if(b is int)
+                        {
+                            return \"int\";
+                        }else if(b is String)
+                        {
+                            return \"string\";
+                        }else if(b is bool)
+                        {
+                            return \"bool\";
+                        }else{
+                            if(b is Token)
+                            {
+                                return \"token\";
+                            }else if(b is Exp)
+                            {
+                                return \"exp\";
+                            }else if(b is Location)
+                            {
+                                return \"location\";
+                            }else{
+                                return \"user\";
+                            }
+                        }
+                    }
+                }
+            "
+            run "
+                Object b=args.First();
+                return base_run(b);
+            "
+        ]
     ]
 
 
@@ -293,12 +530,26 @@
                 return Bool::trans(s1->StdStr()==s2->StdStr());
             "
         ]
+        C# [
+            run "
+                String a=args.First() as String;
+                args=args.Rest();
+                String b=args.First() as String;
+                return a==b;
+            "
+        ]
     ]
     str-length [
         cpp [
             run "
                 String *str=static_cast<String*>(args->First());
                 return new Int(str->StdStr().size());
+            "
+        ] 
+        C# [
+            run "
+                String a=args.First() as String;
+                return a.Length;
             "
         ]
     ]
@@ -309,6 +560,14 @@
                 Int * i=static_cast<Int*>(args->Rest()->First());
                 char x[]={str->StdStr()[i->Value()],'\\0'};
                 return new String(x);
+            "
+        ]
+        C# [
+            run "
+                String a=args.First() as String;
+                args=args.Rest();
+                int b=(int)args.First();
+                return \"\"+a[b];
             "
         ]
     ]
@@ -325,6 +584,21 @@
                 }else{
                     Int * len=static_cast<Int*>(args->First());
                     return new String(stre->StdStr().substr(begin->Value(),len->Value()));
+                }
+            "
+        ]
+        C# [
+            run "
+                String a=args.First() as String;
+                args=args.Rest();
+                int begin=(int)args.First();
+                args=args.Rest();
+                if(args==null)
+                {
+                    return a.Substring(begin);
+                }else
+                {
+                    return a.Substring(begin,(int)args.First());
                 }
             "
         ]
@@ -371,6 +645,83 @@
                 string str(cs);
                 delete [] cs;
                 return new String(str);
+            "
+        ]
+        C# [
+            run "
+                Node<Object> vs=args.First() as Node<Object>;
+                args=args.Rest();
+                String split=\"\";
+                if(args!=null)
+                {
+                    split=args.First() as String;
+                }
+                StringBuilder sb=new StringBuilder();
+                for(Node<Object> tmp=vs;tmp!=null;tmp=tmp.Rest())
+                {
+                    sb.Append(tmp.First() as String);
+                    if(tmp.Rest()!=null)
+                    {
+                        sb.Append(split);
+                    }
+                }
+                return sb.ToString();
+            "
+        ]
+    ]
+    str-split [
+        C# [
+            run "
+                String str = args.First() as String;
+                args = args.Rest();
+                String split = \"\";
+                if (args != null)
+                {
+                    split = args.First() as String;
+                }
+                Node<Object> r = null;
+                if (split == \"\")
+                {
+                    for (int i = str.Length-1; i>-1; i--)
+                    {
+                        r = Node<Object>.extend(str[i] + \"\", r);
+                    }
+                }
+                else
+                {
+                    int last_i = 0;
+                    while (last_i >-1)
+                    {
+                        int new_i = str.IndexOf(split, last_i);
+                        if (new_i > -1)
+                        {
+                            r = Node<Object>.extend(str.Substring(last_i, new_i - last_i), r);
+                            last_i = new_i+split.Length;
+                        }
+                        else
+                        {
+                            //最后
+                            r = Node<Object>.extend(str.Substring(last_i), r);
+                            last_i = new_i;
+                        }
+                    }
+                    r = Node<Object>.reverse(r);
+                }
+                return r;
+            "
+        ]
+    ]
+    str-upper[
+        C# [
+            run "
+                return (args.First() as String).ToUpper();
+            "
+        ]
+    ]
+    str-lower[
+        C# [
+            run "
+                return (args.First() as String).ToLower();
             "
         ]
     ]

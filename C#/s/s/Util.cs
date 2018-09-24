@@ -112,16 +112,17 @@ namespace s
             return sb.ToString();
         }
 
-        static string absolute_from_relative(String base_path, String relative_path)
+        /**
+         * 如果base_path是路径，则以/结尾，是文件，则非/结束
+         */
+        public static string absolute_from_relative(String base_path, String relative_path)
         {
             if (relative_path.StartsWith("."))
             {
-                if(base_path.EndsWith("/")){
-                    base_path = base_path.Substring(0, base_path.Length - 1);
-                }
                 String[] nodes = base_path.Split('/');
                 String[] names = relative_path.Split('/');
                 List<String> list = new List<string>(nodes);
+                list.RemoveAt(list.Count - 1);//移除最后一个
                 for (int i = 0; i < names.Length; i++)
                 {
                     String n = names[i];
@@ -174,6 +175,10 @@ namespace s
             }
             sr.Close();
             return sb.ToString();
+        }
+        public static void writeTxt(String path, String content)
+        {
+            System.IO.File.WriteAllText(path, content, new UTF8Encoding(false));
         }
         public static void logException(Exception e)
         {

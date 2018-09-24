@@ -110,10 +110,7 @@ namespace s
             return r;
         }
 
-        public static Node<Object> kvs_extend(String key, Object value, Node<Object> scope)
-        {
-            return new Node<object>(key, new Node<object>(value, scope));
-        }
+        /**************************Ò»Ð©¿âº¯Êý********************************/
 
         public static Node<T> extend(T value, Node<T> scope)
         {
@@ -130,6 +127,10 @@ namespace s
                 r = new Node<T>(ps[i], r);
             }
             return r;
+        }
+        public static Node<Object> kvs_extend(String key, Object value, Node<Object> scope)
+        {
+            return new Node<Object>(key, new Node<Object>(value, scope));
         }
         public static Object kvs_find1st(Node<Object> kvs, String k)
         {

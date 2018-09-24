@@ -2,13 +2,13 @@
 using namespace std;
 #include "./run.h"
 #include "./shell.h"
-#include "./library/better.h"
+#include "./library/system.h"
 #include "./library/parse.h"
 #include "./library/read.h"
 #include "./library/write.h"
 namespace s{
 	Node* load(char line_split){
-	    Node *baseScope=library::better();
+	    Node *baseScope=system::library();
         baseScope=kvs::extend("read",new library::ReadFunc(line_split),baseScope);
         baseScope=kvs::extend("write",new library::WriteFunc(),baseScope);
 	    baseScope=kvs::extend("core-library",baseScope,baseScope);//parse默认的作用域，可手动扩展

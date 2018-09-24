@@ -1,0 +1,78 @@
+{
+	(
+		(load (lib-path 'g_Lib/g_common.lisp))
+		[
+			k C#
+			in-type Fun_BuildIn
+			better-type Fun_Better
+			build-cls
+			    {
+			        `
+			            key
+			            run
+			            other 可选
+			            toString
+			            type
+			        `
+			        (let (p) args)
+			        [
+			            "\n
+        class "(quote p.key)":Function{
+            private static "(quote p.key)" _ini_=new "(quote p.key)"();
+            public static "(quote p.key)" instance(){return _ini_;}
+            public override string ToString(){return \"" (p.toString) "\";}
+            public override Function_Type Function_type(){return Function.Function_Type."(quote p.type)";}
+            public override object exec(Node<object> args){
+                "(quote p.run)"
+            }
+            "(default p.other "")"
+        }
+			            "
+			        ]
+			    }
+		    build-m 
+			    {
+			        (let (k key) args)
+			        [
+			            "
+        m=Node<Object>.kvs_extend(\""(quote k)"\","(quote key)".instance(),m);"
+			        ]
+			    }
+			write-result 
+				{
+					(let (cls fun) args)
+					(write
+				    	(pathOf './System.cs)
+					    (str-join
+					        [
+"
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace s.library
+{
+    public class System
+    {
+    "
+        (str-join cls)
+    "
+        public static Node<Object> library(){
+            Node<Object> m = null;
+            m = Node<Object>.kvs_extend(\"true\",true, m);
+            m = Node<Object>.kvs_extend(\"false\", false, m);
+            "
+            (str-join fun)
+            "
+            return m;
+        }
+    }
+}"        
+	        
+					        ]
+					    )
+					)
+				}
+		]
+	)
+}

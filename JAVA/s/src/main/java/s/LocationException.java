@@ -1,7 +1,5 @@
 package s;
 
-import s.util.Location;
-
 public class LocationException extends Exception {
 	public LocationException(String msg,Location loc) {
 		super(msg);

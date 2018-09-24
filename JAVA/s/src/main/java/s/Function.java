@@ -1,4 +1,5 @@
 package s;
+import s.exp.*;
 
 public interface Function {
 	public static enum Type{
@@ -12,16 +13,16 @@ public interface Function {
 	 * @return
 	 * @throws Exception
 	 */
-	public Object exec(Node<Object> node) throws Exception;
+	public Object exec(Node<Object> args) throws Exception;
 	public Type ftype();
 	public static class UserFunction implements Function{
 		
-		public UserFunction(Exp.FunctionExp exp,Node<Object> parentScope) {
+		public UserFunction(FunctionExp exp,Node<Object> parentScope) {
 			this.parentScope=parentScope;
 			this.exp=exp;
 		}
 		protected Node<Object> parentScope;
-		Exp.FunctionExp exp;
+		FunctionExp exp;
 		/*node.Value(),node.Next().Value(),.....*/
 		@Override
 		public Object exec(Node<Object> node) throws Exception {
@@ -29,12 +30,7 @@ public interface Function {
 			Node<Object> scope=Node.kvs_extend("args", node,parentScope);
 			scope=Node.kvs_extend("this",this,scope);
 			QueueRun qr=new QueueRun(scope);
-			Object r=null;
-			for(Node<Exp> tmp=exp.Children();tmp!=null;tmp=tmp.Rest()) {
-				Exp x=tmp.First();
-				r=qr.run(x);
-			}
-			return r;
+			return qr.exec(exp);
 		}
 		//不换行，默认
 		@Override

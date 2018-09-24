@@ -48,7 +48,15 @@ namespace s
                     }
                     else
                     {
-                        return interpret(exp, scope);
+                        try
+                        {
+                            return interpret(exp, scope);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(exp.ToString());
+                            throw ex;
+                        }
                     }
                 }else
                 {

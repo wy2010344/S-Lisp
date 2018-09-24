@@ -36,11 +36,12 @@
     <Compile Include="Code.cs" />
     <Compile Include="Exp.cs" />
     <Compile Include="Function.cs" />
-    <Compile Include="library\Better.cs" />
     <Compile Include="library\Cache.cs" />
     <Compile Include="library\Parse.cs" />
+    <Compile Include="library\Read.cs" />
     <Compile Include="library\System.cs" />
     <Compile Include="library\Load.cs" />
+    <Compile Include="library\Write.cs" />
     <Compile Include="Location.cs" />
     <Compile Include="LocationException.cs" />
     <Compile Include="Node.cs" />
@@ -52,9 +53,7 @@
     <Compile Include="Util.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="library\better.lisp" />
-    <None Include="library\index.lisp" />
-    <None Include="library\system.lisp" />
+    <None Include="library\index.s-shell" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

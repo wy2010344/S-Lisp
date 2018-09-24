@@ -1,4 +1,4 @@
-package s.util;
+package s;
 
 public class Location{
     public Location(int r,int c,int index){

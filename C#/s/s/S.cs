@@ -7,17 +7,19 @@ namespace s
     public class S
     {
         private char lineSplit;
+        private Encoding encoding;
         private Node<Object> scope;
-        public S(char lineSplit)
+        public S(char lineSplit,Encoding encoding)
         {
+            this.encoding = encoding;
             this.lineSplit = lineSplit;
-            scope = library.Better.build(
-                            library.System.library()
-                           );
+            scope = library.System.library();
+            scope = Node<Object>.kvs_extend("lib-path", LibPath.instance(), scope);
+            loadLib(LibPath.instance().calculate("index.lisp"));
         }
         private Object loadValue(String relative_path,bool delay,s.Node<Object> delay_args)
         {
-            Object value = s.library.Load.run_e(s.Util.exe_path(relative_path), scope, lineSplit);
+            Object value = s.library.Load.run_e(s.Util.exe_path(relative_path), scope, lineSplit,encoding);
             if (delay)
             {
                 value = (value as Function).exec(delay_args);
@@ -68,7 +70,7 @@ namespace s
         }
         public Object run(String relative_path)
         {
-            return s.library.Load.run_e(s.Util.exe_path(relative_path), scope, lineSplit);
+            return s.library.Load.run_e(s.Util.exe_path(relative_path), scope, lineSplit,encoding);
         }
 
         public void shell()
@@ -135,6 +137,54 @@ namespace s
                     }
                 }
             }
+        }
+    }
+    public class LibPath : Function
+    {
+        private LibPath()
+        {
+            try
+            {
+                lib_path = Environment.GetEnvironmentVariable("S_LISP");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            if (lib_path==null || lib_path == "")
+            {
+                lib_path = "D:/S-Lisp/";
+            }
+            else if (!(lib_path[lib_path.Length - 1] == '/'))
+            {
+                lib_path = lib_path + "/";
+            }
+            lib_path = lib_path.Replace('\\', '/');
+        }
+        private static LibPath ini=new LibPath();
+        public static LibPath instance() { return ini; }
+        public String calculate(string path)
+        {
+            if (!(path[0] == '.'))
+            {
+                path = "./" + path;
+            }
+            return Util.absolute_from_relative(lib_path, path);
+        }
+        private string lib_path="";
+        public override object exec(Node<object> args)
+        {
+            String path=args.First() as String;
+            return calculate(path);
+        }
+        public override string ToString()
+        {
+            return "lib-path";
+        }
+
+        public override Function.Function_Type Function_type()
+        {
+            return Function_Type.Fun_BuildIn;
         }
     }
 }

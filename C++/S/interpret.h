@@ -1,5 +1,5 @@
 #pragma once
-#include "./library/better.h"
+#include "./library/system.h"
 namespace s{
     //为了支持控制台
     class QueueRun{

@@ -1,0 +1,86 @@
+{
+	(
+		(load (lib-path 'g_Lib/g_common.lisp))
+		[
+			k cpp
+			in-type fBuildIn
+			better-type fUser
+			build-cls   
+				{
+			        `
+			            key
+			            run
+			            other 可选
+			            toString
+			            type
+			        `
+			        (let (p) args)
+			        [
+			            "\n
+        class " (quote p.key) ": public LibFunction {
+        private:
+            static "(quote p.key)" * _in_;
+        public:    
+            static "(quote p.key)"*instance(){
+                return _in_;
+            }
+            string toString(){
+                return \"" (p.toString)"\";
+            }
+            Fun_Type ftype(){
+                return Function::"(quote p.type)";
+            }
+            "
+            (quote p.other)
+            "
+        protected:
+            Base * run(Node * args){
+                "(quote p.run)"
+            }
+        };
+        "(quote p.key)"* "(quote p.key)"::_in_=new "(quote p.key)"();
+        "                      
+			        ]
+			    }
+		     build-m 
+		     	{
+			        (let (k key) args)
+			        [
+			            "
+            m=kvs::extend(\"" (quote k) "\"," (quote key) "::instance(),m);"
+			        ]
+			    }
+
+			 write-result
+			 	{
+			 		(let (cls fun) args)
+				 	(write 
+					    (pathOf './system.h) 
+					    (str-join 
+					        [
+"
+#pragma once
+namespace s{
+    namespace system{
+            "
+            `生成几个类体`
+            (str-join cls)
+            "
+        Node * library(){
+            Node * m=NULL;
+            m=kvs::extend(\"true\",Bool::True,m);
+            m=kvs::extend(\"false\",Bool::False,m);
+            "
+            (str-join fun)
+            "
+            return m;
+        }
+    };
+};"
+					        ]
+					    )
+					)
+			 	}
+		]
+	)
+}

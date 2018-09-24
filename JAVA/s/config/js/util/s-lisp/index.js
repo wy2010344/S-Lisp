@@ -1,22 +1,22 @@
 ({
     data:{
        library:"./library.js",
-       util:"./util.js"
+       s:"./s.js"
     },
     success:function(){
         var path=ini.get("server_path")+"/../";
-        var Eval=Java.type("s.Eval");
-        var Node=Java.type("s.Node");
         var QueueRun=Java.type("s.QueueRun");
+        var Load=Java.type("s.library.Load");
         var library=lib.library();
+        var line_split=mb.charAt("\n",0);
         var scope=library.library;//在js中定义的库
-        var scope_extend=Eval.run(path+"/lisp/mb/index.lisp",scope);//在lisp中定义的库
-        scope_extend=lib.util.reverse(scope_extend);
+        var scope_extend=Load.run_e(path+"/lisp/mb/index.lisp",scope,line_split).exec(null);
+        scope_extend=lib.s.reverse(scope_extend);
         for(var t=scope_extend;t!=null;t=t.Rest()){
             var value=t.First();
             t=t.Rest();
             var key=t.First();
-            scope=lib.util.kvs_extend(key,value,scope);
+            scope=lib.s.kvs_extend(key,value,scope);
         }
         
         return {
@@ -24,11 +24,16 @@
                 if(!bool){
                     x_path=path+"/lisp/act/"+x_path;
                 }
-                return Eval.run(x_path,scope);
+                var o=Load.run_e(x_path,scope,line_split);
+                if(o){
+                    o.exec(null);
+                }else{
+                    mb.log(x_path);
+                }
             },
             shell:function(log,split){
                 var qr=new QueueRun(
-	                lib.util.kvs_extend(
+	                lib.s.kvs_extend(
 	                    "log",
 	                    library.buildFunc(
                             "log",
@@ -38,7 +43,7 @@
 	                )
 	            );
                 return function(str){
-                    return Eval.run(str,qr,split);
+                    return qr.exec(str,line_split);
                 }
             },
             s_trans:library.s_trans

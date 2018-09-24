@@ -3,95 +3,6 @@
 
 `致力于变成多平台通用的文件`
 (let 
-	!= {
-		(not (apply = args))
-	}
-	empty-fun {}
-	default {
-		(let (a dv) args)
-		(if (exist? a) a dv)
-	}
-	if-run {
-		(let (a b c) args)
-		(let c  (default c empty-fun))
-		(let run (if a b c))
-		(run)
-	}
-	`偏移量，从0开始，最大为list的length`
-	offset {
-		(let (list i) args offset this)
-		(if-run (= i 0) 
-			{ list }
-			{
-				(offset (rest list) (- i 1)) 
-			} 
-		)
-	}
-
-	`其实str-join有点reduce的意思，但分割符末尾没有，至于下标序号，在init参数中`
-	reduce {
-		(let (xs run init) args reduce this)
-		(if-run (exist? xs)
-			{
-				(let (x ...xs) xs)
-				(let init (run init x))
-				(reduce xs run init)
-			}
-			{init}
-		)
-	}
-
-	reduce-right {
-		(let (xs run init) args reduce-right this)
-		(if-run (exist? xs)
-			{
-				(let (x ...xs) xs)
-				(run 
-					(reduce-right xs run  init)
-					x
-				)
-			}
-			{ init }
-		)
-	}
-	
-	kvs-reduce {
-		(let (kvs run init) args kvs-reduce this)
-		(if-run (exist? kvs)
-			{
-				(let (k v ...kvs) kvs)
-				(let init (run init v k))
-				(kvs-reduce kvs run init)
-			}
-			{init}
-		)
-	}
-	
-	kvs-reduce-right {
-		(let (kvs run init) args kvs-reduce-right this)
-		(if-run (exist? kvs)
-			{
-				(let (k v ...kvs) kvs)
-				(run
-					(kvs-reduce-right kvs run init)
-					v
-					k
-				)
-			}
-			{ init }
-		)
-	}
-	`切片到某处`
-	slice-to {
-		(let (xs to) args slice-to this)
-		(if-run (= to 0)
-			{[]}
-			{
-				(let (x ...xs) xs)
-				(extend x (slice-to xs (- to 1)))
-			}
-		)
-	}
 	`从某处开始切片`
 	slice-from offset
 	`叠加两个，可以用reduce来做N次重复`
@@ -138,16 +49,6 @@
 	type? {
 		(let (x n) args)
 		(str-eq (type x) n)
-	}
-	`兼容空列表的长度判断`
-	len {
-		(let (cs) args)
-		(if-run (exist? cs)
-			{
-				(length cs)
-			}
-			{0}
-		)
 	}
 	`如果没有，设置默认值`
 	default 'default

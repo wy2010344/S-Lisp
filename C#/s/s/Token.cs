@@ -140,7 +140,7 @@ namespace s
             while (code.noEnd() && unbreak)
             {
                 char c = code.current();
-                if (!(isBlank(c) || isQuoteLeft(c) || isQuoteRight(c)))
+                if (!(isBlank(c) || isQuoteLeft(c) || isQuoteRight(c) || c=='"' || c=='`'))
                 {
                     code.shift();
                 }

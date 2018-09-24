@@ -6,12 +6,14 @@ namespace s.library
 {
     public class Load:Function
     {
-        public Load(Node<Object> baseScope,String base_path,char lineSpilt):base()
+        public Load(Node<Object> baseScope,String base_path,char lineSpilt,Encoding encoding):base()
         {
             this.baseScope = baseScope;
             this.base_path = base_path;
             this.lineSpilt = lineSpilt;
+            this.encoding = encoding;
         }
+        private Encoding encoding;
         private Node<Object> baseScope;
         private String base_path;
         private char lineSpilt;
@@ -26,60 +28,12 @@ namespace s.library
         public override object exec(Node<object> args)
         {
             String r_path = args.First() as String;
-            String path = calAbsolutePath(base_path, r_path);
-            return run_e(path, baseScope,lineSpilt);
-        }
-
-        static Node<String> StringSplit(String str, char sp)
-        {
-            Node<String> r = null;
-
-            int last = 0;
-            for (int i = 0; i < str.Length; i++)
-            {
-                if (str[i] == sp)
-                {
-                    r = Node<string>.extend(str.Substring(last, i - last), r);
-                    last = i + 1;
-                }
-            }
-            return Node<string>.extend(str.Substring(last,str.Length-last),r);
-        }
-        public static String calAbsolutePath(String base_path, String r_path)
-        {
-            Node<String> b = StringSplit(base_path, '/').Rest();
-            Node<String> r = Node<String>.reverse(StringSplit(r_path, '/'));
-            for (Node<String> t = r; t != null; t = t.Rest())
-            {
-                String s = t.First();
-                if (s == ".")
-                {
-                }else if(s==""){
-                }
-                else if (s == "..")
-                {
-                    b = b.Rest();
-                }
-                else
-                {
-                    b = Node<String>.extend(s, b);
-                }
-            }
-            b = Node<String>.reverse(b);
-            StringBuilder sb = new StringBuilder();
-            for (Node<String> t = b; t != null; t = t.Rest())
-            {
-                sb.Append(t.First());
-                if (t.Rest() != null)
-                {
-                    sb.Append("/");
-                }
-            }
-            return sb.ToString();
+            String path = Util.absolute_from_relative(base_path, r_path);
+            return run_e(path, baseScope,lineSpilt,encoding);
         }
         static bool onLoad = false;
         static Node<Object> core;
-        public static object run_e(String path, Node<Object> baseScope, char lineSpilt)
+        public static object run_e(String path, Node<Object> baseScope, char lineSpilt,Encoding encoding)
         {
             if (onLoad)
             {
@@ -95,8 +49,8 @@ namespace s.library
                 else
                 {
                     onLoad = true;
-                    String sb = Util.readTxt(path, lineSpilt, Encoding.UTF8);
-                    Node<Object> scope = Node<Object>.kvs_extend("load", new Load(baseScope, path, lineSpilt), baseScope);
+                    String sb = Util.readTxt(path, lineSpilt, encoding);
+                    Node<Object> scope = Node<Object>.kvs_extend("load", new Load(baseScope, path, lineSpilt, encoding), baseScope);
                     scope = Node<Object>.kvs_extend("pathOf", new PathOf(path), scope);
                     Node<Token> tokens = Token.run(sb, lineSpilt);
                     Exp exp = Exp.Parse(tokens);
@@ -129,7 +83,7 @@ namespace s.library
             else
             {
                 String r_path = args.First() as String;
-                return Load.calAbsolutePath(basePath, r_path);
+                return Util.absolute_from_relative(basePath, r_path);
             }
         }
         public override Function_Type Function_type()

@@ -1,6 +1,4 @@
-package s.util;
-
-import s.LocationException;
+package s;
 
 public class Code {
     private final String code;
