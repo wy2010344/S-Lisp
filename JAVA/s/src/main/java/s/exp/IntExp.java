@@ -1,10 +1,10 @@
 package s.exp;
 
+import s.Node;
 import s.Token;
-
 public class IntExp extends AtomExp{
 
-	public IntExp(Token token) {
+	private IntExp(Token token) {
 		this.token=token;
 		this.value=Integer.parseInt(token.Value());
 	}
@@ -18,13 +18,19 @@ public class IntExp extends AtomExp{
 		toString(sb,value,"","");
 	}
 	@Override
-	public String to_value() {
-		// TODO Auto-generated method stub
-		return Integer.toString(value);
-	}
-	@Override
 	public Exp_Type xtype() {
 		// TODO Auto-generated method stub
 		return Exp_Type.Int;
+	}
+
+	public static IntExp parse(TokenQueue tq) {
+		Token x=tq.current();
+		tq.shift();
+		return new IntExp(x);
+	}
+	@Override
+	public Object eval(Node<Object> scope) {
+		// TODO Auto-generated method stub
+		return value;
 	}
 }

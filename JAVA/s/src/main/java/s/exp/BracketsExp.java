@@ -67,11 +67,6 @@ public abstract class BracketsExp extends Exp {
 	public abstract String left();
 	public abstract String right();
 	@Override
-	public String to_value() {
-		// TODO Auto-generated method stub
-		return left()+right();
-	}
-	@Override
 	public boolean isBracket() {
 		// TODO Auto-generated method stub
 		return true;

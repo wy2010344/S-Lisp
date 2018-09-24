@@ -1,13 +1,18 @@
 package s.exp;
 
-import s.Location;
 import s.LocationException;
 import s.Node;
 import s.Token;
 
 public class FunctionExp extends BracketsExp{
+	/**
+	 * 
+	 * @param first
+	 * @param children
+	 * @param last
+	 */
 	public FunctionExp(Token first, Node<Exp> children, Token last) {
-		super(first, children, last);
+		super(first,children,last);
 	}
 	@Override
 	public String left() {
@@ -32,134 +37,101 @@ public class FunctionExp extends BracketsExp{
 			"[","]",
 			"{","}"
 	};
-	static class Cache{
-		public Cache(
-			Token value,
-			Node<Exp> children
-		) {
-			this.value=value;
-			this.children=children;
-		}
-		private Token value;
-		public Token token() {
-			return value;
-		}
-		private Node<Exp> children;
-		public Node<Exp> Children() {
-			return children;
+	
+	static boolean isLet(Node<Token> xs) {
+		Token x=xs.First();
+		if(x.Type()==Token.Type.Id && "let".equals(x.Value())) {
+			return true;
+		}else {
+			return false;
 		}
 	}
-	static Node<Exp> whenFunction(Node<Exp> children){
-		return children;
-	}
+	
 	/**
-	 * 转成非递归调用的while语句
-	 * @param tokens
+	 * 表达式只允许最后一个是id/str/[]/{}，中间的没有意义
+	 * @param xs
 	 * @return
-	 * @throws LocationException 
-	 * @throws Exception
+	 * @throws Exception 
 	 */
-	public static FunctionExp parse(final Node<Token> tokens) throws LocationException{
-		//栈(括号,列表)
-		Node<Cache> caches=Node.extend(
-			new Cache(
-				new Token(
-					"}",
-					new Location(0,0,0),
-					Token.Type.BraR
-				),
-				null
-			),null
-		);
-		//平行列表
-		Node<Exp> children=null;
-		//所有tokens
-		Node<Token> xs=tokens;
-		while(xs!=null) {
-			Token x=xs.First();
-			xs=xs.Rest();
-			if(x.Type()==Token.Type.BraR) {
-				caches=Node.extend(
-					new Cache(x,children),
-					caches
-				);
-				children=null;
-			}else
-			if(x.Type()==Token.Type.BraL) {
-				Cache cache=caches.First();
-				String c_right=cache.token().Value();
-				String right=mb.Util.kvs_find1st(kvs_quote, x.Value());
-				if(c_right.equals(right)){
-					Exp e=null;
-					if("}".equals(c_right)) {
-						//上一级是函数
-						e=new FunctionExp(
-							cache.token(),
-							whenFunction(children),
-							x
-						);
-					}else
-					if("]".equals(c_right)) {
-						e=new ListExp(
-							cache.token(), 
-							children, 
-							x
-						);
-					}else
-					if(")".equals(c_right)) {
-						e=new CallExp(
-							cache.token(), 
-							children, 
-							x
-						);
-					}
-					caches=caches.Rest();
-					children=Node.extend(e,cache.Children());
-				}else {
-					String msg="括号不匹配"+x.Value()+":"+c_right+"在位置:"+x.Loc().toString();
-					System.out.println(msg);
-					throw new LocationException(msg,x.Loc());
-				}
-			}else {
-				Exp e=null;
-				if(x.Type()==Token.Type.Str) {
-					e=new StringExp(x);
-				}else
-				if(x.Type()==Token.Type.Int) {
-					e=new IntExp(x);
-				}else{
-					//ID
-					Cache cache=caches.First();
-					if("]".equals(cache.token().Value()))
-					{
-						//中括号号
-						if(x.Type()==Token.Type.Quote) {
-							e=new IdExp(x);
-						}else 
-						if(x.Type()==Token.Type.Id){
-							e=new StringExp(x);
+	public static FunctionExp parse(TokenQueue tq) throws Exception {
+		Token first=tq.current();
+		tq.shift();//排出"{"
+		Node<Exp> r_children=null;
+		while(tq.notEnd() && tq.current().Type()!=Token.Type.BraR) {
+			if(tq.current().Type()==Token.Type.BraL) {
+				if("{".equals(tq.current().Value()))
+				{
+					FunctionExp fun=FunctionExp.parse(tq);
+					if(tq.notEnd()) {
+						if(tq.current().Type()==Token.Type.BraR) {
+							if(tq.current().Value().equals("}")) {
+								r_children=Node.extend(fun, r_children);
+							}else {
+								throw tq.error_need_end("}");
+							}
+						}else {
+							tq.warn("函数内部定义未调用，没有意义,"+fun.toString());
 						}
 					}else {
-						//其它括号
-						if(x.Type()==Token.Type.Quote) {
-							e=new StringExp(x);
-						}else
-						if(x.Type()==Token.Type.Id){
-							e=new IdExp(x);
+						throw tq.error_need_end("}");
+					}
+				}else
+				if("[".equals(tq.current().Value())) {
+					ListExp list=ListExp.parse(tq);
+					/*
+					 * list虽然计算结果不会使用，
+					 * 但内部的值却会被计算到最终，
+					 * 会发生计算，
+					 * 比如log等都会打印，
+					 * 相当于(list a b c d)这样的语法糖，即本身仍是函数调用。
+					 */
+					r_children=Node.extend(list, r_children);
+				}else
+				if("(".equals(tq.current().Value())){
+					Token next=tq.next();
+					if(next!=null){
+						if(next.Type()==Token.Type.Id && "let".equals(next.Value())) {
+							//let表达式
+							LetExp let=LetExp.parse(tq);
+							r_children=Node.extend(let, r_children);
+						}else {
+							CallExp call=CallExp.parse(tq);
+							r_children=Node.extend(call, r_children);
 						}
+					}else {
+						throw new LocationException("以(结束，不正确的语法",tq.current().Loc());
 					}
 				}
-				if(e==null) {
-					if(x.Type()!=Token.Type.Comment ) {
-						String msg="出错，未解析正确"+x.Type()+":"+x.Value();
-						System.out.println(msg);
-						throw new LocationException(msg,x.Loc());
+			}else {
+				Token next=tq.next();
+				if(next!=null) {
+					if(next.Type()==Token.Type.BraR) {
+						if(next.Value().equals("}")) {
+							r_children=Node.extend(AtomExp.parse(tq),r_children);
+						}else {
+							throw tq.error_need_end("}");
+						}
+					}else {
+						tq.warn("函数内部定义未调用，没有意义,"+tq.current().Type()+":"+tq.current().Value());
+						tq.shift();
 					}
 				}else {
-					children=Node.extend(e,children);
+					throw tq.error_need_end("}");
 				}
 			}
 		}
-		return new FunctionExp(null, children, null);
+		Exception e=tq.check_end("}");
+		if(e!=null) {
+			throw e;
+		}else {
+			Token last=tq.current();
+			tq.shift();//排出"}"
+			return new FunctionExp(first,Node.reverse(r_children),last);
+		}
+	}
+	@Override
+	public Object eval(Node<Object> scope) throws Exception {
+		// TODO Auto-generated method stub
+		return new s.Function.UserFunction(this, scope);
 	}
 }

@@ -429,7 +429,7 @@
             (let (k v ...kvs) args)
             (if-run (str-eq k key)
                 {v}
-                {find1st key kvs}
+                {(find1st key kvs)}
             )
         }
 	]

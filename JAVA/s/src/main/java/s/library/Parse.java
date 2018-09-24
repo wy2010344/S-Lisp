@@ -21,11 +21,14 @@ public class Parse implements Function{
 		if(args!=null) {
 			scope=(Node<Object>)args.First();
 		}
-		Node<Token> tokens=Token.tokenize(txt, line_split);
-		s.exp.FunctionExp exp=s.exp.FunctionExp.parse(tokens);
-		return new Function.UserFunction(exp, scope).exec(null);
+		return eval(txt,scope,line_split);
 	}
 
+	public static Object eval(String code,Node<Object> scope,char line_split) throws Exception {
+		Node<Token> tokens=Token.tokenize("{"+code+"}", line_split);
+		s.exp.FunctionExp exp=s.exp.FunctionExp.parse(new s.exp.Exp.TokenQueue(tokens));
+		return new Function.UserFunction(exp, scope).exec(null);
+	}
 	@Override
 	public Type ftype() {
 		// TODO Auto-generated method stub

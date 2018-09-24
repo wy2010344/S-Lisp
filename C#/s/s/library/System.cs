@@ -856,7 +856,7 @@ namespace s.library
         class Kvs_find1stFun:Function{
             private static Kvs_find1stFun _ini_=new Kvs_find1stFun();
             public static Kvs_find1stFun instance(){return _ini_;}
-            public override string ToString(){return "{(let (key kvs ) args find1st this ) (let (k v ...kvs ) args ) (if-run (str-eq k key ) {v } {find1st key kvs } ) }";}
+            public override string ToString(){return "{(let (key kvs ) args find1st this ) (let (k v ...kvs ) args ) (if-run (str-eq k key ) {v } {(find1st key kvs ) } ) }";}
             public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
             public override object exec(Node<object> args){
                 

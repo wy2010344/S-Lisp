@@ -83,12 +83,10 @@ public class Load implements Function{
 				 */
 				file_def=new Result();
 				try {
-					String codes=mb.Util.readTxt(c_path, ""+split, "UTF-8");
-					Node<Token> tokens=Token.tokenize(codes, split);
-					s.exp.FunctionExp exp=s.exp.FunctionExp.parse(tokens);
 					scope=Node.kvs_extend("load", new Load(c_path,scope,split), scope);
 					scope=Node.kvs_extend("pathOf", new PathOf(c_path), scope);
-					file_def.result=new Function.UserFunction(exp, scope).exec(null);
+					String codes=mb.Util.readTxt(c_path, ""+split, "UTF-8");
+					file_def.result=Parse.eval(codes, scope, split);
 				} catch (IOException e) {
 					System.out.println(c_path);
 					e.printStackTrace();

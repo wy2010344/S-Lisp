@@ -169,7 +169,7 @@ public class Token {
 	            Location loc=code.currentLoc();
 	            String s=parseStr(code,'`');
 	            loc.setLength(s.length()+2);
-	            tokens=Node.extend(new Token(s,loc,Token.Type.Comment),tokens);
+	            //tokens=Node.extend(new Token(s,loc,Token.Type.Comment),tokens);
 	            //不处理
 	        }else
 	        if(has(code.current(),brackets_in)){
@@ -222,6 +222,6 @@ public class Token {
 	    /*
 	     *因为没有翻转，与文章完全相反 
 	     */
-	    return tokens;
+	    return Node.reverse(tokens);
 	}
 }
