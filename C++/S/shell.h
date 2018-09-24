@@ -62,39 +62,39 @@ namespace s{
                 if(cache=="exit"){
                     come=false;
                 }else{
-                    Node * tokens=Tokenize().run(cache,lineSplit);
-                    if(tokens!=NULL){
-                        tokens->retain();
-                        BracketExp * exp=Parse(tokens);
-                        exp->retain();
+                    /*想要每次回收，似乎并不容易*/
+                    try{
+                        Node * tokens=Tokenize().run(cache,lineSplit);
+                        if(tokens!=NULL){
+                            tokens->retain();
+                                BracketExp * exp=Parse(tokens);
+                                exp->retain();
 
-                        Base* r=NULL;
-                        /*想要每次回收，似乎并不容易*/
-                        try{
-                            r=qr->exec(exp);
-                        }catch(LocationException* e){
-                            cout<<"出现异常\r\n"<<e->toString();
-                            delete e;
-                        }catch(...){
-                            cout<<"出现异常"<<endl;
+                                Base* r=NULL;
+                                r=qr->exec(exp);
+
+                                cout<<"=>";
+                                if(r==NULL)
+                                {
+                                    cout<<"[]"<<endl;
+                                }else
+                                {
+                                    cout<<r->toString()<<endl;
+                                    r->retain();
+                                    r->release();
+                                }
+                                exp->release();
+                            tokens->release();
+                            Base::print_node();
+
+                            cache="";
+                            cout<<endl;
                         }
-
-                        cout<<"=>";
-                        if(r==NULL)
-                        {
-                            cout<<"[]"<<endl;
-                        }else
-                        {
-                            cout<<r->toString()<<endl;
-                            r->retain();
-                            r->release();
-                        }
-                        exp->release();
-                        tokens->release();
-                        Base::print_node();
-
-                        cache="";
-                        cout<<endl;
+                    }catch(LocationException* e){
+                        cout<<"出现异常\r\n"<<e->toString();
+                        delete e;
+                    }catch(...){
+                        cout<<"出现异常"<<endl;
                     }
                 }
             }

@@ -8,7 +8,11 @@ namespace s{
             Exp_Small,
             Exp_String,
             Exp_Int,
-            Exp_Id//,Comment//不要Comment
+            Exp_Id,//,Comment//不要Comment
+            Exp_Let,
+            Exp_LetId,//一般的ID
+            Exp_LetSmall,//()
+            Exp_LetRest//...
         };
     private:
         Exp_Type type;
@@ -27,6 +31,9 @@ namespace s{
         string & Value(){
             return value;
         }
+        void exp_type(Exp_Type type){
+            this->type=type;
+        }
         Exp_Type exp_type(){
             return type;
         }
@@ -44,6 +51,9 @@ namespace s{
             if(type==Exp::Exp_String)
             {
                 return str::stringToEscape(value,'"','"');
+            }else
+            if(type==Exp::Exp_LetRest){
+                return "..."+value;
             }else{
                 return value;
             }

@@ -3,22 +3,6 @@
 namespace s{
     //为了支持控制台
     class QueueRun{
-        bool iswait(Exp * e){
-            if(e->exp_type()==Exp::Exp_Id){
-                string &x=e->Value();
-                if(x.size()>3){
-                    if (x[0]=='.' && x[1]=='.' && x[2]=='.') {
-                        return true;
-                    }else{
-                        return false;
-                    }
-                }else{
-                    return false;
-                }
-            }else{
-                return false;
-            }
-        }
         string getPath(Node * scope){
             string path="";
             Node* tmp=scope;
@@ -37,91 +21,74 @@ namespace s{
             }
             return path;
         }
-        Node* when_bracket_match(Node * scope,Node *keys,Node *values){
-            while (keys!=NULL) {
-                Exp * key=static_cast<Exp *>(keys->First());
-                Base *value=NULL;
-                if (keys->Rest()==NULL && iswait(key))
-                {
-                    /*
-                    最后一个是匹配(可能还是kvs_match匹配，但不是bracket_match)
-                    */
-                    const string &vk=key->Value();
-                    string subvk=vk.substr(3,vk.size());//不能是引用，只能是复制
-                    scope=when_normal_match(scope,subvk,values,key->Loc());
-                }else
-                {
-                    if(values!=NULL){
-                        value=values->First();
-                        values=values->Rest();
-                    }
-                    scope=match(scope,key,value);
-                }
-                keys=keys->Rest();
-            }
-            return scope;
-        }
+
         LocationException *match_Exception(string msg,Location *loc,Node * scope)
         {
             LocationException* lex=new LocationException(getPath(scope)+":\t"+msg,loc);
             return lex;
         }
 
-        Node * match(Node *scope,Exp *key,Base *value){
-            //值为空，仍然需要增加定义
-            if (key->exp_type()==Exp::Exp_Id) {
-                string id=key->Value();
-                scope=when_normal_match(scope,id,value,key->Loc());
-            }else{
-                if (key->exp_type()==Exp::Exp_Small) {
-                    //括号匹配
-                    Node* keys=static_cast<BracketExp*>(key)->Children();
-                    if(value!=NULL){
-                        value->retain();
-                        scope=when_bracket_match(scope,keys,static_cast<Node *>(value));
-                        value->release();
-                    }else{
-                        scope=when_bracket_match(scope,keys,NULL);
+        Node * letSmallMatch(Exp * small,Base * v,Node * scope){
+            Node * ks=static_cast<BracketExp*>(small)->Children();
+            if(v==NULL || v->stype()==Base::sList){
+                Node * vs=static_cast<Node*>(v);
+                while(ks!=NULL){
+                    v=NULL;
+                    if(vs!=NULL){
+                        v=vs->First();
                     }
-                }else{
-                    throw match_Exception(key->Value()+"不是合法的类型",key->Loc(),scope);
+                    Exp * k=static_cast<Exp*>(ks->First());
+                    ks=ks->Rest();
+
+                    if(k->exp_type()==Exp::Exp_LetId){
+                        scope=kvs::extend(k->Value(),v,scope);
+                    }else
+                    if(k->exp_type()==Exp::Exp_LetSmall){
+                        scope=letSmallMatch(k,v,scope);
+                    }else
+                    if(k->exp_type()==Exp::Exp_LetRest){
+                        scope=kvs::extend(k->Value(),vs,scope);
+                    }
+                    if(vs!=NULL){
+                        vs=vs->Rest();
+                    }
                 }
-            }
-            return scope;
-        }
-        /*vas可为空*/
-        Node *when_normal_match(Node *scope,string & id,Base *vas,Location * loc){
-            if(id.find('.')==string::npos){
-                scope=kvs::extend(id,vas,scope);
+                return scope;
             }else{
-                throw match_Exception(id+"不是合法的key",loc,scope);
+                throw new LocationException(v->toString()+"不是合法的List类型，无法参与元组匹配:"+small->toString(),small->Loc());
             }
-            return scope;
+        }
+
+        Node * match(Exp * key,Base * value,Node * scope){
+            if(key->exp_type()==Exp::Exp_LetId){
+                scope=kvs::extend(key->Value(),value,scope);
+            }else
+            if(key->exp_type()==Exp::Exp_LetSmall){
+                scope=letSmallMatch(key,value,scope);
+            }else{
+                throw new LocationException("尚不支持的Let-key类型"+key->toString(),key->Loc());
+            }
         }
         Node * & scope;
         Base* run(Exp * e){
-            if(e->exp_type()==Exp::Exp_Small){
+            if(e->exp_type()==Exp::Exp_Let){
                 BracketExp *be=static_cast<BracketExp *>(e);
-                if (be->Children()!=NULL) {
-                    Exp *t=static_cast<Exp *>(be->Children()->First());
-                    if (t->exp_type()==Exp::Exp_Id && t->Value()=="let") {
-                        //let表达式
-                        Node *rst=be->Children()->Rest();
-                        while (rst!=NULL) {
-                            Exp *key=static_cast<Exp*>(rst->First());
-                            rst=rst->Rest();
-                            Exp *value=static_cast<Exp*>(rst->First());
-                            rst=rst->Rest();
-                            Base * vas=interpret(value, scope);
-                            scope=match(scope,key,vas);
-                        }
-                        return NULL;
+                Node * cs=be->Children()->Rest();
+                while(cs!=NULL){
+                    Exp * key=static_cast<Exp*>(cs->First());
+                    cs=cs->Rest();
+                    Base * value=interpret(static_cast<Exp*>(cs->First()),scope);
+                    cs=cs->Rest();
+
+                    if(value!=NULL){
+                        value->retain();
+                        scope=match(key,value,scope);
+                        value->release();
                     }else{
-                        return interpret(e, scope);
+                        scope=match(key,NULL,scope);
                     }
-                }else{
-                    return interpret(e, scope);
                 }
+                return NULL;
             }else{
                 return interpret(e, scope);
             }
