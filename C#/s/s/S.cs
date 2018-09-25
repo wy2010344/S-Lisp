@@ -109,31 +109,31 @@ namespace s
                 }
                 else
                 {
-                    Node<Token> tokens = Token.run(cache, lineSplit);
-                    if (tokens != null)
+                    try
                     {
-                        Exp exp = Exp.Parse(tokens);
-                        Object r = null;
-                        try
+                        Node<Token> tokens = Token.run(cache, lineSplit);
+                        if (tokens != null)
                         {
+                            Exp exp = Exp.Parse(tokens);
+                            Object r = null;
                             r = qr.exec(exp);
+                            Console.Write("=>");
+                            if (r == null)
+                            {
+                                Console.WriteLine("[]");
+                            }
+                            else
+                            {
+                                StringBuilder sb = new StringBuilder();
+                                Node<Object>.toString(sb, r, false);
+                                Console.WriteLine(sb.ToString());
+                            }
+                            Console.WriteLine();
                         }
-                        catch (Exception e)
-                        {
-                            Util.logException(e);
-                        }
-                        Console.Write("=>");
-                        if (r == null)
-                        {
-                            Console.WriteLine("[]");
-                        }
-                        else
-                        {
-                            StringBuilder sb=new StringBuilder();
-                            Node<Object>.toString(sb,r,false);
-                            Console.WriteLine(sb.ToString());
-                        }
-                        Console.WriteLine();
+                    }
+                    catch (Exception e)
+                    {
+                        Util.logException(e);
                     }
                 }
             }

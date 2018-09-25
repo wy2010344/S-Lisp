@@ -25,43 +25,72 @@ namespace s
             }
             return ret;
         }
-        Object run(Exp exp)
+
+        Node<Object> letSmallMatch(Exp small, Object v, Node<Object> scope)
         {
-            if (exp.Exp_type() == Exp.Exp_Type.Exp_Small)
+            Node<Exp> ks = small.Children();
+            if (v == null || v is Node<Object>)
             {
-                if (exp.Children() != null)
+                Node<Object> vs = v as Node<Object>;
+                while (ks != null)
                 {
-                    Exp t=exp.Children().First();
-                    if (t.Exp_type() == Exp.Exp_Type.Exp_Id && t.Value() == "let")
+                    v = null;
+                    if (vs != null)
                     {
-                        Node<Exp> rst = exp.Children().Rest();
-                        while (rst != null)
-                        {
-                            Exp key = rst.First();
-                            rst = rst.Rest();
-                            Exp value = rst.First();
-                            rst = rst.Rest();
-                            Object vas = interpret(value, scope);
-                            scope = match(scope, key, vas);
-                        }
-                        return null;
+                        v = vs.First();
+                    }
+                    Exp k = ks.First();
+                    ks = ks.Rest();
+
+                    if (k.Exp_type() == Exp.Exp_Type.Exp_LetId)
+                    {
+                        scope = Node<Object>.kvs_extend(k.Value(), v, scope);
+                    }
+                    else if (k.Exp_type() == Exp.Exp_Type.Exp_LetSmall)
+                    {
+                        scope = letSmallMatch(k, v, scope);
+                    }
+                    else if (k.Exp_type() == Exp.Exp_Type.Exp_LetRest)
+                    {
+                        scope = Node<Object>.kvs_extend(k.Value(), vs, scope);
                     }
                     else
                     {
-                        try
-                        {
-                            return interpret(exp, scope);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine(exp.ToString());
-                            throw ex;
-                        }
+                        throw new LocationException(k.Loc(),"异常匹配" + k.ToString());
                     }
-                }else
-                {
-                    return interpret(exp, scope);
+                    if (vs != null)
+                    {
+                        vs = vs.Rest();
+                    }
                 }
+                return scope;
+            }
+            else
+            {
+                throw new LocationException(small.Loc(), v.ToString() + "不是合法的List类型，无法参与元组匹配:" + small.ToString());
+            }
+        }
+        Object run(Exp exp)
+        {
+            if (exp.Exp_type() == Exp.Exp_Type.Exp_Let)
+            {
+                Node<Exp> cs = exp.Children().Rest();
+                while (cs != null)
+                {
+                    Exp key = cs.First();
+                    cs=cs.Rest();
+                    Object value = interpret(cs.First(), scope);
+                    cs = cs.Rest();
+                    if (key.Exp_type() == Exp.Exp_Type.Exp_LetId)
+                    {
+                        scope = Node<Object>.kvs_extend(key.Value(), value, scope);
+                    }
+                    else if (key.Exp_type() == Exp.Exp_Type.Exp_LetSmall)
+                    {
+                        scope = letSmallMatch(key, value, scope);
+                    }
+                }
+                return null;
             }
             else
             {
@@ -92,73 +121,6 @@ namespace s
         {
             LocationException lox = new LocationException(loc, getPath(scope) + ":\t" + msg);
             return lox;
-        }
-        Node<Object> when_normal_match(Node<Object> scope, String id, Object Value,Location loc)
-        {
-            if (id.IndexOf('.') < 0)
-            {
-                return Node<object>.extend(id, Node<object>.extend(Value, scope));
-            }
-            else
-            {
-                throw match_Exception(scope, id + "不是合法的id声明，不允许包含.",loc);
-            }
-        }
-
-        static bool isWait(Exp exp)
-        {
-            if (exp.Exp_type() == Exp.Exp_Type.Exp_Id)
-            {
-                return exp.Value().StartsWith("...");
-            }
-            else
-            {
-                return false;
-            }
-        }
-        Node<Object> when_bracket_match(Node<Object> scope, Node<Exp> keys, Node<Object> values)
-        {
-            while (keys != null)
-            {
-                Exp key = keys.First();
-                Object value = null;
-                if (keys.Rest() == null && isWait(key))
-                {
-                    String subvk = key.Value().Substring(3);
-                    scope = when_normal_match(scope, subvk, values,key.Loc());
-                }
-                else
-                {
-                    if (values != null)
-                    {
-                        value = values.First();
-                        values = values.Rest();
-                    }
-                    scope = match(scope, key, value);
-                }
-                keys = keys.Rest();
-            }
-            return scope;
-        }
-        Node<Object> match(Node<Object> scope, Exp key, Object value)
-        {
-            if (key.Exp_type() == Exp.Exp_Type.Exp_Id)
-            {
-                String id = key.Value();
-                scope = when_normal_match(scope, id, value,key.Loc());
-            }
-            else
-            {
-                if (key.Exp_type() == Exp.Exp_Type.Exp_Small)
-                {
-                    scope = when_bracket_match(scope, key.Children(), (Node<Object>)value);
-                }
-                else
-                {
-                    throw match_Exception(scope,key.Value() + "不是合法匹配类型",key.Loc());
-                }
-            }
-            return scope;
         }
         Node<Object> calNode(Node<Exp> list, Node<Object> scope)
         {

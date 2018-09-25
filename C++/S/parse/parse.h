@@ -54,15 +54,18 @@ namespace s{
             Exp * k=static_cast<Exp*>(kvs->First());
             kvs=kvs->Rest();
             if(kvs!=NULL){
-                kvs=kvs->Rest();
                 if(k->exp_type()==Exp::Exp_Id){
                     resetLetID(k);
                 }else
                 if(k->exp_type()==Exp::Exp_Small){
+                    if(static_cast<BracketExp*>(k)->Children()==NULL){
+                        cout<<"warn:Let表达式中无意义的空()，请检查" + k->Loc()->toString() + ":" + kvs->First()->toString()<<endl;
+                    }
                     resetLetSmallKV(k);
                 }else{
                     throw new LocationException("Let表达式中，不是合法的key类型"+k->toString(),k->Loc());
                 }
+                kvs=kvs->Rest();
             }else{
                 throw new LocationException("Let表达式中期待与key:"+k->toString()+"匹配，却结束了let表达式",k->Loc());
             }
@@ -78,7 +81,7 @@ namespace s{
                 Exp::Exp_Type t=v->exp_type();
                 if(!(t==Exp::Exp_Let || t==Exp::Exp_Small || t==Exp::Exp_Medium))
                 {
-                    cout<<"warn函数中定义无意义表达式，请检查"+v->Loc()->toString()+":"+v->toString()<<endl;
+                    cout<<"warn:函数中定义无意义表达式，请检查"+v->Loc()->toString()+":"+v->toString()<<endl;
                 }
             }
         }
@@ -131,11 +134,6 @@ namespace s{
                     //检查函数内的无用表达式，最外层的不会经过这里，要单独调用
                     check_Large(children);
                 }else{
-                    //非{}
-                    if(tp==Exp::Exp_Small && children==NULL){
-                        //()
-                        throw new LocationException("不允许空的()",exp->Loc());
-                    }
                     r_children=list::reverse(children);
                 }
 
@@ -144,21 +142,25 @@ namespace s{
                     if(p_exp->exp_type()==Exp::Exp_Large){
                         //父表达式是函数
                         if(tp==Exp::Exp_Small){
-                            //()上面已经检查一定有一个
-                            Exp * first=static_cast<Exp*>(children->First());
-                            if(first->exp_type()==Exp::Exp_Id && first->Value()=="let"){
-                                //(let )
-                                tp=Exp::Exp_Let;
-                                if(children->Length()==1){
-                                    throw new LocationException("不允许空的let表达式",first->Loc());
-                                }else{
-                                    resetLetKV(children->Rest());
-                                }
+                            if(children==NULL){
+                                //()
+                                throw new LocationException("不允许空的()",exp->Loc());
                             }else{
-                                //非let表达式，检查第一个是id/{}/()
-                                if(!(first->exp_type()==Exp::Exp_Id || first->exp_type()==Exp::Exp_Large || first->exp_type()==Exp::Exp_Small))
-                                {
-                                    throw new LocationException("函数调用第一个应该是id或{}或()，而不是"+first->toString(),first->Loc());
+                                Exp * first=static_cast<Exp*>(children->First());
+                                if(first->exp_type()==Exp::Exp_Id && first->Value()=="let"){
+                                    //(let )
+                                    tp=Exp::Exp_Let;
+                                    if(children->Length()==1){
+                                        throw new LocationException("不允许空的let表达式",first->Loc());
+                                    }else{
+                                        resetLetKV(children->Rest());
+                                    }
+                                }else{
+                                    //非let表达式，检查第一个是id/{}/()
+                                    if(!(first->exp_type()==Exp::Exp_Id || first->exp_type()==Exp::Exp_Large || first->exp_type()==Exp::Exp_Small))
+                                    {
+                                        throw new LocationException("函数调用第一个应该是id或{}或()，而不是"+first->toString(),first->Loc());
+                                    }
                                 }
                             }
                         }
