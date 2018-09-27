@@ -9,6 +9,10 @@ namespace gui
     class WinFormMVE
     {
         private s.Function destroy;
+        private s.Function reWidth;
+        private s.Function reHeight;
+        private MainForm form;
+        private Control center_control;
         public WinFormMVE(MainForm form)
         {
             Encoding encoding = new UTF8Encoding(false);
@@ -25,13 +29,32 @@ namespace gui
             s.Function getElement = s.Node<Object>.kvs_find1st(o, "getElement") as s.Function;
             s.Function init = s.Node<Object>.kvs_find1st(o, "init") as s.Function;
             s.Function destroy = s.Node<Object>.kvs_find1st(o, "destroy") as s.Function;
-            Control els = getElement.exec(null) as Control;
+            center_control = (getElement.exec(null) as mve.Elm).Real_Control() as Control;
 
-            form.Controls.Add(els);
-            els.Dock = DockStyle.Fill;
+
+            form.Controls.Add(center_control);
+            center_control.Dock = DockStyle.Fill;
             init.exec(null);
+            this.form = form;
+            this.reHeight = s.Node<Object>.kvs_find1st(o, "height") as s.Function;
+            this.reWidth = s.Node<Object>.kvs_find1st(o, "width") as s.Function;
+            form.ResizeEnd+=new EventHandler(form_ResizeEnd);
+            form_ResizeEnd(null, null);
             form.FormClosing += new System.Windows.Forms.FormClosingEventHandler(form_FormClosing);
             this.destroy = destroy;
+        }
+
+        void form_ResizeEnd(object sender, EventArgs e)
+        {
+            if (center_control is ScrollableControl)
+            {
+                ScrollableControl sc=center_control as ScrollableControl;
+                int ws = sc.AutoScrollMargin.Width;
+                int w=sc.DisplayRectangle.Size.Width;
+            }
+            int w1 = center_control.Width;
+            this.reWidth.exec(s.Node<Object>.extend(center_control.ClientSize.Width, null));
+            this.reHeight.exec(s.Node<Object>.extend(center_control.ClientSize.Height, null));
         }
 
         void form_FormClosing(object sender, System.Windows.Forms.FormClosingEventArgs e)
@@ -40,26 +63,6 @@ namespace gui
         }
     }
 
-    class SEventHandle
-    {
-        public SEventHandle(s.Function fun)
-        {
-            this.fun = fun;
-        }
-        s.Function fun;
-
-        public void run(object sender, EventArgs e)
-        {
-            try
-            {
-                this.fun.exec(null);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.ToString());
-            }
-        }
-    }
     abstract class DOM : s.Function
     {
         public override string ToString()
@@ -103,21 +106,43 @@ namespace gui
             String type = args.First() as String;
             if (type == "button")
             {
-                return new Button();
+                return new mve.Elm_Button();
             }
             else if (type == "div")
             {
-                return new Panel();
+                return new mve.Elm_Div();
             }
             else if (type == "flow")
             {
-                return new FlowLayoutPanel();
+                return new mve.Elm_Flow();
+            }
+            else if (type == "list-view")
+            {
+                return new mve.Elm_List_View();
+            }
+            else if (type == "columns")
+            {
+                return new mve.Elm_List_View_Columns();          
+            }
+            else if (type == "col")
+            {
+                return new mve.Elm_List_View_Col();
+            }
+            else if (type == "rows")
+            {
+                return new mve.Elm_List_View_Rows();
+            }
+            else if (type == "row")
+            {
+                return new mve.Elm_List_View_Row();
+            }
+            else if (type == "cell")
+            {
+                return new mve.Elm_List_View_Cell();
             }
             else if (type == "input")
             {
-                TextBox t = new TextBox();
-                t.ImeMode = ImeMode.HangulFull;
-                return t;
+                return new mve.Elm_Input();
             }
             else
             {
@@ -133,100 +158,11 @@ namespace gui
         }
         public override object exec(s.Node<object> args)
         {
-            Control c = args.First() as Control;
-            args = args.Rest();
+            mve.Elm el=args.First() as mve.Elm;
+            args=args.Rest();
             String key = args.First() as String;
             args = args.Rest();
-            if (args == null)
-            {
-                if (key == "dock")
-                {
-                    return c.Dock.ToString();
-                }
-                else if (key == "width")
-                {
-                    return c.Width;
-                }
-                else if (key == "height")
-                {
-                    return c.Height;
-                }
-                else if (key == "back-color")
-                {
-                    return System.Drawing.ColorTranslator.ToHtml(c.BackColor);
-                }
-            }
-            else
-            {
-                Object value = args.First();
-                if (key == "dock")
-                {
-                    /*
-                     * Dock是反常的，是从最后一个组件排，通常第一个组件是Fill，填充剩下的位置。
-                     * 而常用的方式比如顺序向下，最后一个Fill，则恰巧相反
-                     * 因此第一个Fill在最上，下面的都是Bottom，这样符合预期
-                     */
-                    String v = value as String;
-                    if (v == "Bottom")
-                    {
-                        c.Dock = DockStyle.Bottom;
-                    }
-                    else if (v == "Top")
-                    {
-                        c.Dock = DockStyle.Top;
-                    }
-                    else if (v == "Left")
-                    {
-                        c.Dock = DockStyle.Left;
-                    }
-                    else if (v == "Right")
-                    {
-                        c.Dock = DockStyle.Right;
-                    }
-                    else if (v == "Fill")
-                    {
-                        c.Dock = DockStyle.Fill;
-                    }
-                    else if (v == "None")
-                    {
-                        c.Dock = DockStyle.None;
-                    }
-                }
-                else if (key == "width")
-                {
-                    c.Width = (int)value;
-                }
-                else if (key == "height")
-                {
-                    c.Height = (int)value;
-                }
-                else if (key == "back-color")
-                {
-                    String color = value as String;
-                    if (color.StartsWith("#"))
-                    {
-                        c.BackColor = System.Drawing.ColorTranslator.FromHtml(color);
-                    }
-                    else
-                        if (color.StartsWith("rgba"))
-                        {
-                            int start = color.IndexOf("(") + 1;
-                            int end = color.IndexOf(")");
-                            color = color.Substring(start, end - start);
-                            String[] cs = color.Split(',');
-                            if (cs.Length == 4)
-                            {
-
-                                c.BackColor = Color.FromArgb((int)(double.Parse(cs[3]) * 255 / 100), int.Parse(cs[0]), int.Parse(cs[1]), int.Parse(cs[2]));
-                            }
-                            else if (cs.Length == 3)
-                            {
-                                c.BackColor = Color.FromArgb(int.Parse(cs[0]), int.Parse(cs[1]), int.Parse(cs[2]));
-                            }
-                        }
-                }
-            }
-            return null;
+            return el.attr(key, args);
         }
     }
     class DOMAction : DOM
@@ -237,15 +173,12 @@ namespace gui
         }
         public override object exec(s.Node<object> args)
         {
-            Control c = args.First() as Control;
+            mve.Elm el = args.First() as mve.Elm;
             args = args.Rest();
             String key = args.First() as String;
             args = args.Rest();
             s.Function act = args.First() as s.Function;
-            if (key == "click")
-            {
-                c.Click += new EventHandler(new SEventHandle(act).run);
-            }
+            el.action(key, act);
             return null;
         }
     }
@@ -253,14 +186,29 @@ namespace gui
     {
         public override string ToString()
         {
-            return base.ToString() + ".appendChild";
+            return base.ToString()+".appendChild";
         }
         public override object exec(s.Node<object> args)
         {
-            Control el = args.First() as Control;
+            mve.Elm pel = args.First() as mve.Elm;
             args = args.Rest();
-            Control child = args.First() as Control;
-            el.Controls.Add(child);
+            mve.Elm el = args.First() as mve.Elm;
+            pel.appendChild(el);
+            return null;
+        }
+    }
+    class DOMRemoveChild : DOM
+    {
+        public override string ToString()
+        {
+            return base.ToString()+".removeChild";
+        }
+        public override object exec(s.Node<object> args)
+        {
+            mve.Elm pel = args.First() as mve.Elm;
+            args = args.Rest();
+            mve.Elm el = args.First() as mve.Elm;
+            pel.removeChild(el);
             return null;
         }
     }
@@ -268,33 +216,14 @@ namespace gui
     {
         public override string ToString()
         {
-            return base.ToString() + ".replaceWith";
+            return base.ToString()+".replaceWith";
         }
         public override object exec(s.Node<object> args)
         {
-            Control old_e = args.First() as Control;
+            mve.Elm el = args.First() as mve.Elm;
             args = args.Rest();
-            Control new_e = args.First() as Control;
-            int old_idx = old_e.Parent.Controls.IndexOf(old_e);
-            old_e.Parent.Controls.Add(new_e);
-            old_e.Parent.Controls.SetChildIndex(new_e, old_idx);
-            old_e.Parent.Controls.Remove(old_e);
-            return null;
-        }
-    }
-
-    class DOMRemoveChild : DOM
-    {
-        public override string ToString()
-        {
-            return base.ToString() + ".removeChild";
-        }
-        public override object exec(s.Node<object> args)
-        {
-            Control el = args.First() as Control;
-            args = args.Rest();
-            Control child = args.First() as Control;
-            el.Controls.Remove(child);
+            mve.Elm new_el = args.First() as mve.Elm;
+            el.replaceWith(new_el);
             return null;
         }
     }
@@ -307,24 +236,17 @@ namespace gui
         }
         public override object exec(s.Node<object> args)
         {
-            Control c = args.First() as Control;
-            args = args.Rest();
-            if (args == null)
+            try
             {
-                if (c is Button)
-                {
-                    return (c as Button).Text;
-                }
+                mve.Elm el = args.First() as mve.Elm;
+                args = args.Rest();
+                return el.text(args);
             }
-            else
+            catch (Exception ex)
             {
-                String text = args.First() as String;
-                if (c is Button)
-                {
-                    (c as Button).Text = text;
-                }
+                Console.WriteLine(ex.Message);
+                return null;
             }
-            return null;
         }
     }
     class DOMValue : DOM
@@ -335,24 +257,17 @@ namespace gui
         }
         public override object exec(s.Node<object> args)
         {
-            Control c = args.First() as Control;
-            args = args.Rest();
-            if (args == null)
+            try
             {
-                if (c is TextBox)
-                {
-                    return (c as TextBox).Text;
-                }
+                mve.Elm el = args.First() as mve.Elm;
+                args = args.Rest();
+                return el.value(args);
             }
-            else
+            catch (Exception ex)
             {
-                String value = args.First() as String;
-                if (c is TextBox)
-                {
-                    (c as TextBox).Text = value;
-                }
+                Console.WriteLine(ex.Message);
+                return null;
             }
-            return null;
         }
     }
 

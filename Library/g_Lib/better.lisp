@@ -90,6 +90,30 @@
         }
     ]
 
+    call [
+        cpp [
+            run "
+                Function* f=static_cast<Function*>(args->First());
+                args=args->Rest();
+                Base * b=f->exec(args);
+                if(b!=NULL){
+                    b->eval_release();
+                }
+                return b;
+            "
+        ]
+        C# [
+            run "
+                Function f=args.First() as Function;
+                args=args.Rest();
+                return f.exec(args);
+            "
+        ]
+        list {
+            (let (f ...args) args)
+            (apply f args)
+        }
+    ]
     != [
         alias MNotEqFun
         cpp [

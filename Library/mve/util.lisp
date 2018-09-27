@@ -13,7 +13,7 @@
 				(some (subs) 
 					{
 						(let (sub) args)
-						(= sub.id target.id)
+						(eq sub target)
 					}
 				)
 			})
@@ -42,18 +42,13 @@
     			notify {
     				(let old_subs (subs))
     				(subs [])
-    				(forEach old_subs 
-    					{
-    						(let (sub) args)
-    						`
-    							调用每个Watcher的update
-    							每个Watcher将Dep-Target设置成自己
-    							Watcher计算期间，所有依赖的Value进行depend，每个Value将这个Watcher加入自己的通知链
-    							本值节点通知期间，重新收集通知链。而其它值节点，可能不需要收集（已经存在）
-    						`
-    						(sub.update)
-    					}
-    				)
+					`
+						调用每个Watcher的update
+						每个Watcher将Dep-Target设置成自己
+						Watcher计算期间，所有依赖的Value进行depend，每个Value将这个Watcher加入自己的通知链
+						本值节点通知期间，重新收集通知链。而其它值节点，可能不需要收集（已经存在）
+					`
+    				(forEach old_subs call)
     			}
     			id (uid)
     		]
@@ -102,12 +97,7 @@
 					(if-run (enable)
 						{
 							(let bo (before))
-							(Dep-target 
-								[
-									id 'id 
-									update	'update
-								]
-							)
+							(Dep-target update)
 							(let ao (p.exp bo))
 							(Dep-target [])
 							(after ao)

@@ -42,6 +42,13 @@
     <Compile Include="MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="mve\Elm.cs" />
+    <Compile Include="mve\Elm_Button.cs" />
+    <Compile Include="mve\Elm_Control.cs" />
+    <Compile Include="mve\Elm_Div.cs" />
+    <Compile Include="mve\Elm_Flow.cs" />
+    <Compile Include="mve\Elm_Input.cs" />
+    <Compile Include="mve\Elm_List_View.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="MainForm.resx">

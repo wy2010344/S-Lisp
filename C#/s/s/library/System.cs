@@ -637,6 +637,22 @@ namespace s.library
         }
 			            
 
+        class CallFun:Function{
+            private static CallFun _ini_=new CallFun();
+            public static CallFun instance(){return _ini_;}
+            public override string ToString(){return "call";}
+            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override object exec(Node<object> args){
+                
+                Function f=args.First() as Function;
+                args=args.Rest();
+                return f.exec(args);
+            
+            }
+            
+        }
+			            
+
         class MNotEqFun:Function{
             private static MNotEqFun _ini_=new MNotEqFun();
             public static MNotEqFun instance(){return _ini_;}
@@ -1044,6 +1060,7 @@ namespace s.library
         m=Node<Object>.kvs_extend("quote",QuoteFun.instance(),m);
         m=Node<Object>.kvs_extend("list",ListFun.instance(),m);
         m=Node<Object>.kvs_extend("type?",IstypeFun.instance(),m);
+        m=Node<Object>.kvs_extend("call",CallFun.instance(),m);
         m=Node<Object>.kvs_extend("!=",MNotEqFun.instance(),m);
         m=Node<Object>.kvs_extend("reverse",ReverseFun.instance(),m);
         m=Node<Object>.kvs_extend("kvs-reverse",Kvs_reverseFun.instance(),m);

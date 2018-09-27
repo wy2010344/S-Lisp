@@ -11,16 +11,112 @@
                     a b c d e f
                 ]
             )
+            width (me.Value 0)
+            height (me.Value 0)
         )
         [
+            width 'width
+            height 'height
+            element12 [
+                type div
+                children [
+                    [
+                        type list-view
+                        attr [
+                            Dock Fill
+                            View Details
+                            FullRowSelect true
+                        ]
+                        children [
+                            [
+                                type columns
+                                children [
+                                    [
+                                        type col
+										text abfdaefa
+                                    ]
+                                    [
+                                        type col
+										text abfdaefa
+                                    ]
+                                ]
+                            ]
+                            [
+                                type rows
+                                children [
+                                    [
+                                        type row
+										text dd
+                                        children [
+                                            [
+                                                type cell
+                                                text f9d8
+                                            ]
+                                            [
+                                                type cell
+                                                text frea
+                                            ]
+                                            [
+                                                type cell
+                                                text s9eaw8
+                                            ]
+                                        ]
+                                    ]
+                                    [
+                                        type row
+										text abf
+                                        children [
+                                            [
+                                                type cell 
+                                                text abc
+                                            ]
+                                            [
+                                                type cell 
+                                                text Pfeawfae
+                                            ]
+                                            [
+                                                type cell 
+                                                text efg
+                                            ]
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                    [
+                        type flow
+                        attr [
+                            Dock Bottom
+                            height 30
+                        ]
+                        children [
+                            [
+                                type input
+                                value 98
+                            ]
+                            [
+                                type button
+                                text 增加
+                            ]
+                        ]
+                    ]
+                ]
+            ]
             element [ 
                 type div
                 children [
                     [
                         type flow
                         attr [
-                            dock Fill
-                            back-color #FFC10710
+                            Dock Fill
+                            Height {
+                                (- (height) 30)
+                            }
+                            WrapContents false
+                            FlowDirection TopDown
+                            AutoScroll true
+                            BackColor #FFC10710
                         ]
                         children-type kvs
                         children [
@@ -30,7 +126,10 @@
                                 [
                                     type button
                                     attr [
-                                        back-color #ffeb3b
+                                        Width {
+                                            (- (width) 30)
+                                        }
+                                        BackColor #ffeb3b
                                     ]
                                     action [
                                         click {
@@ -52,9 +151,9 @@
                     [
                         type flow
                         attr [
-                            dock Bottom
-                            back-color #66339910
-                            height 30
+                            Dock Bottom
+                            BackColor #66339910
+                            Height 30
                         ]
                         children [
                             [
