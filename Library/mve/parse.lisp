@@ -30,8 +30,10 @@
 		)
 	} 
 	bindMap {
-		(let (watch map f) args)
-		(if-run (exist? map)
+		(let (watch) args)
+		{
+			(let (map f) args)
+			(if-run (exist? map)
 				{
 					(kvs-forEach map 
 						{
@@ -40,7 +42,8 @@
 						}
 					)
 				}
-		)
+			)
+		}
 	} 
 	bindEvent {
 		(let (map f) args)
@@ -56,13 +59,16 @@
 		)
 	} 
 	if-bind {
-		(let (watch value f) args)
-		(if-run 
-			(exist? value)
-			{
-				(bind watch value f)
-			}
-		)
+		(let (watch) args)
+		{
+			(let (value f) args)
+			(if-run 
+				(exist? value)
+				{
+					(bind watch value f)
+				}
+			)
+		}
 	}
 	build-locsize {
 		(let (locsize json fun) args)
@@ -92,19 +98,26 @@
 	}
 )
 {
-	(let (DOM build-children locsize) args)
+	(let (locsize p) args)
 	`对函数`
 	(let Parse-fun 
 		{
-			(let (fun watch inits destroys mve) args)
+			`
+			o 
+			watch 
+			inits 
+			destroys 
+			mve
+			`
+			(let (x) args)
 			(let change (cache []))
-			(watch
+			(x.watch
 				[
-					exp 'fun 
+					exp { (x.o) }
 					after {
 						(let (element) args)
 						(let newObj 
-							(mve 
+							(x.mve 
 								{ 
 									[ element 'element] 
 								}
@@ -115,7 +128,7 @@
 						(if-run (exist? obj)
 							{
 								`非第一次生成`
-								(DOM.replaceWith 
+								(p.replaceWith 
 									(obj.getElement)
 									(newObj.getElement)
 								)
@@ -130,149 +143,97 @@
 			(list 
 				change 
 				`绑定第一个生成`
-				(extend (kvs-path (change) [init]) inits ) 
+				(extend (kvs-path (change) [init]) p.inits ) 
 				`销毁最后一个`
 				(extend 
 					{
 						(kvs-path-run (change) [destroy])
 					} 
-					destroys
+					p.destroys
 				)
 			)
 		}
 	)
 	`对列表`
 	(let Parse {
-			(let (json watch k inits destroys mve) args Parse this)
-			(let json (default json ""))
-			(if-run (type? json 'list)
+			`
+				o 
+				watch 
+				k 
+				inits 
+				destroys 
+				mve
+				bindMap
+				bindEvent
+				if-bind
+			`
+			(let 
+				(x) args
+				x (kvs-extend 'o (default x.o "")  
+					(kvs-extend 'Parse this x)
+				)
+			)
+			(if-run (type? x.o 'list)
 				{
 					`列表情况，对应js中字典`
-					(let j json)
-					(if-run (type? j.type 'function)
+					(if-run (type? x.o.type 'function)
 							{
 								`自定义组件`
-								(let obj (j.type j.params))
+								(let obj (x.o.type x.o.params))
 								`绑定id`
-								(if-run (exist? j.id)
+								(if-run (exist? x.o.id)
 									{
-										(k (kvs-extend j.id obj (k)))
+										(x.k (kvs-extend x.o.id obj (x.k)))
 									}
 								)
 								(let e (obj.getElement))
 								`绑定locsize`
 								(build-locsize 
 									locsize 
-									json 
+									x.o 
 									{
 										(let 
 											(str vf) args
 										 	ef (default (kvs-find1st obj str) empty-fun)
 										)
 										(bind 
-											watch 
+											x.watch 
 											vf 
 											{
 												(let (v) args)
 												(ef v)
-												(DOM.locsize e str v)
+												(p.locsize e str v)
 											}
 										)
 									}
 								)
 								(list 
 									e
-									(extend obj.init inits)
-									(extend obj.destroy destroys)
+									(extend obj.init x.inits)
+									(extend obj.destroy x.destroys)
 								)
 							}
 							{
-								`原生组件`
-								(let e 
-									(DOM.createElement j.type)
-								)
+
+								(let (e inits destroys) (p.buildElement x))
 								`绑定id`
-								(if-run (exist? j.id)
+								(if-run (exist? x.o.id)
 									{
-										(k (kvs-extend j.id e (k)))
+										(x.k (kvs-extend x.o.id e (x.k)))
 									}
-								)
-								`attr属性`
-								(bindMap watch j.attr 
-									{
-										(let (k v) args)
-										(DOM.attr e k v)
-									}
-								)
-								`style属性`
-								(bindMap watch j.style
-									{
-										(let (k v) args)
-										(DOM.style e k v)
-									}
-								)
-								`动作`
-								(bindEvent j.action
-									{
-										(let (k v) args)
-										(DOM.action e k v)
-									}
-								)
-								`内部字符`
-								(if-bind watch j.text 
-									{
-										(let (v) args)
-										(DOM.text e v)
-									}
-								)
-								`内部值`
-								(if-bind watch j.value
-									{
-										(let (v) args)
-										(DOM.value e v)
-									}
-								)
-								`innerHTML`
-								(if-bind watch j.html
-									{
-										(let (v) args)
-										(DOM.html e v)
-									}
-								)
-								`children`
-								(let (inits destroys) 
-									(if-run (str-eq 'kvs j.children-type)
-										{
-											`children-type是kvs，即repeat`
-											(build-children e j.children inits destroys mve)
-										}
-										{
-											`children是列表`
-											(reduce j.children
-												{
-													(let (ini child) args)
-													(let (inits destroys) ini)
-													(let (ce inits destroys) (Parse child watch k inits destroys mve))
-													(DOM.appendChild e ce)
-													(list inits destroys)
-												}
-												(list inits destroys)
-											)
-										}
-									)
 								)
 								`绑定locsize`
 								(build-locsize 
 									locsize 
-									json 
+									x.o 
 									{
 										(let (str vf) args)
 										(bind 
-											watch 
+											x.watch 
 											vf 
 											{
 												(let (v) args)
-												(DOM.locsize e str v)
+												(p.locsize e str v)
 											}
 										)
 									}
@@ -282,11 +243,11 @@
 					)
 				}
 				{
-					(if-run (type? json 'function)
+					(if-run (type? x.o 'function)
 						{
 							`函数节点`
 							(let 
-								(change inits destroys) (Parse-fun json watch inits destroys mve)
+								(change inits destroys) (Parse-fun x)
 								obj (change)
 							)
 							(list 
@@ -297,11 +258,7 @@
 						}
 						{
 							`值节点`
-							(list 
-								(DOM.createTextNode json)
-								inits
-								destroys
-							)
+							(p.createTextNode x)
 						}
 					)
 				}
@@ -311,13 +268,22 @@
 	{
 		(let 
 			(json watch k mve) args
-			inits (cache []) 
-			destroys (cache [])
+			x [
+				o 'json 
+				watch 'watch 
+				k 'k 
+				inits [] 
+				destroys [] 
+				mve 'mve
+				bindEvent 'bindEvent
+				bindMap (bindMap watch)
+				if-bind (if-bind watch)
+			]
 		)
-		(if-run (type? json 'function)
+		(if-run (type? x.o 'function)
 			{
 				`function`
-				(let (change inits destroys) (Parse-fun json watch [] [] mve))
+				(let (change inits destroys) (Parse-fun x))
 				(list
 					{
 						(kvs-path-run (change) [getElement])
@@ -327,9 +293,7 @@
 				)
 			}
 			{
-				(let (el inits destroys) 
-					(Parse json watch k [] [] mve)
-				)
+				(let (el inits destroys) (Parse x))
 				(list
 					{el}
 					(forEach-run inits)

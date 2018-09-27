@@ -68,9 +68,9 @@ namespace s
             scope = Node<Object>.kvs_extend(key, value, scope);
             return this;
         }
-        public Object run(String relative_path)
+        public Object run(String path)
         {
-            return s.library.Load.run_e(s.Util.exe_path(relative_path), scope, lineSplit,encoding);
+            return s.library.Load.run_e(path, scope, lineSplit, encoding);
         }
 
         public void shell()

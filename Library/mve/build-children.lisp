@@ -3,7 +3,15 @@
 {
 	`从util里调入`
 	(let 
-		(Value Watcher DOM nokey) args
+		`
+		Value 
+		Watcher 
+		appendChild 
+		removeChild
+		`
+		(p) args
+		nokey (load './nokey.lisp)
+
 	    build {
 			`下面调入`
 			(let (repeat mve) args)
@@ -12,8 +20,8 @@
 				(let (row i) args)
 				(let 
 					o [ 
-						data (Value row) 
-						index (Value i) 
+						data (p.Value row) 
+						index (p.Value i) 
 					] 
 				)
 				[ 
@@ -30,81 +38,103 @@
 				]
 			}
 		}
+		type-key (str-join ['p.key - type])
 	)
 	{
 		(let 
-			(pel children inits destroys mve) args
-			`是否初始化`
-			isInit (cache false)
-			`未初始化时缓存值`
-			c-inits (cache [])
-			(bc-after bc-destroy) 
-				(nokey 
-					[
-						build (build children.repeat mve)
-						after {
-							(let (value) args)
-							(let init value.obj.init)
-							(if-run (isInit)
-								{(init)}
+			(pel x) args
+			children (kvs-path x [o 'p.key])
+		)
+		(if-run (str-eq 'kvs (kvs-path x [o 'type-key]))
+			{
+				(let
+					`是否初始化`
+					isInit (cache false)
+					`未初始化时缓存值`
+					c-inits (cache [])
+					(bc-after bc-destroy) 
+						(nokey 
+							[
+								build (build children.repeat x.mve)
+								after {
+									(let (value) args)
+									(let init value.obj.init)
+									(if-run (isInit)
+										{(init)}
+										{
+											(c-inits (extend init (c-inits)))
+										}
+									)
+								}
+								update-data {
+									(let (value v) args)
+									(value.row.data v)
+								}
+								destroy {
+									(let (value) args)
+									(value.obj.destroy)
+								}
+								appendChild {
+									(let (value) args)
+									(p.appendChild pel (value.obj.getElement))
+								}
+								removeChild {
+									(let (value) args)
+									(p.removeChild pel (value.obj.getElement))
+								}
+							]
+						)
+					`Array的计算观察`
+					watch 
+						(p.Watcher 
+							[
+								exp {
+									(children.array)
+								}
+								after {
+									(bc-after (first args))
+								}
+							]
+						)
+				)
+				(list 
+					`inits`
+					(extend 
+						{
+							(forEach (c-inits)
 								{
-									(c-inits (extend init (c-inits)))
+									((first args))
 								}
 							)
-						}
-						update-data {
-							(let (value v) args)
-							(value.row.data v)
-						}
-						destroy {
-							(let (value) args)
-							(value.obj.destroy)
-						}
-						appendChild {
-							(let (value) args)
-							(DOM.appendChild pel (value.obj.getElement))
-						}
-						removeChild {
-							(let (value) args)
-							(DOM.removeChild pel (value.obj.getElement))
-						}
-					]
-				)
-			`Array的计算观察`
-			watch 
-				(Watcher 
-					[
-						exp {
-							(children.array)
-						}
-						after {
-							(bc-after (first args))
-						}
-					]
-				)
-		)
-		(list 
-			`inits`
-			(extend 
-				{
-					(forEach (c-inits)
+							(c-inits [])
+							(isInit true)
+						} 
+						x.inits
+					) 
+					`destroys`
+					(extend 
 						{
-							((first args))
-						}
+							(watch.disable)
+							(bc-destroy)
+						} 
+						x.destroys
 					)
-					(c-inits [])
-					(isInit true)
-				} 
-				inits
-			) 
-			`destroys`
-			(extend 
-				{
-					(watch.disable)
-					(bc-destroy)
-				} 
-				destroys
-			)
+				)
+			}
+			{
+				(reduce children
+					{
+						(let 
+							((inits destroys) child) args
+							x (kvs-extend 'o child x)
+						)
+						(let (ce inits destroys) (x.Parse x))
+						(p.appendChild pel ce)
+						(list inits destroys)
+					}
+					(list x.inits x.destroys)
+				)
+			}
 		)
 	}
 }

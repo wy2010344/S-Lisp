@@ -131,9 +131,6 @@
 			(cache)
 		}
 	}
-	locsize [
-		width height left top right bottom
-	]
 )
 
 [
@@ -143,10 +140,8 @@
 
 	Cache (quote Cache)
 
-	locsize (quote locsize)
-
 	Exp {
-		(let (Parse DOM) args)
+		(let (locsize DOM Parse) args)
 		(let ret {
 			(let (user-func) args mve this)
 			(let watchPool (cache []))

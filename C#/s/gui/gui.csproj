@@ -49,6 +49,7 @@
     <Compile Include="mve\Elm_Flow.cs" />
     <Compile Include="mve\Elm_Input.cs" />
     <Compile Include="mve\Elm_List_View.cs" />
+    <Compile Include="mve\MVE.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="MainForm.resx">

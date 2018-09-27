@@ -130,20 +130,20 @@
                                             (- (width) 30)
                                         }
                                         BackColor #ffeb3b
+                                        Text {
+                                            (str-join 
+                                                [
+                                                    (stringify (o.index))
+                                                    (o.data)
+                                                ]
+                                            )
+                                        }
                                     ]
-                                    action [
+                                    event [
                                         click {
                                             (array (splice (array) (o.index) 1))
                                         }
                                     ]
-                                    text {
-                                        (str-join 
-                                            [
-                                                (stringify (o.index))
-                                                (o.data)
-                                            ]
-                                        )
-                                    }
                                 ]
                             }
                         ]
@@ -158,17 +158,19 @@
                         children [
                             [
                                 type button
-                                text { 
-                                    (str-join 
-                                        [
-                                            写字1 
-                                            (stringify (a)) 
-                                            xo 
-                                            (stringify (len (array)))
-                                        ]
-                                    ) 
-                                }
-                                action [
+                                attr [
+                                    Text { 
+                                        (str-join 
+                                            [
+                                                写字1 
+                                                (stringify (a)) 
+                                                xo 
+                                                (stringify (len (array)))
+                                            ]
+                                        ) 
+                                    }
+                                ]
+                                event [
                                     click {
                                         (log '好 (a))
                                         (a (+ (a) 1))
@@ -178,20 +180,24 @@
                             [
                                 type input 
                                 id input
-                                value 好
+                                attr [
+                                    Text 好
+                                ]
                             ]
                             [
                                 type button 
-                                text { 
-                                    (str-join 
-                                        [
-                                            共
-                                            (stringify (len (array)))
-                                            条记录
-                                        ]
-                                    )
-                                }
-                                action [
+                                attr [
+                                    Text { 
+                                        (str-join 
+                                            [
+                                                共
+                                                (stringify (len (array)))
+                                                条记录
+                                            ]
+                                        )
+                                    }
+                                ]
+                                event [
                                     click {
                                         (let
                                             input (me.k 'input)
