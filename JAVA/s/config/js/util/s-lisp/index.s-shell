@@ -1,0 +1,80 @@
+{
+	(
+		(load (lib-path 'g_Lib/g_common.lisp))
+		[
+			k js
+			in-type buildIn
+			better-type user
+			build-cls
+				{
+					`
+			            key
+			            run
+			            other 可选
+			            toString
+			            type
+					`
+					(let (p) args)
+					[
+						"
+		var "(quote p.key)"=function(){
+			return mb.Java_new(Fun,[],{
+				exec:function(args){
+	                "(quote p.run)"
+				},
+				toString:function(){
+					return \""(p.toString)"\";
+				},
+				ftype:function(){
+					return Fun.Type."(quote p.type)";
+				}
+			});
+		};
+		"(quote p.other)";
+						"
+					]
+				}
+			build-m
+				{
+					(let (k key) args)
+					[
+						"
+		m=lib.s.kvs_extend(\""(quote k)"\","(quote key)"(),m);
+						"
+					]
+				}
+			write-result
+				{
+					(let (cls fun) args)
+					(write
+						(pathOf './System.js)
+						(str-join
+							[
+								"
+({
+	data:{
+		s:\"./s.js\"
+	},
+	success:function(p){
+		var Fun=p.Fun;
+		"
+			(load (lib-path 'g_Lib/g_js_common.lisp))
+			(str-join cls)
+		"
+		var m=null;
+		m=lib.s.kvs_extend(\"true\",true,m);
+		m=lib.s.kvs_extend(\"false\",false,m);
+		"
+			(str-join fun)
+		"
+		return m;
+	}
+});
+								"
+							]
+						)
+					)
+				}
+		]
+	)
+}

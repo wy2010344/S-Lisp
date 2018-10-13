@@ -1005,6 +1005,36 @@ namespace s{
         IstypeFun* IstypeFun::_in_=new IstypeFun();
         
 
+        class CallFun: public LibFunction {
+        private:
+            static CallFun * _in_;
+        public:    
+            static CallFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "call";
+            }
+            Fun_Type ftype(){
+                return Function::fBuildIn;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+                Function* f=static_cast<Function*>(args->First());
+                args=args->Rest();
+                Base * b=f->exec(args);
+                if(b!=NULL){
+                    b->eval_release();
+                }
+                return b;
+            
+            }
+        };
+        CallFun* CallFun::_in_=new CallFun();
+        
+
         class MNotEqFun: public LibFunction {
         private:
             static MNotEqFun * _in_;
@@ -1146,6 +1176,49 @@ namespace s{
         If_runFun* If_runFun::_in_=new If_runFun();
         
 
+        class LoopFun: public LibFunction {
+        private:
+            static LoopFun * _in_;
+        public:    
+            static LoopFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "{(let (f init ) args loop this ) (let (will init ) (f init ) ) (if-run will {(loop f init ) } {init } ) }";
+            }
+            Fun_Type ftype(){
+                return Function::fUser;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+                Function * f=static_cast<Function*>(args->First());
+                args=args->Rest();
+                Base * init=NULL;
+                if(args!=NULL){
+                    init=args->First();
+                }
+                bool will=true;
+                while(will){
+                    Node * o=static_cast<Node*>(f->exec(list::extend(init,NULL)));
+                    will=static_cast<Bool*>(o->First())->Value();
+                    init=o->Rest()->First();
+                    if(init!=NULL){
+                        init->retain();
+                        o->release();
+                        init->eval_release();
+                    }else{
+                        o->release();
+                    }
+                }
+                return init;
+            
+            }
+        };
+        LoopFun* LoopFun::_in_=new LoopFun();
+        
+
         class ReduceFun: public LibFunction {
         private:
             static ReduceFun * _in_;
@@ -1195,7 +1268,7 @@ namespace s{
                 return _in_;
             }
             string toString(){
-                return "{(let (key kvs ) args find1st this ) (let (k v ...kvs ) args ) (if-run (str-eq k key ) {v } {find1st key kvs } ) }";
+                return "{(let (key kvs ) args find1st this ) (let (k v ...kvs ) args ) (if-run (str-eq k key ) {v } {(find1st key kvs ) } ) }";
             }
             Fun_Type ftype(){
                 return Function::fUser;
@@ -1278,11 +1351,13 @@ namespace s{
             m=kvs::extend("quote",QuoteFun::instance(),m);
             m=kvs::extend("list",ListFun::instance(),m);
             m=kvs::extend("type?",IstypeFun::instance(),m);
+            m=kvs::extend("call",CallFun::instance(),m);
             m=kvs::extend("!=",MNotEqFun::instance(),m);
             m=kvs::extend("reverse",ReverseFun::instance(),m);
             m=kvs::extend("empty-fun",Empty_funFun::instance(),m);
             m=kvs::extend("default",DefaultFun::instance(),m);
             m=kvs::extend("if-run",If_runFun::instance(),m);
+            m=kvs::extend("loop",LoopFun::instance(),m);
             m=kvs::extend("reduce",ReduceFun::instance(),m);
             m=kvs::extend("kvs-find1st",Kvs_find1stFun::instance(),m);
             m=kvs::extend("kvs-extend",Kvs_extendFun::instance(),m);

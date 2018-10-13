@@ -134,11 +134,11 @@
 )
 
 [
-	Value (quote Value)
+	Value 'Value
 
-	Watcher (quote Watcher)
+	Watcher 'Watcher
 
-	Cache (quote Cache)
+	Cache 'Cache
 
 	Exp {
 		(let (locsize DOM Parse) args)

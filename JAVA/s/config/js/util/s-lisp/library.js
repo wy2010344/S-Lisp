@@ -1,6 +1,7 @@
 ({
     data:{
-        s:"./s.js"
+        s:"./s.js",
+        System:"./System.js"
     },
     success:function(){
         var Fun=Java.type("s.Function");
@@ -9,7 +10,10 @@
         var mb_Util=Java.type("mb.Util");
         var Java_String=Java.type("java.lang.String");
         var S_Root=System.getenv().get("S_LISP")||"D:/S-Lisp";
-        mb.log(S_Root);
+        S_Root=S_Root.replace(/\\/g,'/');
+        if(!S_Root.endsWith("/")){
+            S_Root=S_Root+"/";
+        }
         
         var double_quotes=mb.charAt('"',0);
         var line_split=mb.charAt("\n",0);
@@ -25,277 +29,17 @@
             }
             return v;
         };
-        
-        
-        var reduce=function(args,init,func){
-            for(var t=args;t!=null;t=t.Rest()){
-                init=func(init,t.First());
-            }
-            return init;
-        };
-        
-        var or=function(a,b){
-            return a||b;
-        };
-        var and=function(a,b){
-            return a&&b;
-        };
-        var reduce=function(args,func,init) {
-            for(var t=args;t!=null;t=t.Rest()){
-                init=func(init,t.First());
-            }
-            return init;
-        };
-        var compare=function(args,func){
-            var last=args.First();
-            var init=true;
-            for(var t=args.Rest();t!=null;t=t.Rest()){
-                var now=t.First();
-                init=and(init,func(last,now));
-                last=now;
-            }
-            return init;
-        };
         var log_factory=function(append){
             return function(args){
-	            for(var t=args;t!=null;t=t.Rest()){
-	                append(s_trans(t.First()));
-	                append("\t");
-	            }
-	            append("\n");
+                for(var t=args;t!=null;t=t.Rest()){
+                    append(s_trans(t.First()));
+                    append("\t");
+                }
+                append("\n");
                 return null;
             };
         };
-
-        var kvs_path=function(kvs,paths){
-            var value=null;
-            while(paths!=null){
-                var path=paths.First();
-                value=lib.s.kvs_find1st(kvs,path);
-                paths=paths.Rest();
-                kvs=value;
-            }
-            return value;
-        };
 		var library={
-            "false":false,
-            "true":true,
-            log:log_factory(function(v){
-                System.out.print(v);
-            }),
-            reverse:function(args){
-                var v=args.First();
-                return lib.s.reverse(args.First());
-            },
-            rest:function(args){
-                var v=args.First();
-                return v.Rest();
-            },
-            first:function(args){
-                var v=args.First();
-                return v.First();
-            },
-            /*主要用于用闭包构建参数*/
-            list:function(args){
-                return args;
-            },
-            "empty?":function(args){
-                return (args.First()==null);
-            },
-            "exist?":function(args) {
-                return (args.First()!=null);
-            },
-            type:function(args){
-                var n=args.First();
-                if(n==null){
-                    return "list";
-                }else{
-                    if(n instanceof Node){
-                        return "list";
-                    }else
-                    if(n instanceof Fun){
-                        return "function";
-                    }else{
-                        var t=typeof(n);
-                        if(t=="string"){
-                            return "string";
-                        }else
-                        if(t=="boolean"){
-                            return "bool";
-                        }else
-                        if(t=="number"){
-                            if(n%1===0){
-                                return "int";
-                            }else{
-                                return "float";
-                            }
-                        }else{
-                            return t;
-                        }
-                    }
-                }
-            },
-            "str-eq":function(args){
-                return compare(args,function(last,now){
-                    return (last==now);
-                });
-            },
-            length:function(args){
-                return args.First().Length();
-            },
-            extend:function(args){
-            	return lib.s.extend(args.First(),args.Rest().First());
-            },
-			quote:function(args){
-				return args.First();
-			},
-            "parseInt":function(args){
-                return parseInt(args.First());
-            },
-            "kvs-find1st":function(args){
-                var kvs=args.First();
-                args=args.Rest();
-                var key=args.First();
-                return lib.s.kvs_find1st(kvs,key);
-            },
-            "kvs-extend":function(args) {
-                var key=args.First();
-                args=args.Rest();
-                var value=args.First();
-                args=args.Rest();
-                var kvs=args.First();
-                return lib.s.kvs_extend(key,value,kvs);
-            },
-            "kvs-path":function(args){
-                var kvs=args.First();
-                args=args.Rest();
-                var paths=args.First();
-                return kvs_path(kvs,paths);
-            },
-            "kvs-path-run":function(args){
-                var kvs=args.First();
-                args=args.Rest();
-                var paths=args.First();
-                args=args.Rest();
-                return kvs_path(kvs,paths).exec(args);
-            },
-            //a?b:default(null)
-            "if":function(args){
-                if(args.First()==true){
-                    return args.Rest().First();
-                }else{
-                    args=args.Rest().Rest();
-                    if(args){
-                        return args.First();
-                    }else{
-                        return null;
-                    }
-                }
-            },
-            "str-join":function(args){
-                //字符串
-                var array=args.First();
-                var split="";
-                if(args.Rest()!=null){
-                    split=args.Rest().First();
-                }
-                var r="";
-                for(var t=array;t!=null;t=t.Rest()){
-                    r=r+t.First()+split;
-                }
-                return r.substr(0,r.length-split.length);
-            },
-            "str-charAt":function(args){
-                var str=args.First();
-                args=args.Rest();
-                var index=args.First();
-                return str.charAt(index);
-            },
-            "str-split":function(args){
-                var str=args.First();
-                args=args.Rest();
-                var split=args.First();
-                var array=str.split(split);
-                var r=null;
-                for(var i=array.length-1;i>-1;i--){
-                    r=lib.s.extend(array[i],r);
-                }
-                return r;
-            },
-            "str-upper":function(args){
-                return args.First().toUpperCase();
-            },
-            "str-lower":function(args){
-                return args.First().toLowerCase();
-            },
-            toString:function(args){
-                return args.First().toString();  
-            },
-            stringify:function(args){
-                //类似于JSON.stringify，没想好用toString还是stringify;
-                return args.First().toString();  
-            },
-            "str-trim":function(args) {
-                var str=args.First();
-                return str.trim();
-            },
-            "str-length":function(args) {
-                var str=args.First();
-                return str.length;
-            },
-			"+":function(args){
-                return reduce(args,function(last,now){
-                    return last+now;
-                },0);
-			},
-			"-":function(args){
-                var r=args.First();
-                return reduce(args.Rest(),function(last,now){
-                    return last-now;
-                },r);
-			},
-            "*":function(args){
-                return reduce(args,function(last,now){
-                    return last*now;
-                },1);
-            },
-            "/":function(args){
-                var r=args.First();
-                return reduce(args.Rest(),function(last,now){
-                    return last/now;
-                },r);
-            },
-            ">":function(args){
-                //数字
-                return compare(args,function(last,now){
-                    return (last>now);
-                });
-            },
-            "<":function(args){
-                //数字
-                return compare(args,function(last,now){
-                    return (last<now);
-                });
-            },
-            "=":function(args){
-                //可用于数字，字符串
-                return compare(args,function(last,now){
-                    return (last==now);
-                });
-            },
-            and:function(args){
-                return reduce(args,function(init,v) {
-                    return and(init,v);
-                },true);
-            },
-            or:function(args){
-                return reduce(args,function(init,v) {
-                    return or(init,v);
-                },false);
-            },
-            not:function(args){
-                return !args.First();
-            },
             /*计算绝对路径*/
             "path-resolve":function(args){
                 var base_path=args.First();
@@ -329,7 +73,7 @@
                 return mb_Util.saveTxt(path,content,charsetName);
             },
             "lib-path":function(args){
-                return S_Root+"/"+args.First();  
+                return S_Root+args.First();  
             },
             /**
              * 返回类型
@@ -454,7 +198,19 @@
                 return v;
             }
         };
-        var r=null;
+        var r=lib.System({
+            log:log_factory(function(v){
+                System.out.print(v);
+            }),
+            isList:function(n){
+                return (n instanceof Node);
+            },
+            isFun:function(f){
+                return (f instanceof Fun);
+            },
+            log_trans:s_trans,
+            Fun:Fun
+        });
         mb.Object.forEach(library,function(v,k){
             r=lib.s.kvs_extend(k,buildFunc(k,v),r);
         });
@@ -488,6 +244,7 @@
             library:r,
             buildFunc:buildFunc,
             log_factory:log_factory,
+            S_Root:S_Root,
             s_trans:s_trans
         };
     }

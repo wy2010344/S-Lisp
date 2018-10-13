@@ -140,7 +140,7 @@ CTRL_SHUTDOWN_EVENT - 当系统被关闭时.
             destroy();
             exit(0);
         }
-        void run(Node* bScope){
+        void run(Node* bScope,char line_split){
             /**
             https://zhidao.baidu.com/question/1766690354480323100.html
 主要信号及说明：

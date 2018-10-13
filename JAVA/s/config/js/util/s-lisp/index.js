@@ -8,9 +8,10 @@
         var QueueRun=Java.type("s.QueueRun");
         var Load=Java.type("s.library.Load");
         var library=lib.library();
+        
         var line_split=mb.charAt("\n",0);
         var scope=library.library;//在js中定义的库
-        var scope_extend=Load.run_e(path+"/lisp/mb/index.lisp",scope,line_split).exec(null);
+        var scope_extend=Load.run_e(library.S_Root+"index.lisp",scope,line_split);
         scope_extend=lib.s.reverse(scope_extend);
         for(var t=scope_extend;t!=null;t=t.Rest()){
             var value=t.First();

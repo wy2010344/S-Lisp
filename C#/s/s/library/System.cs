@@ -772,6 +772,33 @@ namespace s.library
         }
 			            
 
+        class LoopFun:Function{
+            private static LoopFun _ini_=new LoopFun();
+            public static LoopFun instance(){return _ini_;}
+            public override string ToString(){return "{(let (f init ) args loop this ) (let (will init ) (f init ) ) (if-run will {(loop f init ) } {init } ) }";}
+            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
+            public override object exec(Node<object> args){
+                
+                Function f=args.First() as Function;
+                args=args.Rest();
+                Object init=null;
+                if(args!=null){
+                    init=args.First();
+                }
+                bool will=true;
+                while(will){
+                    Node<Object> o=f.exec(Node<Object>.extend(init,null)) as Node<Object>;
+                    will=(bool)(o.First());
+                    o=o.Rest();
+                    init=o.First();
+                }
+                return init;
+            
+            }
+            
+        }
+			            
+
         class ReduceFun:Function{
             private static ReduceFun _ini_=new ReduceFun();
             public static ReduceFun instance(){return _ini_;}
@@ -1067,6 +1094,7 @@ namespace s.library
         m=Node<Object>.kvs_extend("empty-fun",Empty_funFun.instance(),m);
         m=Node<Object>.kvs_extend("default",DefaultFun.instance(),m);
         m=Node<Object>.kvs_extend("if-run",If_runFun.instance(),m);
+        m=Node<Object>.kvs_extend("loop",LoopFun.instance(),m);
         m=Node<Object>.kvs_extend("reduce",ReduceFun.instance(),m);
         m=Node<Object>.kvs_extend("reduce-right",Reduce_rightFun.instance(),m);
         m=Node<Object>.kvs_extend("kvs-reduce",Kvs_reduceFun.instance(),m);

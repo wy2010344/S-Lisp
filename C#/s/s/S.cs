@@ -112,6 +112,7 @@ namespace s
                     try
                     {
                         Node<Token> tokens = Token.run(cache, lineSplit);
+                        cache = "";
                         if (tokens != null)
                         {
                             Exp exp = Exp.Parse(tokens);
@@ -146,6 +147,7 @@ namespace s
             try
             {
                 lib_path = Environment.GetEnvironmentVariable("S_LISP");
+                lib_path = lib_path.Replace('\\', '/');
             }
             catch (Exception ex)
             {
@@ -159,7 +161,6 @@ namespace s
             {
                 lib_path = lib_path + "/";
             }
-            lib_path = lib_path.Replace('\\', '/');
         }
         private static LibPath ini=new LibPath();
         public static LibPath instance() { return ini; }

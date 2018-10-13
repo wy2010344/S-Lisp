@@ -1,5 +1,6 @@
 #include <iostream>
 using namespace std;
+#include <cstdlib>
 #include "./run.h"
 #include "./shell.h"
 #include "./library/system.h"
@@ -8,6 +9,11 @@ using namespace std;
 #include "./library/write.h"
 namespace s{
 	Node* load(char line_split){
+		char *c_lib_path=getenv("S_LISP");
+		if(c_lib_path==NULL){
+			c_lib_path="./";
+		}
+		string lib_path=c_lib_path;
 	    Node *baseScope=system::library();
         baseScope=kvs::extend("read",new library::ReadFunc(line_split),baseScope);
         baseScope=kvs::extend("write",new library::WriteFunc(),baseScope);
@@ -15,7 +21,7 @@ namespace s{
         baseScope=kvs::extend("parse",new library::ParseFunc(baseScope,line_split),baseScope);
 	    Node *cscope=baseScope;
 	    cscope->retain();
-        Node *ext=static_cast<Node*>(library::LoadFunc::run_e("./library.lisp",cscope,line_split));
+        Node *ext=static_cast<Node*>(library::LoadFunc::run_e(lib_path+"library.lisp",cscope,line_split));
 	    Node *t=ext;
 	    while(t!=NULL){
 	        String* key=static_cast<String*>(t->First());

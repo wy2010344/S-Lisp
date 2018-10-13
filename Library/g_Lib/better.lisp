@@ -10,6 +10,11 @@
                 return args.First();
             "
         ]
+        js [
+            run "
+                return args.First();
+            "
+        ]
         lisp {
             (first args)
         }
@@ -22,6 +27,11 @@
 			"
 		]
         C# [
+            run "
+                return args;
+            "
+        ]
+        js [
             run "
                 return args;
             "
@@ -84,6 +94,15 @@
                 return (TypeFun.base_run(x)==n);
             "
         ]
+
+        js [
+            run "
+                var x=args.First();
+                args=args.Rest();
+                var n=args.First();
+                return (TypeFun.base_run(x)==n);
+            "
+        ]
         lisp {
             (let (x n) args)
             (str-eq (type x) n)
@@ -109,6 +128,13 @@
                 return f.exec(args);
             "
         ]
+        js [
+            run "
+                var run=args.First();
+                args=args.Rest();
+                return run.exec(args);
+            "
+        ]
         list {
             (let (f ...args) args)
             (apply f args)
@@ -122,6 +148,11 @@
             "
         ]
         C# [
+            run "
+                return !MEqFun.base_run(args);
+            "
+        ]
+        js [
             run "
                 return !MEqFun.base_run(args);
             "
@@ -160,7 +191,16 @@
                 return base_run(args.First() as Node<Object>);
             "
         ]
-
+        js [
+            other "
+            ReverseFun.base_run=function(list){
+                return lib.s.reverse(list);
+            };
+            "
+            run "
+                return ReverseFun.base_run(args.First());
+            "
+        ]
         `可以用lisp实现，有点麻烦的样子`
         lisp {
             (let (xs) args)
@@ -198,6 +238,25 @@
                 return base_run(args.First() as Node<Object>);
             "
         ]
+        js [
+            other "
+            Kvs_reverseFun.base_run=function(kvs){
+                var r=null;
+                var tmp=kvs;
+                while(tmp!=null){
+                    var key=tmp.First();
+                    tmp=tmp.Rest();
+                    var value=tmp.First();
+                    tmp=tmp.Rest();
+                    r=lib.s.kvs_extend(key,value,r);
+                }
+                return r;
+            };
+            "
+            run "
+                return Kvs_reverseFun.base_run(args.First());
+            "
+        ]
         lisp {
             (let (kvs) args)
             (kvs-reduce 
@@ -222,6 +281,11 @@
                 return null;
             "
         ]
+        js [
+            run "
+                return null;
+            "
+        ]
         lisp {}
     ]
     default [
@@ -240,6 +304,17 @@
         C# [
             run "
                 Object v=args.First();
+                if(v!=null){
+                    return v;
+                }else{
+                    args=args.Rest();
+                    return args.First();
+                }
+            "
+        ]
+        js [
+            run "
+                var v=args.First();
                 if(v!=null){
                     return v;
                 }else{
@@ -278,6 +353,16 @@
                 }
             "
         ]
+        js [
+            run "
+                var o=IfFun.base_run(args);
+                if(o==null){
+                    return null;
+                }else{
+                    return o.exec(null);
+                }
+            "
+        ]
         lisp {
             (let (a b c) args)
             (let x (default (if a b c)))
@@ -285,6 +370,85 @@
         }
     ]
 
+    loop [
+        `
+        列表的遍历有reduce，但非列表的递归调用会报错，用宿主语言的while语句优化一下。
+        reduce也可以用loop来实现。
+        loop可以说是所有尾递归优化的根
+        `
+        cpp [
+            run "
+                Function * f=static_cast<Function*>(args->First());
+                args=args->Rest();
+                Base * init=NULL;
+                if(args!=NULL){
+                    init=args->First();
+                }
+                bool will=true;
+                while(will){
+                    Node * o=static_cast<Node*>(f->exec(list::extend(init,NULL)));
+                    will=static_cast<Bool*>(o->First())->Value();
+                    init=o->Rest()->First();
+                    if(init!=NULL){
+                        init->retain();
+                        o->release();
+                        init->eval_release();
+                    }else{
+                        o->release();
+                    }
+                }
+                return init;
+            "
+        ]
+        C# [
+            run "
+                Function f=args.First() as Function;
+                args=args.Rest();
+                Object init=null;
+                if(args!=null){
+                    init=args.First();
+                }
+                bool will=true;
+                while(will){
+                    Node<Object> o=f.exec(Node<Object>.extend(init,null)) as Node<Object>;
+                    will=(bool)(o.First());
+                    o=o.Rest();
+                    init=o.First();
+                }
+                return init;
+            "
+        ]
+
+        js [
+            run "
+                var f=args.First();
+                args=args.Rest();
+                var init=null;
+                if(args!=null){
+                    init=args.First();
+                }
+                var will=true;
+                while(will){
+                    var o=f.exec(lib.s.extend(init,null));
+                    will=o.First();
+                    o=o.Rest();
+                    init=o.First();
+                }
+                return init;
+            "
+        ]
+
+        lisp {
+            (let (f init) args loop this)
+            (let (will init) (f init))
+            (if-run will
+                {
+                    (loop f init)
+                }
+                {init}
+            )
+        }
+    ]
     `就是reduce-left`
     reduce [
         cpp [
@@ -332,6 +496,28 @@
                 return base_run(list,args);
             "
         ]
+
+        js [
+            other "
+            ReduceFun.base_run=function(list,args){
+                var f=args.First();
+                args=args.Rest();
+                var init=args.First();
+                while(list!=null){
+                    var x=list.First();
+                    list=list.Rest();
+                    var nargs=lib.s.list(init,x);
+                    init=f.exec(nargs);
+                }
+                return init;
+            }
+            "
+            run "
+                var list=args.First();
+                args=args.Rest();
+                return ReduceFun.base_run(list,args);
+            "
+        ]
         lisp {
             (let (xs run init) args reduce this)
             (if-run (exist? xs)
@@ -349,6 +535,14 @@
         C# [
             run "
                 Node<Object> list = args.First() as Node<Object>;
+                list=ReverseFun.base_run(list);
+                args = args.Rest();
+                return ReduceFun.base_run(list,args);
+            "
+        ]
+        js [
+            run "
+                var list=args.First();
                 list=ReverseFun.base_run(list);
                 args = args.Rest();
                 return ReduceFun.base_run(list,args);
@@ -394,6 +588,29 @@
                 return base_run(kvs,args);
             "
         ]
+        js [
+            other "
+            Kvs_reduceFun.base_run=function(kvs,args){
+                var f=args.First();
+                args=args.Rest();
+                var init=args.First();
+                while(kvs!=null){
+                    var key=kvs.First();
+                    kvs=kvs.Rest();
+                    var value=kvs.First();
+                    kvs=kvs.Rest();
+                    var nargs=lib.s.list(init,value,key);
+                    init=f.exec(nargs);
+                }
+                return init;
+            }
+            "
+            run "
+                var kvs=args.First();
+                args=args.Rest();
+                return Kvs_reduceFun.base_run(kvs,args);
+            "
+        ]
         lisp {
             (let (kvs run init) args kvs-reduce this)
             (if-run (exist? kvs)
@@ -413,6 +630,14 @@
                 Node<Object> kvs = args.First() as Node<Object>;
                 kvs=Kvs_reverseFun.base_run(kvs);
                 args = args.Rest();
+                return Kvs_reduceFun.base_run(kvs,args);
+            "
+        ]
+        js [
+            run "
+                var kvs=args.First();
+                kvs=Kvs_reverseFun.base_run(kvs);
+                args=args.Rest();
                 return Kvs_reduceFun.base_run(kvs,args);
             "
         ]
@@ -448,6 +673,14 @@
                 return Node<Object>.kvs_find1st(kvs,key);
             "
         ]
+        js [
+            run "
+                var kvs=args.First();
+                args=args.Rest();
+                var key=args.First();
+                return lib.s.kvs_find1st(kvs,key);
+            "
+        ]
         lisp {
             (let (key kvs) args find1st this)
             (let (k v ...kvs) args)
@@ -476,6 +709,16 @@
                 args=args.Rest();
                 Node<Object> kvs=args.First() as Node<Object>;
                 return Node<Object>.kvs_extend(key,value,kvs);
+            "
+        ]
+        js [
+            run "
+                var key=args.First();
+                args=args.Rest();
+                var value=args.First();
+                args=args.Rest();
+                var kvs=args.First();
+                return lib.s.kvs_extend(key,value,kvs);
             "
         ]
         lisp {
@@ -510,6 +753,14 @@
                 return kvs_path(o,paths);
             "
         ]
+        js [
+            run "
+                var kvs=args.First();
+                args=args.Rest();
+                var paths=args.First();
+                return kvs_path(kvs,paths);
+            "
+        ]
         lisp {
             (let (e paths) args kvs-path this)
             (if-run (exist? paths)
@@ -536,6 +787,15 @@
                 return f.exec(args);
             "
         ]
+        js [
+            run "
+                var kvs=args.First();
+                args=args.Rest();
+                var paths=args.First();
+                args=args.Rest();
+                return kvs_path(kvs,paths).exec(args);
+            "
+        ]
         lisp {
             (let (e paths ...ps) args)
             (apply (kvs-path e paths) ps)
@@ -558,6 +818,23 @@
                 args=args.Rest();
                 int i=(int)args.First();
                 return base_run(list,i);
+            "
+        ]
+        js [
+            other "
+            OffsetFun.base_run=function(list,i){
+                while(i!=0){
+                    list=list.Rest();
+                    i--;
+                }
+                return list;
+            }
+            "
+            run "
+            var list=args.First();
+            args=args.Rest();
+            var i=args.First();
+            return OffsetFun.base_run(list,i);
             "
         ]
         lisp {
@@ -587,6 +864,20 @@
                 return ReverseFun.base_run(r);
             "
         ]
+        js [
+            run "
+                var list=args.First();
+                args=args.Rest();
+                var i=args.First();
+                var r=null;
+                while(i!=0){
+                    r=lib.s.extend(list.First(),r);
+                    list=list.Rest();
+                    i--;
+                }
+                return ReverseFun.base_run(r);
+            "
+        ]
         lisp {
             (let (xs to) args slice-to this)
             (if-run (= to 0)
@@ -604,6 +895,16 @@
             run "
                 Node<Object> list=args.First() as Node<Object>;
                 if(list!=null){
+                    return list.Length();
+                }else{
+                    return 0;
+                }
+            "
+        ]
+        js [
+            run "
+                var list=args.First();
+                if(list){
                     return list.Length();
                 }else{
                     return 0;

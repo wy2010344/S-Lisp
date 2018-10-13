@@ -31,6 +31,13 @@
 	        },
             extend:function(v,vs){
                 return Node.extend(v,vs);
+            },
+            list:function(){
+                var r=null;
+                for(var i=arguments.length-1;i>-1;i--){
+                    r=Node.extend(arguments[i],r);
+                }
+                return r;
             }
         }
     }

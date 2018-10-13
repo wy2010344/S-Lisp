@@ -25,5 +25,8 @@ namespace s{
             b->eval_release();
             return b;
         }
+        Node *extend(Base*b,Node*r){
+            return new Node(b,r);
+        }
     };
 };

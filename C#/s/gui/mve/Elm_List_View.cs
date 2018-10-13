@@ -89,6 +89,14 @@ namespace gui.mve
         {
             shareReplaceWith(listview, el.Real_Control() as Control);
         }
+        public void begin_update()
+        {
+            listview.BeginUpdate();
+        }
+        public void end_update()
+        {
+            listview.EndUpdate();
+        }
     }
     /// <summary>
     /// 

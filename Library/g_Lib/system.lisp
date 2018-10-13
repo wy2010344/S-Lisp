@@ -11,6 +11,12 @@
                 return (args.First() as Node<Object>).First();
             "
         ]
+        js [
+            run "
+                var v=args.First();
+                return v.First();
+            "
+        ]
 	]
 	rest [
 		cpp [
@@ -21,6 +27,12 @@
         C# [
             run "
                 return (args.First() as Node<Object>).Rest();
+            "
+        ]
+        js [
+            run "
+                var v=args.First();
+                return v.Rest();
             "
         ]
 	]
@@ -35,6 +47,11 @@
                 return Node<Object>.extend(args.First(),(args.Rest().First() as Node<Object>));
             "
         ]
+        js [
+            run "
+                return lib.s.extend(args.First(),args.Rest().First());
+            "
+        ]
 	]
 	length [
 		cpp [
@@ -45,6 +62,11 @@
         C# [
             run "
                 return (args.First() as Node<Object>).Length();
+            "
+        ]
+        js [
+            run "
+                return args.First().Length();
             "
         ]
 	]
@@ -81,6 +103,13 @@
                 return all;
             "
         ]
+        js [
+            run "
+                return reduce(args,function(last,now){
+                    return last+now;
+                },0);
+            "
+        ]
     ]
     - [
         alias SubFun
@@ -105,6 +134,45 @@
                     all=all-it;
                 }
                 return all;
+            "
+        ]
+        js [
+            run "
+                var r=args.First();
+                return reduce(args.Rest(),function(last,now){
+                    return last-now;
+                },r);
+            "
+        ]
+    ]
+
+    * [
+        alias MultiFun
+        js [
+            run "
+                return reduce(args,function(last,now){
+                    return last*now;
+                },1);
+            "
+        ]
+    ]
+
+    / [
+        alias DivFun
+        js [
+            run "
+                var r=args.First();
+                return reduce(args.Rest(),function(last,now){
+                    return last/now;
+                },r);
+            "
+        ]
+    ]
+
+    parseInt [
+        js [
+            run "
+                return parseInt(args.First());
             "
         ]
     ]
@@ -140,6 +208,14 @@
                 return ret;
             "
         ]
+        js [
+            run "
+                //数字
+                return compare(args,check_is_number,function(last,now){
+                    return (last>now);
+                });
+            "
+        ]
     ]
 
     < [
@@ -171,6 +247,14 @@
                     args=args.Rest();
                 }
                 return ret;
+            "
+        ]
+        js [
+            run "
+                //数字
+                return compare(args,check_is_number,function(last,now){
+                    return (last<now);
+                });
             "
         ]
     ]
@@ -216,6 +300,16 @@
                 return base_run(args);
             "
         ]
+        js [
+            other "
+                MEqFun.base_run=function(args){
+                    return eq(args,check_is_number);
+                }
+            "
+            run "
+                return MEqFun.base_run(args);
+            "
+        ]
     ]
     and [
         cpp [
@@ -239,6 +333,13 @@
                     args=args.Rest();
                 }
                 return ret;
+            "
+        ]
+        js [
+            run "
+                return reduce(args,function(init,v) {
+                    return and(init,v);
+                },true);
             "
         ]
     ]
@@ -267,6 +368,13 @@
                 return ret;
             "
         ]
+        js [
+            run "
+                return reduce(args,function(init,v) {
+                    return or(init,v);
+                },false);
+            "
+        ]
     ]
 
     not [
@@ -279,6 +387,11 @@
         C# [
             run "
                 return !(bool)args.First();
+            "
+        ]
+        js [
+            run "
+                return !args.First();
             "
         ]
     ]
@@ -295,6 +408,11 @@
                 return args.First()==null;
             "
         ]
+        js [
+            run "
+                return (args.First()==null);
+            "
+        ]
 	]
 	exist? [
 		cpp [
@@ -305,6 +423,11 @@
         C# [
             run "
                 return args.First()!=null;
+            "
+        ]
+        js [
+            run "
+                return (args.First()!=null);
             "
         ]
 	]
@@ -330,6 +453,15 @@
                 args.toString(sb);
                 Console.WriteLine(sb.ToString());
                 return null;
+            "
+        ]
+        js [
+            run "
+                var cs=[];
+                for(var t=args;t!=null;t=t.Rest()){
+                    cs.push(p.log_trans(t.First()));
+                }
+                p.log(cs);
             "
         ]
 	]
@@ -378,6 +510,25 @@
                 return base_run(args);
             "
         ]
+        js [
+            other "
+            IfFun.base_run=function(args){
+                if(args.First()){
+                    return args.Rest().First();
+                }else{
+                    args=args.Rest().Rest();
+                    if(args){
+                        return args.First();
+                    }else{
+                        return null;
+                    }
+                }
+            };
+            "
+            run "
+                return IfFun.base_run(args);
+            "
+        ]
 	]
     `是否是同一个内存对象`
     eq [
@@ -394,6 +545,11 @@
                 args=args.Rest();
                 Object b=args.First();
                 return a==b;
+            "
+        ]
+        js [
+            run "
+                return eq(args,function(){return true;});
             "
         ]
     ]
@@ -417,6 +573,13 @@
                 return f.exec(args.First() as Node<Object>);
             "
         ]
+        js [
+            run "
+                var run=args.First();
+                args=args.Rest();
+                return run.exec(args.First());
+            "
+        ]
     ]
 	stringify [
 		cpp [
@@ -429,6 +592,12 @@
                 StringBuilder sb=new StringBuilder();
                 Node<Object>.toString(sb, args.First(), false);
                 return sb.ToString();
+            "
+        ]
+        js [
+            run "
+                //类似于JSON.stringify，没想好用toString还是stringify;
+                return args.First().toString();  
             "
         ]
 	]
@@ -518,6 +687,43 @@
                 return base_run(b);
             "
         ]
+        js [
+            other "
+                TypeFun.base_run=function(n){
+                    if(n==null){
+                        return \"list\";
+                    }else{
+                        if(p.isList(n)){
+                            return \"list\";
+                        }else
+                        if(p.isFun(n)){
+                            return \"function\";
+                        }else{
+                            var t=typeof(n);
+                            if(t==\"string\"){
+                                return \"string\";
+                            }else
+                            if(t==\"boolean\"){
+                                return \"bool\";
+                            }else
+                            if(t==\"number\"){
+                                if(n%1===0){
+                                    return \"int\";
+                                }else{
+                                    return \"float\";
+                                }
+                            }else{
+                                return t;
+                            }
+                        }
+                    }
+                }
+            "
+            run "
+                var n=args.First();
+                return TypeFun.base_run(n);
+            "
+        ]
     ]
 
 
@@ -538,6 +744,17 @@
                 return a==b;
             "
         ]
+        js [
+            run "
+                return eq(args,function(s){
+                    if(s && s.constructor==String){
+                        return true;
+                    }else{
+                        return false;
+                    }
+                });
+            "
+        ]
     ]
     str-length [
         cpp [
@@ -550,6 +767,12 @@
             run "
                 String a=args.First() as String;
                 return a.Length;
+            "
+        ]
+        js [
+            run "
+                var str=args.First();
+                return str.length;
             "
         ]
     ]
@@ -568,6 +791,14 @@
                 args=args.Rest();
                 int b=(int)args.First();
                 return \"\"+a[b];
+            "
+        ]
+        js [
+            run "
+                var str=args.First();
+                args=args.Rest();
+                var index=args.First();  
+                return str[index];
             "
         ]
     ]
@@ -599,6 +830,19 @@
                 }else
                 {
                     return a.Substring(begin,(int)args.First());
+                }
+            "
+        ]
+        js [
+            run "
+                var a=args.First();
+                args=args.Rest();
+                var begin=args.First();
+                args=args.Rest();
+                if(args==null){
+                    return a.substr(begin);
+                }else{
+                    return a.substr(begin,args.First());
                 }
             "
         ]
@@ -668,6 +912,21 @@
                 return sb.ToString();
             "
         ]
+        js [
+            run "
+                //字符串
+                var array=args.First();
+                var split=\"\";
+                if(args.Rest()!=null){
+                    split=args.Rest().First();
+                }
+                var r=\"\";
+                for(var t=array;t!=null;t=t.Rest()){
+                    r=r+t.First()+split;
+                }
+                return r.substr(0,r.length-split.length);
+            "
+        ]
     ]
     str-split [
         C# [
@@ -710,6 +969,16 @@
                 return r;
             "
         ]
+        js [
+            "
+            var a=args.First();
+            var split="";
+            if(args.Rest()!=null){
+                split=args.Rest().First();
+            }
+            return a.split(split);
+            "
+        ]
     ]
     str-upper[
         C# [
@@ -717,11 +986,69 @@
                 return (args.First() as String).ToUpper();
             "
         ]
+        js [
+            run "
+                return args.First().toUpperCase();
+            "
+        ]
     ]
     str-lower[
         C# [
             run "
                 return (args.First() as String).ToLower();
+            "
+        ]
+        js [
+            run "
+                return args.First().toLowerCase();
+            "
+        ]
+    ]
+    str-trim [
+        js [
+            run "
+                var str=args.First();
+                return str.trim();
+            "
+        ]
+    ]
+    str-indexOf [
+        js [
+            run "
+                var str=args.First();
+                args=args.Rest();
+                var v=args.First();
+                return str.indexOf(v);
+            "
+        ]
+    ]
+    str-lastIndexOf [
+        js [
+            run "
+                var str=args.First();
+                args=args.Rest();
+                var v=args.First();
+                return str.lastIndexOf(v);
+            "
+        ]
+    ]
+    str-startsWith [
+        js [
+            run "
+                var str=args.First();
+                args=args.Rest();
+                var v=args.First();
+                return str.startsWith(v);
+            "
+        ]
+    ]
+    str-endsWith [
+        js [
+            run "
+                var str=args.First();
+                args=args.Rest();
+                var v=args.First();
+                return str.endsWith(v);
             "
         ]
     ]
