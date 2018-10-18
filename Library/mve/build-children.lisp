@@ -42,10 +42,10 @@
 	)
 	{
 		(let 
-			(pel x) args
-			children (kvs-path x [o 'p.key])
+			(pel x o) args
+			children (kvs-find1st o p.key)
 		)
-		(if-run (str-eq 'kvs (kvs-path x [o 'type-key]))
+		(if-run (str-eq 'kvs (kvs-find1st o type-key))
 			{
 				(let
 					`是否初始化`
@@ -124,11 +124,8 @@
 			{
 				(reduce children
 					{
-						(let 
-							((inits destroys) child) args
-							x (kvs-extend 'o child x)
-						)
-						(let (ce inits destroys) (x.Parse x))
+						(let ((inits destroys) child) args)
+						(let (ce inits destroys) (x.Parse x child))
 						(p.appendChild pel ce)
 						(list inits destroys)
 					}

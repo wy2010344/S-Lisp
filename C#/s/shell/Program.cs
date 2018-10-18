@@ -15,7 +15,7 @@ namespace shell
                 Encoding encoding = new UTF8Encoding(false);
                 S b = new S(line_split, encoding);
                 b.addDef("read", new Read(line_split, encoding));
-                b.addDef("write", new Write());
+                b.addDef("write", new Write(encoding));
                 /*
                 (b.run(@"D:\usr\web\app\S-Lisp\C#\s\s\library\index.s-shell") as Function).exec(null);
                  */

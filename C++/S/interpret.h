@@ -70,7 +70,7 @@ namespace s{
             }
             return scope;
         }
-        Node * & scope;
+        Node * scope;
         Base* run(Exp * e){
             if(e->exp_type()==Exp::Exp_Let){
                 BracketExp *be=static_cast<BracketExp *>(e);
@@ -130,7 +130,12 @@ namespace s{
         }
         Base *interpret(Exp* e,Node * scope);
     public:
-        QueueRun(Node * & scope):scope(scope){}
+        QueueRun(Node * scope){
+            this->scope=scope;
+        }
+        Node* get_scope(){
+            return scope;
+        }
         Base * exec(BracketExp *exp){
             Base * ret=NULL;
             for (Node * tmp=exp->Children(); tmp!=NULL; tmp=tmp->Rest()) {
@@ -159,7 +164,9 @@ namespace s{
         {
             Node * scope=kvs::extend("args",args,parentScope);
             scope=kvs::extend("this",this,scope);
-            Base *ret=run(args, scope);
+            QueueRun qr(scope);
+            Base *ret=qr.exec(exp);
+            scope=qr.get_scope();
             if (ret!=NULL) {
                 ret->retain();
             }
@@ -182,10 +189,6 @@ namespace s{
     protected:
         Node * parentScope;
         BracketExp * exp;
-        Base * run(Node * args,Node * & scope){
-            QueueRun qr(scope);
-            return qr.exec(exp);
-        }
     };
     Base *QueueRun::interpret(Exp* e,Node * scope){
         if(e->isBracket()){

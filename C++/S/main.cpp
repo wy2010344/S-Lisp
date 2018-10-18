@@ -9,11 +9,19 @@ using namespace std;
 #include "./library/write.h"
 namespace s{
 	Node* load(char line_split){
-		char *c_lib_path=getenv("S_LISP");
+		const char *c_lib_path=getenv("S_LISP");
 		if(c_lib_path==NULL){
-			c_lib_path="./";
+			c_lib_path="D:/S-Lisp/";
 		}
 		string lib_path=c_lib_path;
+		for(unsigned i=0;i<lib_path.size();i++){
+			if(lib_path[i]=='\\'){
+				lib_path[i]='/';
+			}
+		}
+		if(lib_path[lib_path.size()-1]!='/'){
+			lib_path=lib_path+"/";
+		}
 	    Node *baseScope=system::library();
         baseScope=kvs::extend("read",new library::ReadFunc(line_split),baseScope);
         baseScope=kvs::extend("write",new library::WriteFunc(),baseScope);
@@ -21,7 +29,7 @@ namespace s{
         baseScope=kvs::extend("parse",new library::ParseFunc(baseScope,line_split),baseScope);
 	    Node *cscope=baseScope;
 	    cscope->retain();
-        Node *ext=static_cast<Node*>(library::LoadFunc::run_e(lib_path+"library.lisp",cscope,line_split));
+        Node *ext=static_cast<Node*>(library::LoadFunc::run_e(lib_path+"index.lisp",cscope,line_split));
 	    Node *t=ext;
 	    while(t!=NULL){
 	        String* key=static_cast<String*>(t->First());

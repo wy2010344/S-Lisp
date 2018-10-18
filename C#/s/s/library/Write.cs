@@ -6,6 +6,11 @@ namespace s.library
 {
     public class Write:Function
     {
+        public Write(Encoding encoding)
+        {
+            this.encoding = encoding;
+        }
+        private Encoding encoding;
         public override Function.Function_Type Function_type()
         {
             return Function_Type.Fun_BuildIn;
@@ -19,7 +24,7 @@ namespace s.library
             String path = args.First() as String;
             args = args.Rest();
             String content = args.First() as String;
-            Util.writeTxt(path, content);
+            Util.writeTxt(path, content,encoding);
             return null;
         }
     }

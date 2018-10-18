@@ -176,9 +176,13 @@ namespace s
             sr.Close();
             return sb.ToString();
         }
-        public static void writeTxt(String path, String content)
+        public static void writeTxt(String path, String content,Encoding encoding)
         {
-            System.IO.File.WriteAllText(path, content, new UTF8Encoding(false));
+            System.IO.File.WriteAllText(path, content, encoding);
+        }
+        public static void appendTxt(String path, String content, Encoding encoding)
+        {
+            System.IO.File.AppendAllText(path, content, encoding);
         }
         public static void logException(Exception e)
         {

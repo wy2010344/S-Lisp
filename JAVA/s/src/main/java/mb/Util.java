@@ -13,6 +13,7 @@ import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
 
@@ -63,6 +64,38 @@ public class Util {
 		InputStream in = Util.class.getResourceAsStream(path);
 		return in;
 	}
+
+	public static String path_join(String base_path,String relative_path) {
+		if(relative_path!=null && relative_path.length()>0 && relative_path.charAt(0)=='.') {
+			String[] bs=base_path.split("/");
+			String[] rs=relative_path.split("/");
+			ArrayList<String> strs=new ArrayList<String>();
+			for(String b:bs) {
+				strs.add(b);
+			}
+			for(String r:rs) {
+				if(r.equals("..")) {
+					strs.remove(strs.size()-1);
+				}else
+				if(r.equals(".")) {
+					
+				}else
+				if(r.equals("")) {
+					
+				}else {
+					strs.add(r);
+				}
+			}
+			StringBuilder sb=new StringBuilder();
+			for(String s:strs) {
+				sb.append(s).append("/");
+			}
+			sb.setLength(sb.length()-1);
+			return sb.toString();
+		}else {
+			return base_path;
+		}
+	}
 	/**
 	 * 不支持jar内啊
 	 * @param path
@@ -85,10 +118,11 @@ public class Util {
 					_resource_path=url.getPath().replace("%20", " ");//只转空格
 				}
 			}
+			_resource_path=_resource_path.replace('\\', '/');
+			
 		}
-		return _resource_path+File.separator+path;
+		return path_join(_resource_path,path);
 	}
-    
 	/**
 	 * 路径
 	 * @param path

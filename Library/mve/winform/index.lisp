@@ -39,32 +39,32 @@
 				}
 				buildElement {
 					(let 
-						(x) args
+						(x o) args
 						inits x.inits
 						destroys x.destroys
 					)
-					(let e (DOM.createElement x.o.type))
-					(x.bindMap x.o.attr
+					(let e (DOM.createElement o.type))
+					(x.bindMap o.attr
 						{
 							(apply DOM.attr (extend e args))
 						}
 					)
-					(x.bindEvent x.o.event 
+					(x.bindEvent o.event 
 						{
 							(apply DOM.event (extend e args))
 						}
 					)
 					(let build-children 
-						(kvs-find1st other_build_children x.o.type)
+						(kvs-find1st other_build_children o.type)
 					)
 					(let 
 						(inits destroys)
 						(if-run (exist? build-children)
 							{
-								(build-children x)
+								(build-children e x o)
 							}
 							{
-								(build-children-control e x)
+								(build-children-control e x o)
 							}
 						)
 					)

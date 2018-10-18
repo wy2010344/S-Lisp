@@ -19,7 +19,7 @@ namespace gui
             char line_split = '\n';
             s.S slib = new s.S(line_split, encoding);
             slib.addDef("read", new s.library.Read(line_split, encoding));
-            slib.addDef("write", new s.library.Write());
+            slib.addDef("write", new s.library.Write(encoding));
             slib.addDef("cache", new s.library.Cache());
 
             target = new gui.mve.MVE(slib, s.Util.exe_path("s/index/index.lisp"));

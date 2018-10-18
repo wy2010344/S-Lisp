@@ -65,177 +65,6 @@ namespace s.library
         }
 			            
 
-        class AddFun:Function{
-            private static AddFun _ini_=new AddFun();
-            public static AddFun instance(){return _ini_;}
-            public override string ToString(){return "+";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
-            public override object exec(Node<object> args){
-                
-                int all=0;
-                for(Node<Object> t=args;t!=null;t=t.Rest())
-                {
-                    int it=(int)t.First();
-                    all=all+it;
-                }
-                return all;
-            
-            }
-            
-        }
-			            
-
-        class SubFun:Function{
-            private static SubFun _ini_=new SubFun();
-            public static SubFun instance(){return _ini_;}
-            public override string ToString(){return "-";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
-            public override object exec(Node<object> args){
-                
-                int all=(int)args.First();
-                args=args.Rest();
-                for(Node<Object> t=args;t!=null;t=t.Rest())
-                {
-                    int it=(int)args.First();
-                    all=all-it;
-                }
-                return all;
-            
-            }
-            
-        }
-			            
-
-        class MBiggerFun:Function{
-            private static MBiggerFun _ini_=new MBiggerFun();
-            public static MBiggerFun instance(){return _ini_;}
-            public override string ToString(){return ">";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
-            public override object exec(Node<object> args){
-                
-                bool ret=true;
-                int last=(int)args.First();
-                args=args.Rest();
-                while(args!=null && ret)
-                {
-                    int current=(int)args.First();
-                    ret=(last>current);
-                    last=current;
-                    args=args.Rest();
-                }
-                return ret;
-            
-            }
-            
-        }
-			            
-
-        class MSmallerFun:Function{
-            private static MSmallerFun _ini_=new MSmallerFun();
-            public static MSmallerFun instance(){return _ini_;}
-            public override string ToString(){return "<";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
-            public override object exec(Node<object> args){
-                
-                bool ret=true;
-                int last=(int)args.First();
-                args=args.Rest();
-                while(args!=null && ret)
-                {
-                    int current=(int)args.First();
-                    ret=(last<current);
-                    last=current;
-                    args=args.Rest();
-                }
-                return ret;
-            
-            }
-            
-        }
-			            
-
-        class MEqFun:Function{
-            private static MEqFun _ini_=new MEqFun();
-            public static MEqFun instance(){return _ini_;}
-            public override string ToString(){return "=";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
-            public override object exec(Node<object> args){
-                
-                return base_run(args);
-            
-            }
-            
-            public static bool base_run(Node<Object> args){
-                bool ret=true;
-                int last=(int)args.First();
-                args=args.Rest();
-                while(args!=null && ret)
-                {
-                    int current=(int)args.First();
-                    ret=(last==current);
-                    last=current;
-                    args=args.Rest();
-                }
-                return ret;
-            }
-            
-        }
-			            
-
-        class AndFun:Function{
-            private static AndFun _ini_=new AndFun();
-            public static AndFun instance(){return _ini_;}
-            public override string ToString(){return "and";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
-            public override object exec(Node<object> args){
-                
-                bool ret=true;
-                while(args!=null && ret)
-                {
-                    ret=(bool)args.First();
-                    args=args.Rest();
-                }
-                return ret;
-            
-            }
-            
-        }
-			            
-
-        class OrFun:Function{
-            private static OrFun _ini_=new OrFun();
-            public static OrFun instance(){return _ini_;}
-            public override string ToString(){return "or";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
-            public override object exec(Node<object> args){
-                
-                bool ret=false;
-                while(args!=null && (!ret))
-                {
-                    ret=(bool)args.First();
-                    args=args.Rest();
-                }
-                return ret;
-            
-            }
-            
-        }
-			            
-
-        class NotFun:Function{
-            private static NotFun _ini_=new NotFun();
-            public static NotFun instance(){return _ini_;}
-            public override string ToString(){return "not";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
-            public override object exec(Node<object> args){
-                
-                return !(bool)args.First();
-            
-            }
-            
-        }
-			            
-
         class IsemptyFun:Function{
             private static IsemptyFun _ini_=new IsemptyFun();
             public static IsemptyFun instance(){return _ini_;}
@@ -408,6 +237,177 @@ namespace s.library
                         }
                     }
                 }
+            
+        }
+			            
+
+        class AddFun:Function{
+            private static AddFun _ini_=new AddFun();
+            public static AddFun instance(){return _ini_;}
+            public override string ToString(){return "+";}
+            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override object exec(Node<object> args){
+                
+                int all=0;
+                for(Node<Object> t=args;t!=null;t=t.Rest())
+                {
+                    int it=(int)t.First();
+                    all=all+it;
+                }
+                return all;
+            
+            }
+            
+        }
+			            
+
+        class SubFun:Function{
+            private static SubFun _ini_=new SubFun();
+            public static SubFun instance(){return _ini_;}
+            public override string ToString(){return "-";}
+            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override object exec(Node<object> args){
+                
+                int all=(int)args.First();
+                args=args.Rest();
+                for(Node<Object> t=args;t!=null;t=t.Rest())
+                {
+                    int it=(int)args.First();
+                    all=all-it;
+                }
+                return all;
+            
+            }
+            
+        }
+			            
+
+        class MBiggerFun:Function{
+            private static MBiggerFun _ini_=new MBiggerFun();
+            public static MBiggerFun instance(){return _ini_;}
+            public override string ToString(){return ">";}
+            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override object exec(Node<object> args){
+                
+                bool ret=true;
+                int last=(int)args.First();
+                args=args.Rest();
+                while(args!=null && ret)
+                {
+                    int current=(int)args.First();
+                    ret=(last>current);
+                    last=current;
+                    args=args.Rest();
+                }
+                return ret;
+            
+            }
+            
+        }
+			            
+
+        class MSmallerFun:Function{
+            private static MSmallerFun _ini_=new MSmallerFun();
+            public static MSmallerFun instance(){return _ini_;}
+            public override string ToString(){return "<";}
+            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override object exec(Node<object> args){
+                
+                bool ret=true;
+                int last=(int)args.First();
+                args=args.Rest();
+                while(args!=null && ret)
+                {
+                    int current=(int)args.First();
+                    ret=(last<current);
+                    last=current;
+                    args=args.Rest();
+                }
+                return ret;
+            
+            }
+            
+        }
+			            
+
+        class MEqFun:Function{
+            private static MEqFun _ini_=new MEqFun();
+            public static MEqFun instance(){return _ini_;}
+            public override string ToString(){return "=";}
+            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override object exec(Node<object> args){
+                
+                return base_run(args);
+            
+            }
+            
+            public static bool base_run(Node<Object> args){
+                bool ret=true;
+                int last=(int)args.First();
+                args=args.Rest();
+                while(args!=null && ret)
+                {
+                    int current=(int)args.First();
+                    ret=(last==current);
+                    last=current;
+                    args=args.Rest();
+                }
+                return ret;
+            }
+            
+        }
+			            
+
+        class AndFun:Function{
+            private static AndFun _ini_=new AndFun();
+            public static AndFun instance(){return _ini_;}
+            public override string ToString(){return "and";}
+            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override object exec(Node<object> args){
+                
+                bool ret=true;
+                while(args!=null && ret)
+                {
+                    ret=(bool)args.First();
+                    args=args.Rest();
+                }
+                return ret;
+            
+            }
+            
+        }
+			            
+
+        class OrFun:Function{
+            private static OrFun _ini_=new OrFun();
+            public static OrFun instance(){return _ini_;}
+            public override string ToString(){return "or";}
+            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override object exec(Node<object> args){
+                
+                bool ret=false;
+                while(args!=null && (!ret))
+                {
+                    ret=(bool)args.First();
+                    args=args.Rest();
+                }
+                return ret;
+            
+            }
+            
+        }
+			            
+
+        class NotFun:Function{
+            private static NotFun _ini_=new NotFun();
+            public static NotFun instance(){return _ini_;}
+            public override string ToString(){return "not";}
+            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override object exec(Node<object> args){
+                
+                return !(bool)args.First();
+            
+            }
             
         }
 			            
@@ -620,6 +620,42 @@ namespace s.library
         }
 			            
 
+        class Kvs_find1stFun:Function{
+            private static Kvs_find1stFun _ini_=new Kvs_find1stFun();
+            public static Kvs_find1stFun instance(){return _ini_;}
+            public override string ToString(){return "{(let (key kvs ) args find1st this ) (let (k v ...kvs ) args ) (if-run (str-eq k key ) {v } {(find1st key kvs ) } ) }";}
+            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
+            public override object exec(Node<object> args){
+                
+                Node<Object> kvs=args.First() as Node<Object>;
+                args=args.Rest();
+                String key=args.First() as String;
+                return Node<Object>.kvs_find1st(kvs,key);
+            
+            }
+            
+        }
+			            
+
+        class Kvs_extendFun:Function{
+            private static Kvs_extendFun _ini_=new Kvs_extendFun();
+            public static Kvs_extendFun instance(){return _ini_;}
+            public override string ToString(){return "{(let (k v kvs ) args ) (extend k (extend v kvs ) ) }";}
+            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
+            public override object exec(Node<object> args){
+                
+                String key=args.First() as String;
+                args=args.Rest();
+                Object value=args.First();
+                args=args.Rest();
+                Node<Object> kvs=args.First() as Node<Object>;
+                return Node<Object>.kvs_extend(key,value,kvs);
+            
+            }
+            
+        }
+			            
+
         class IstypeFun:Function{
             private static IstypeFun _ini_=new IstypeFun();
             public static IstypeFun instance(){return _ini_;}
@@ -661,6 +697,105 @@ namespace s.library
             public override object exec(Node<object> args){
                 
                 return !MEqFun.base_run(args);
+            
+            }
+            
+        }
+			            
+
+        class Empty_funFun:Function{
+            private static Empty_funFun _ini_=new Empty_funFun();
+            public static Empty_funFun instance(){return _ini_;}
+            public override string ToString(){return "{}";}
+            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
+            public override object exec(Node<object> args){
+                
+                return null;
+            
+            }
+            
+        }
+			            
+
+        class DefaultFun:Function{
+            private static DefaultFun _ini_=new DefaultFun();
+            public static DefaultFun instance(){return _ini_;}
+            public override string ToString(){return "{(let (a d ) args ) (if (exist? a ) a d ) }";}
+            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
+            public override object exec(Node<object> args){
+                
+                Object v=args.First();
+                if(v!=null){
+                    return v;
+                }else{
+                    args=args.Rest();
+                    return args.First();
+                }
+            
+            }
+            
+        }
+			            
+
+        class LenFun:Function{
+            private static LenFun _ini_=new LenFun();
+            public static LenFun instance(){return _ini_;}
+            public override string ToString(){return "{(let (cs ) args ) (if-run (exist? cs ) {(length cs ) } {0 } ) }";}
+            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
+            public override object exec(Node<object> args){
+                
+                Node<Object> list=args.First() as Node<Object>;
+                if(list!=null){
+                    return list.Length();
+                }else{
+                    return 0;
+                }
+            
+            }
+            
+        }
+			            
+
+        class If_runFun:Function{
+            private static If_runFun _ini_=new If_runFun();
+            public static If_runFun instance(){return _ini_;}
+            public override string ToString(){return "{(let (a b c ) args ) (let x (default (if a b c ) ) ) (x ) }";}
+            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
+            public override object exec(Node<object> args){
+                
+                Object o=IfFun.base_run(args);
+                if(o==null){
+                    return null;
+                }else{
+                    return (o as Function).exec(null);
+                }
+            
+            }
+            
+        }
+			            
+
+        class LoopFun:Function{
+            private static LoopFun _ini_=new LoopFun();
+            public static LoopFun instance(){return _ini_;}
+            public override string ToString(){return "{(let (f init ) args loop this ) (let (will init ) (f init ) ) (if-run will {(loop f init ) } {init } ) }";}
+            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
+            public override object exec(Node<object> args){
+                
+                Function f=args.First() as Function;
+                args=args.Rest();
+                Object init=null;
+                if(args!=null){
+                    init=args.First();
+                }
+                bool will=true;
+                while(will){
+                    Node<Object> o=f.exec(Node<Object>.extend(init,null)) as Node<Object>;
+                    will=(bool)(o.First());
+                    o=o.Rest();
+                    init=o.First();
+                }
+                return init;
             
             }
             
@@ -714,86 +849,6 @@ namespace s.library
                     r=Node<Object>.kvs_extend(key,value,r);
                 }
                 return r;
-            }
-            
-        }
-			            
-
-        class Empty_funFun:Function{
-            private static Empty_funFun _ini_=new Empty_funFun();
-            public static Empty_funFun instance(){return _ini_;}
-            public override string ToString(){return "{}";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
-            public override object exec(Node<object> args){
-                
-                return null;
-            
-            }
-            
-        }
-			            
-
-        class DefaultFun:Function{
-            private static DefaultFun _ini_=new DefaultFun();
-            public static DefaultFun instance(){return _ini_;}
-            public override string ToString(){return "{(let (a d ) args ) (if (exist? a ) a d ) }";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
-            public override object exec(Node<object> args){
-                
-                Object v=args.First();
-                if(v!=null){
-                    return v;
-                }else{
-                    args=args.Rest();
-                    return args.First();
-                }
-            
-            }
-            
-        }
-			            
-
-        class If_runFun:Function{
-            private static If_runFun _ini_=new If_runFun();
-            public static If_runFun instance(){return _ini_;}
-            public override string ToString(){return "{(let (a b c ) args ) (let x (default (if a b c ) ) ) (x ) }";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
-            public override object exec(Node<object> args){
-                
-                Object o=IfFun.base_run(args);
-                if(o==null){
-                    return null;
-                }else{
-                    return (o as Function).exec(null);
-                }
-            
-            }
-            
-        }
-			            
-
-        class LoopFun:Function{
-            private static LoopFun _ini_=new LoopFun();
-            public static LoopFun instance(){return _ini_;}
-            public override string ToString(){return "{(let (f init ) args loop this ) (let (will init ) (f init ) ) (if-run will {(loop f init ) } {init } ) }";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
-            public override object exec(Node<object> args){
-                
-                Function f=args.First() as Function;
-                args=args.Rest();
-                Object init=null;
-                if(args!=null){
-                    init=args.First();
-                }
-                bool will=true;
-                while(will){
-                    Node<Object> o=f.exec(Node<Object>.extend(init,null)) as Node<Object>;
-                    will=(bool)(o.First());
-                    o=o.Rest();
-                    init=o.First();
-                }
-                return init;
-            
             }
             
         }
@@ -890,42 +945,6 @@ namespace s.library
                 kvs=Kvs_reverseFun.base_run(kvs);
                 args = args.Rest();
                 return Kvs_reduceFun.base_run(kvs,args);
-            
-            }
-            
-        }
-			            
-
-        class Kvs_find1stFun:Function{
-            private static Kvs_find1stFun _ini_=new Kvs_find1stFun();
-            public static Kvs_find1stFun instance(){return _ini_;}
-            public override string ToString(){return "{(let (key kvs ) args find1st this ) (let (k v ...kvs ) args ) (if-run (str-eq k key ) {v } {(find1st key kvs ) } ) }";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
-            public override object exec(Node<object> args){
-                
-                Node<Object> kvs=args.First() as Node<Object>;
-                args=args.Rest();
-                String key=args.First() as String;
-                return Node<Object>.kvs_find1st(kvs,key);
-            
-            }
-            
-        }
-			            
-
-        class Kvs_extendFun:Function{
-            private static Kvs_extendFun _ini_=new Kvs_extendFun();
-            public static Kvs_extendFun instance(){return _ini_;}
-            public override string ToString(){return "{(let (k v kvs ) args ) (extend k (extend v kvs ) ) }";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
-            public override object exec(Node<object> args){
-                
-                String key=args.First() as String;
-                args=args.Rest();
-                Object value=args.First();
-                args=args.Rest();
-                Node<Object> kvs=args.First() as Node<Object>;
-                return Node<Object>.kvs_extend(key,value,kvs);
             
             }
             
@@ -1032,25 +1051,6 @@ namespace s.library
             
         }
 			            
-
-        class LenFun:Function{
-            private static LenFun _ini_=new LenFun();
-            public static LenFun instance(){return _ini_;}
-            public override string ToString(){return "{(let (cs ) args ) (if-run (exist? cs ) {(length cs ) } {0 } ) }";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
-            public override object exec(Node<object> args){
-                
-                Node<Object> list=args.First() as Node<Object>;
-                if(list!=null){
-                    return list.Length();
-                }else{
-                    return 0;
-                }
-            
-            }
-            
-        }
-			            
         public static Node<Object> library(){
             Node<Object> m = null;
             m = Node<Object>.kvs_extend("true",true, m);
@@ -1060,14 +1060,6 @@ namespace s.library
         m=Node<Object>.kvs_extend("rest",RestFun.instance(),m);
         m=Node<Object>.kvs_extend("extend",ExtendFun.instance(),m);
         m=Node<Object>.kvs_extend("length",LengthFun.instance(),m);
-        m=Node<Object>.kvs_extend("+",AddFun.instance(),m);
-        m=Node<Object>.kvs_extend("-",SubFun.instance(),m);
-        m=Node<Object>.kvs_extend(">",MBiggerFun.instance(),m);
-        m=Node<Object>.kvs_extend("<",MSmallerFun.instance(),m);
-        m=Node<Object>.kvs_extend("=",MEqFun.instance(),m);
-        m=Node<Object>.kvs_extend("and",AndFun.instance(),m);
-        m=Node<Object>.kvs_extend("or",OrFun.instance(),m);
-        m=Node<Object>.kvs_extend("not",NotFun.instance(),m);
         m=Node<Object>.kvs_extend("empty?",IsemptyFun.instance(),m);
         m=Node<Object>.kvs_extend("exist?",IsexistFun.instance(),m);
         m=Node<Object>.kvs_extend("log",LogFun.instance(),m);
@@ -1076,6 +1068,14 @@ namespace s.library
         m=Node<Object>.kvs_extend("apply",ApplyFun.instance(),m);
         m=Node<Object>.kvs_extend("stringify",StringifyFun.instance(),m);
         m=Node<Object>.kvs_extend("type",TypeFun.instance(),m);
+        m=Node<Object>.kvs_extend("+",AddFun.instance(),m);
+        m=Node<Object>.kvs_extend("-",SubFun.instance(),m);
+        m=Node<Object>.kvs_extend(">",MBiggerFun.instance(),m);
+        m=Node<Object>.kvs_extend("<",MSmallerFun.instance(),m);
+        m=Node<Object>.kvs_extend("=",MEqFun.instance(),m);
+        m=Node<Object>.kvs_extend("and",AndFun.instance(),m);
+        m=Node<Object>.kvs_extend("or",OrFun.instance(),m);
+        m=Node<Object>.kvs_extend("not",NotFun.instance(),m);
         m=Node<Object>.kvs_extend("str-eq",Str_eqFun.instance(),m);
         m=Node<Object>.kvs_extend("str-length",Str_lengthFun.instance(),m);
         m=Node<Object>.kvs_extend("str-charAt",Str_charAtFun.instance(),m);
@@ -1086,26 +1086,26 @@ namespace s.library
         m=Node<Object>.kvs_extend("str-lower",Str_lowerFun.instance(),m);
         m=Node<Object>.kvs_extend("quote",QuoteFun.instance(),m);
         m=Node<Object>.kvs_extend("list",ListFun.instance(),m);
+        m=Node<Object>.kvs_extend("kvs-find1st",Kvs_find1stFun.instance(),m);
+        m=Node<Object>.kvs_extend("kvs-extend",Kvs_extendFun.instance(),m);
         m=Node<Object>.kvs_extend("type?",IstypeFun.instance(),m);
         m=Node<Object>.kvs_extend("call",CallFun.instance(),m);
         m=Node<Object>.kvs_extend("!=",MNotEqFun.instance(),m);
-        m=Node<Object>.kvs_extend("reverse",ReverseFun.instance(),m);
-        m=Node<Object>.kvs_extend("kvs-reverse",Kvs_reverseFun.instance(),m);
         m=Node<Object>.kvs_extend("empty-fun",Empty_funFun.instance(),m);
         m=Node<Object>.kvs_extend("default",DefaultFun.instance(),m);
+        m=Node<Object>.kvs_extend("len",LenFun.instance(),m);
         m=Node<Object>.kvs_extend("if-run",If_runFun.instance(),m);
         m=Node<Object>.kvs_extend("loop",LoopFun.instance(),m);
+        m=Node<Object>.kvs_extend("reverse",ReverseFun.instance(),m);
+        m=Node<Object>.kvs_extend("kvs-reverse",Kvs_reverseFun.instance(),m);
         m=Node<Object>.kvs_extend("reduce",ReduceFun.instance(),m);
         m=Node<Object>.kvs_extend("reduce-right",Reduce_rightFun.instance(),m);
         m=Node<Object>.kvs_extend("kvs-reduce",Kvs_reduceFun.instance(),m);
         m=Node<Object>.kvs_extend("kvs-reduce-right",Kvs_reduce_rightFun.instance(),m);
-        m=Node<Object>.kvs_extend("kvs-find1st",Kvs_find1stFun.instance(),m);
-        m=Node<Object>.kvs_extend("kvs-extend",Kvs_extendFun.instance(),m);
         m=Node<Object>.kvs_extend("kvs-path",Kvs_pathFun.instance(),m);
         m=Node<Object>.kvs_extend("kvs-path-run",Kvs_path_runFun.instance(),m);
         m=Node<Object>.kvs_extend("offset",OffsetFun.instance(),m);
         m=Node<Object>.kvs_extend("slice-to",Slice_toFun.instance(),m);
-        m=Node<Object>.kvs_extend("len",LenFun.instance(),m);
             return m;
         }
     }

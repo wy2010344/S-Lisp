@@ -10,8 +10,18 @@
 		trans_name (load './trans_name.lisp)
 		libs  
 			(list
-				(load './system.lisp)
-				(load './better.lisp)
+				(load './system/index.lisp)
+				(load './system/math.lisp)
+				(load './system/bool.lisp)
+				(load './system/str.lisp)
+				
+				(load './better/index.lisp)
+				(load './better/if-run.lisp)
+				(load './better/loop.lisp)
+				(load './better/reverse.lisp)
+				(load './better/reduce.lisp)
+				(load './better/kvs-path.lisp)
+				(load './better/split.lisp)
 			)
 		(cls fun)
 			(reduce-right
