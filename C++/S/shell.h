@@ -13,17 +13,16 @@
 namespace s{
     namespace shell{
         bool come;
-        Node *baseScope;
         QueueRun *qr;
         char buff[500];
         void init(Node *bScope){
-            baseScope=bScope;
-            qr=new QueueRun(baseScope);
+            qr=new QueueRun(bScope);
             come=true;
         }
         void destroy(){
-            baseScope->retain();
-            baseScope->release();
+            Node* bScope=qr->get_scope();
+            bScope->retain();
+            bScope->release();
             Node *t=library::LoadFunc::core;
             if(t!=NULL){
                 t->retain();

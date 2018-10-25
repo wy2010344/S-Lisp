@@ -11,14 +11,15 @@ namespace s{
             Token_Id,
             Token_Int
         };
-        Token(string value,Token_Type type,Location* loc):Base(){
+        Token(String* value,Token_Type type,Location* loc):Base(){
             //cout<<"TOKEN:"<<value<<"  "<<type<<endl;
             this->value=value;
+            value->retain();
             this->type=type;
             this->loc=loc;
             loc->retain();
         }
-        string & Value(){
+        String * Value(){
             return this->value;
         }
         virtual Token_Type token_type(){
@@ -34,11 +35,12 @@ namespace s{
             return "$Token";
         }
         virtual ~Token(){
+            value->release();
             loc->release();
         }
     private:
         Location* loc;
-        string value;
+        String* value;
         Token_Type type;
     };
     class Code
@@ -135,16 +137,16 @@ namespace s{
                 if(Id.size()==1){
                     throw new LocationException("单个'不允许",loc);
                 }else{
-                    token=new Token(Id.substr(1,Id.size()-1),Token::Token_Prevent,loc);
+                    token=new Token(new String(Id.substr(1,Id.size()-1)),Token::Token_Prevent,loc);
                 }
             }else
             if (isInt(Id)){
                 //转成Int，方便数值计算
-                token=new Token(Id,Token::Token_Int,loc);
+                token=new Token(new String(Id),Token::Token_Int,loc);
             }else
             {
                 //ID类型
-                token=new Token(Id,Token::Token_Id,loc);
+                token=new Token(new String(Id),Token::Token_Id,loc);
             }
             return token;
         }

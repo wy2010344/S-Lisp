@@ -36,6 +36,15 @@ namespace s
             this.children = children;
             this.r_children = r_children;
             this.kvs_paths = kvs_paths;
+            if (type == Exp_Type.Exp_Int)
+            {
+                int_value=int.Parse(value);
+            }
+        }
+        private int int_value;
+        public int Int_Value()
+        {
+            return int_value;
         }
 
 

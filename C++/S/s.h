@@ -6,10 +6,10 @@
 #include "./util/file.h"
 
 #include "./type/bool.h"
+#include "./type/string.h"
 #include "./type/function.h"
 #include "./type/int.h"
 #include "./type/node.h"
-#include "./type/string.h"
 
 #include "./util/list.h"
 #include "./util/kvs.h"

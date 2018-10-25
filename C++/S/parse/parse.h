@@ -3,7 +3,7 @@
 namespace s{
 
     void resetLetID(Exp * k){
-        if(k->Value().find('.')!=string::npos){
+        if(k->Value()->StdStr().find('.')!=string::npos){
             //有点的情况
             throw new LocationException("Let表达式中，不是合法的id类型"+k->toString(),k->Loc());
         }else{
@@ -17,7 +17,7 @@ namespace s{
             Exp * k=static_cast<Exp*>(vs->First());
             vs=vs->Rest();
             if(vs==NULL && k->exp_type()==Exp::Exp_Id){
-                string &v=k->Value();
+                string &v=k->Value()->StdStr();
                 if(v.size()>3){
                     if(v[0]=='.' && v[1]=='.' && v[2]=='.'){
                         //候选let表达式
@@ -90,7 +90,7 @@ namespace s{
     BracketExp* Parse(Node* tokens){
         Location *root_loc=new Location(0,0,0);
         root_loc->retain();
-        BracketExp *exp=new BracketExp(Exp::Exp_Large,"{}",NULL,root_loc);//缓存子列表
+        BracketExp *exp=new BracketExp(Exp::Exp_Large,new String("{}"),NULL,root_loc);//缓存子列表
         Node *caches=new Node(exp,NULL);
         //还必须在Parse前后retain和release，因为参数了树节点的动作？模拟有一个引用着它。
         caches->retain();
@@ -103,11 +103,12 @@ namespace s{
             {
                 Exp::Exp_Type tp;
                 string v="";
-                if(x->Value()==")"){
+                string& b=x->Value()->StdStr();
+                if(b==")"){
                     tp=Exp::Exp_Small;
                     v="()";
                 }else
-                if(x->Value()=="]"){
+                if(b=="]"){
                     tp=Exp::Exp_Medium;
                     v="[]";
                 }else
@@ -117,7 +118,7 @@ namespace s{
                     v="{}";
                 }
                 //临时括号，记录一些位置数据
-                BracketExp *exp=new BracketExp(tp,v,children,x->Loc());
+                BracketExp *exp=new BracketExp(tp,new String(v),children,x->Loc());
                 caches=new Node(exp,caches);
                 //这里也必须使用引用计数的方式才能正确执行->突然又得行了。
                 caches->retain();
@@ -147,7 +148,7 @@ namespace s{
                                 throw new LocationException("不允许空的()",exp->Loc());
                             }else{
                                 Exp * first=static_cast<Exp*>(children->First());
-                                if(first->exp_type()==Exp::Exp_Id && first->Value()=="let"){
+                                if(first->exp_type()==Exp::Exp_Id && first->Value()->StdStr()=="let"){
                                     //(let )
                                     tp=Exp::Exp_Let;
                                     if(children->Length()==1){
@@ -223,6 +224,9 @@ namespace s{
                     Exp* e=NULL;
                     if(tp==Exp::Exp_Id){
                         e=new IDExp(x->Value(),x->Loc());
+                    }else
+                    if(tp==Exp::Exp_Int){
+                        e=new IntExp(x->Value(),x->Loc());
                     }else{
                         e=new Exp(tp,x->Value(),x->Loc());
                     }
@@ -234,7 +238,7 @@ namespace s{
         caches->release();
         //检查函数内的无用表达式
         check_Large(children);
-        exp=new BracketExp(Exp::Exp_Large,"{}",children,root_loc);
+        exp=new BracketExp(Exp::Exp_Large,new String("{}"),children,root_loc);
         root_loc->release();
         return exp;
     }

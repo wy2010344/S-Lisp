@@ -15,6 +15,12 @@
                 return args.First();
             "
         ]
+
+        OC [
+            run "
+                return [args First];
+            "
+        ]
         lisp {
             (first args)
         }
@@ -36,6 +42,11 @@
                 return args;
             "
         ]
+        OC [
+            run "
+                return args;
+            "
+        ]
 		lisp {
 			args
 		}
@@ -47,7 +58,7 @@
                 Node* kvs_map=static_cast<Node*>(args->First());
                 args=args->Rest();
                 String* key=static_cast<String*>(args->First());
-                return kvs::find1st(kvs_map,key->StdStr());
+                return kvs::find1st(kvs_map,key);
             "
         ]
         C# [
@@ -64,6 +75,15 @@
                 args=args.Rest();
                 var key=args.First();
                 return lib.s.kvs_find1st(kvs,key);
+            "
+        ]
+
+        OC [
+            run "
+                SNode* kvs=(SNode*)[args First];
+                args=[args Rest];
+                NSString* key=(NSString*)[args First];
+                return [SNode kvs_find1stFrom:kvs of:key];
             "
         ]
         lisp {
@@ -107,6 +127,16 @@
                 return lib.s.kvs_extend(key,value,kvs);
             "
         ]
+        OC [
+            run "
+                NSString* key=(NSString*)[args First];
+                args=[args Rest];
+                NSObject* value=[args First];
+                args=[args Rest];
+                SNode* kvs=(SNode*)[args First];
+                return [SNode kvs_extendKey:key value:value kvs:kvs];
+            "
+        ]
         lisp {
             (let (k v kvs) args)
             (extend k (extend v kvs))
@@ -119,42 +149,8 @@
             run "
                 Base *b=args->First();
                 args=args->Rest();
-                bool ret=false;
-                string & type=static_cast<String*>(args->First())->StdStr();
-                if(b==NULL){
-                    ret=(type==\"list\");
-                }else{
-                    Base::S_Type t=b->stype();
-                    if(t==Base::sList){
-                        ret=(type==\"list\");
-                    }else
-                    if(t==Base::sFunction){
-                        ret=(type==\"function\");
-                    }else
-                    if(t==Base::sInt){
-                        ret=(type==\"int\");
-                    }else
-                    if(t==Base::sString){
-                        ret=(type==\"string\");
-                    }else
-                    if(t==Base::sBool){
-                        ret=(type==\"bool\");
-                    }else
-                    if(t==Base::sUser){
-                        ret=(type==\"user\");
-                    }else{
-                        if(t==Base::sToken){
-                            ret=(type==\"token\");
-                        }else
-                        if(t==Base::sExp){
-                            ret=(type==\"exp\");
-                        }else
-                        if(t==Base::sLocation){
-                            ret=(type==\"location\");
-                        }
-                    }
-                }
-                return Bool::trans(ret);
+                String* real_type=TypeFun::instance()->base_run(b);
+                return Bool::trans(real_type->StdStr()==static_cast<String*>(args->First())->StdStr());
             "
         ]
 

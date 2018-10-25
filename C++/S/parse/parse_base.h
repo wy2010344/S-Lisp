@@ -15,22 +15,28 @@ namespace s{
             Exp_LetRest//...
         };
     private:
-        Exp_Type type;
-        string value;
+        String* value;
         Location* loc;
+    protected:
+        Exp_Type type;
     public:
-        Exp(Exp_Type type,string value,Location* loc):Base(){
+        Exp(Exp_Type type,String* value,Location* loc):Base(){
             this->type=type;
             this->value=value;
+            value->retain();
             this->loc=loc;
             loc->retain();
         }
         virtual ~Exp(){
+            value->release();
             loc->release();
         }
-        string & Value(){
+        String* Value(){
             return value;
         }
+        /*
+        *目前，主要是()->letSmall,letID,letRestID
+        */
         void exp_type(Exp_Type type){
             this->type=type;
         }
@@ -45,27 +51,44 @@ namespace s{
         }
         Token::Token_Type original_type;
         virtual string toString(){
+            string & v=value->StdStr();
             if(original_type==Token::Token_Prevent){
-                return "'"+value;
+                return "'"+v;
             }else
             if(type==Exp::Exp_String)
             {
-                return str::stringToEscape(value,'"','"');
+                return str::stringToEscape(v,'"','"');
             }else
             if(type==Exp::Exp_LetRest){
-                return "..."+value;
+                return "..."+v;
             }else{
-                return value;
+                return v;
             }
         }
         S_Type stype(){
             return Base::sExp;
         }
     };
+    class IntExp:public Exp{
+    private:
+        Int* int_value;
+    public:
+        IntExp(String* value,Location* loc):Exp(Exp::Exp_Int,value,loc){
+            int_value=new Int(value->StdStr());
+            int_value->retain();
+        }
+        Int* Int_Value(){
+            return int_value;
+        }
+        ~IntExp(){
+            int_value->release();
+        }
+    };
     class IDExp:public Exp{
         Node* paths;
     public:
-        IDExp(string value,Location* loc):Exp(Exp::Exp_Id,value,loc){
+        IDExp(String* v,Location* loc):Exp(Exp::Exp_Id,v,loc){
+            string & value=v->StdStr();
             if(value[0]=='.' || value[value.size()-1]=='.'){
                 paths=NULL;
             }else{
@@ -111,7 +134,7 @@ namespace s{
         /*减少计算时的反转*/
         Node *r_children;
     public:
-        BracketExp(Exp_Type type,string value,Node * children,Location* loc,Node* r_children=NULL)
+        BracketExp(Exp_Type type,String* value,Node * children,Location* loc,Node* r_children=NULL)
             :Exp(type,value,loc){
             this->children=children;
             this->r_children=r_children;
@@ -147,7 +170,7 @@ namespace s{
         }
 
         virtual string toString(){
-            char a[2]={Value()[0],'\0'};
+            char a[2]={Value()->StdStr()[0],'\0'};
             string x=string(a);
             for(Node * t=children;t!=NULL;t=t->Rest())
             {
@@ -155,7 +178,7 @@ namespace s{
                 x+=e->toString();
                 x+=" ";
             }
-            x+=Value()[1];
+            x+=Value()->StdStr()[1];
             return x;
         }
     };

@@ -10,17 +10,21 @@ namespace s{
             return extend(new String(key), value,kvs);
         }
         Base * find1st(Node * kvs,string & key){
-            if (kvs==NULL) {
-                return NULL;
-            }else{
-                String * k=static_cast<String*>(kvs->First());
+            bool unfind=true;
+            Base * b=NULL;
+            while(kvs!=NULL && unfind){
+                String * k =static_cast<String*>(kvs->First());
                 kvs=kvs->Rest();
-                if (k->StdStr()==key) {
-                    return kvs->First();
-                }else{
-                    return find1st(kvs->Rest(), key);
+                if(k->StdStr()==key){
+                    unfind=false;
+                    b=kvs->First();
                 }
+                kvs=kvs->Rest();
             }
+            return b;
+        }
+        Base * find1st(Node * kvs,String * key){
+            return find1st(kvs,key->StdStr());
         }
     };
 };

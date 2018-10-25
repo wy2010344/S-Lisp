@@ -187,7 +187,7 @@
         ]
         OC [
             run "
-                NSLog(@\"%@\",[SNode description:args]);
+                NSLog(@\"%@\",[SNode description:args trans:NO]);
                 return nil;
             "
         ]
@@ -274,7 +274,7 @@
             }
             "
             run "
-                return [IfFun base_run:args];
+                return [S_IfFun base_run:args];
             "
         ]
 	]
@@ -282,22 +282,46 @@
     eq [
         cpp [
             run "
-                Base * a=args->First();
-                Base * b=args->Rest()->First();
-                return Bool::trans(a==b);
+                Base * old=args->First();
+                bool eq=true;
+                Node * t=args->Rest();
+                while(eq && t!=NULL){
+                    eq=t->First()==old;
+                    old=t->First();
+                    t=t->Rest();
+                }
+                return Bool::trans(eq);
             "
         ]
         C# [
             run "
-                Object a=args.First();
-                args=args.Rest();
-                Object b=args.First();
-                return a==b;
+                Object old=args.First();
+                bool eq=true;
+                Node<Object> t=args.Rest();
+                while(eq && t!=null){
+                    eq=t.First()==old;
+                    old=t.First();
+                    t=t.Rest();
+                }
+                return eq;
             "
         ]
         js [
             run "
                 return eq(args,function(){return true;});
+            "
+        ]
+        OC [
+            run "
+                BOOL eq=YES;
+                NSObject* old=[args First];
+                SNode* t=[args Rest];
+                while(eq && t!=nil){
+                    eq=([t First]==old);
+                    old=[t First];
+                    t=[t Rest];
+                }
+                return [SBool trans:eq];
             "
         ]
     ]
@@ -328,6 +352,18 @@
                 return run.exec(args.First());
             "
         ]
+
+        OC [
+            run "
+                SFunction* f=(SFunction*)[args First];
+                SNode* n_args=(SNode*)[[args Rest] First];
+                NSObject* b=[f exec:n_args];
+                if(b!=nil){
+                    [SBase SEvalRelease:b];
+                }
+                return b;
+            "
+        ]
     ]
 	stringify [
 		cpp [
@@ -348,48 +384,100 @@
                 return args.First().toString();  
             "
         ]
+
+        OC [
+            run "
+                return [SNode toString:[args First] trans:NO];
+            "
+        ]
 	]
     type [
         cpp [
+            other 
+            ({
+                (let (init def out release)
+                    (reduce 
+                        [
+                            list
+                            string
+                            function
+                            int
+                            bool
+                            user
+                            token
+                            exp
+                            location
+                        ]
+                        {
+                            (let ((init def out release) v) args)
+                            (list
+                                (extend (str-join ["s_" 'v "=new String(\"" 'v "\");" "s_" 'v "->retain();"]) init)
+                                (extend (str-join ["String* s_" 'v ";"]) def)
+                                (extend (str-join ["String* S_" 'v "(){ return s_" 'v ";}"]) out)
+                                (extend (str-join ["s_" 'v "->release();"]) release)
+                            )
+                        }
+                        [[] [] [] []]
+                    )
+                )
+                (str-join
+                    [
+                        "TypeFun(){"
+                            (str-join init "\n")
+                        "}"
+                        "~TypeFun(){"
+                            (str-join release "\n")
+                        "}"
+                        (str-join out "\n")
+                        "
+                        String* base_run(Base* b){
+                            String* s;
+                            if(b==NULL){
+                                s=s_list;
+                            }else{
+                                Base::S_Type t=b->stype();
+                                if(t==Base::sList){
+                                    s=s_list;
+                                }else
+                                if(t==Base::sFunction){
+                                    s=s_function;
+                                }else
+                                if(t==Base::sInt){
+                                    s=s_int;
+                                }else
+                                if(t==Base::sString){
+                                    s=s_string;
+                                }else
+                                if(t==Base::sBool){
+                                    s=s_bool;
+                                }else
+                                if(t==Base::sUser){
+                                    s=s_user;
+                                }else
+                                {
+                                    if(t==Base::sToken){
+                                        s=s_token;
+                                    }else
+                                    if(t==Base::sExp){
+                                        s=s_exp;
+                                    }else
+                                    if(t==Base::sLocation){
+                                        s=s_location;
+                                    }
+                                }
+                            }
+                            return s;
+                        }
+                        private:
+                        "
+                        (str-join def "\n")
+                    ]
+                    "\n"
+                )
+            })
             run "
                 Base *b=args->First();
-                string s;
-                if(b==NULL){
-                    s=\"list\";
-                }else{
-                    Base::S_Type t=b->stype();
-                    if(t==Base::sList){
-                        s=\"list\";
-                    }else
-                    if(t==Base::sFunction){
-                        s=\"function\";
-                    }else
-                    if(t==Base::sInt){
-                        s=\"int\";
-                    }else
-                    if(t==Base::sString){
-                        s=\"string\";
-                    }else
-                    if(t==Base::sBool){
-                        s=\"bool\";
-                    }else
-                    if(t==Base::sUser){
-                        s=\"user\";
-                    }else
-                    {
-                        if(t==Base::sToken){
-                            s=\"token\";
-                        }else
-                        if(t==Base::sExp){
-                            s=\"exp\";
-                        }else
-                        if(t==Base::sLocation){
-                            s=\"location\";
-                        }
-                    }
-                }
-
-                return new String(s);
+                return base_run(b);
             "
         ]
         C# [
@@ -470,6 +558,36 @@
             run "
                 var n=args.First();
                 return TypeFun.base_run(n);
+            "
+        ]
+        OC [
+            other "
+            +(NSString*)base_run:(NSObject*)n{
+                if(n==nil){
+                    return @\"list\";
+                }else{
+                    if([n isKindOfClass:[SNode class]]){
+                        return @\"list\";
+                    }else
+                    if([n isKindOfClass:[SFunction class]]){
+                        return @\"function\";
+                    }else
+                    if([n isKindOfClass:[SBool class]]){
+                        return @\"bool\";
+                    }else
+                    if([n isKindOfClass:[NSString class]]){
+                        return @\"string\";
+                    }else
+                    if([n isKindOfClass:[NSNumber class]]){
+                        return @\"int\";
+                    }else{
+                        return @\"\";
+                    }
+                }
+            }
+            "
+            run "
+                return [S_TypeFun base_run:[args First]];
             "
         ]
     ]

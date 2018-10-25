@@ -189,7 +189,7 @@ namespace s
             }
             else if (exp.Exp_type() == Exp.Exp_Type.Exp_Int)
             {
-                return int.Parse(exp.Value());
+                return exp.Int_Value();
             }
             else if (exp.Exp_type() == Exp.Exp_Type.Exp_Id)
             {

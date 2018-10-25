@@ -148,10 +148,15 @@ namespace s.library
             public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
             public override object exec(Node<object> args){
                 
-                Object a=args.First();
-                args=args.Rest();
-                Object b=args.First();
-                return a==b;
+                Object old=args.First();
+                bool eq=true;
+                Node<Object> t=args.Rest();
+                while(eq && t!=null){
+                    eq=t.First()==old;
+                    old=t.First();
+                    t=t.Rest();
+                }
+                return eq;
             
             }
             

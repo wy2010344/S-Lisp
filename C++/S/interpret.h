@@ -3,7 +3,7 @@
 namespace s{
     //为了支持控制台
     class QueueRun{
-        string getPath(Node * scope){
+        static string getPath(Node * scope){
             string path="";
             Node* tmp=scope;
             while(tmp!=NULL && path==""){
@@ -22,13 +22,13 @@ namespace s{
             return path;
         }
 
-        LocationException *match_Exception(string msg,Location *loc,Node * scope)
+        static LocationException *match_Exception(string msg,Location *loc,Node * scope)
         {
             LocationException* lex=new LocationException(getPath(scope)+":\t"+msg,loc);
             return lex;
         }
 
-        Node * letSmallMatch(Exp * small,Base * v,Node * scope){
+        static Node * letSmallMatch(Exp * small,Base * v,Node * scope){
             Node * ks=static_cast<BracketExp*>(small)->Children();
             if(v==NULL || v->stype()==Base::sList){
                 Node * vs=static_cast<Node*>(v);
@@ -59,7 +59,7 @@ namespace s{
             }
         }
 
-        Node * match(Exp * key,Base * value,Node * scope){
+        static Node * match(Exp * key,Base * value,Node * scope){
             if(key->exp_type()==Exp::Exp_LetId){
                 scope=kvs::extend(key->Value(),value,scope);
             }else
@@ -95,7 +95,7 @@ namespace s{
             }
         }
         /*(b a log)*/
-        Node * calNode(Node * list,Node * scope)
+        static Node * calNode(Node * list,Node * scope)
         {
             Node * r=NULL;
             for(Node * x=list;x!=NULL;x=x->Rest())
@@ -107,7 +107,7 @@ namespace s{
             return r;
             //return list::reverseAndDelete(r);
         }
-        LocationException* call_exception(string msg,BracketExp * exp,Node * children,Node * scope)
+        static LocationException* call_exception(string msg,BracketExp * exp,Node * children,Node * scope)
         {
             msg=msg+"\n"+exp->toString()+"\n"+children->toString()+"\n";
             //cout<<"出现异常:"<<msg<<"在位置:"<<exp->Index()<<endl;
@@ -118,7 +118,7 @@ namespace s{
             */
             return new LocationException(msg,exp->Loc());
         }
-        Base * exec(Function* func,Node *rst,Node *children){
+        static Base * exec(Function* func,Node *rst,Node *children){
             /*函数的计算结果默认是+1的*/
             Base *b=func->exec(rst);
             children->release();
@@ -128,7 +128,7 @@ namespace s{
             }
             return b;
         }
-        Base *interpret(Exp* e,Node * scope);
+        static Base *interpret(Exp* e,Node * scope);
     public:
         QueueRun(Node * scope){
             this->scope=scope;
@@ -162,8 +162,8 @@ namespace s{
         }
         virtual Base *exec(Node *args)
         {
-            Node * scope=kvs::extend("args",args,parentScope);
-            scope=kvs::extend("this",this,scope);
+            Node * scope=kvs::extend(Function::S_args(),args,parentScope);
+            scope=kvs::extend(Function::S_this(),this,scope);
             QueueRun qr(scope);
             Base *ret=qr.exec(exp);
             scope=qr.get_scope();
@@ -250,24 +250,24 @@ namespace s{
         }else
         if(e->exp_type()==Exp::Exp_String)
         {
-            return new String(e->Value());
+            return e->Value();
         }else
         if(e->exp_type()==Exp::Exp_Int)
         {
-            return new Int(e->Value());
+            return static_cast<IntExp*>(e)->Int_Value();
         }else
         if(e->exp_type()==Exp::Exp_Id)
         {
             IDExp * idexp=static_cast<IDExp*>(e);
             Node* paths=idexp->Paths();
             if(paths==NULL){
-                throw match_Exception(idexp->Value()+"不是合法的ID类型",e->Loc(),scope);
+                throw match_Exception(idexp->Value()->StdStr()+"不是合法的ID类型",e->Loc(),scope);
             }else{
                 Node * c_scope=scope;
                 Base * value=NULL;
                 while(paths!=NULL){
                     String* key=static_cast<String*>(paths->First());
-                    value=kvs::find1st(c_scope,key->StdStr());
+                    value=kvs::find1st(c_scope,key);
                     paths=paths->Rest();
                     if(paths!=NULL){
                         if(value==NULL || value->stype()==Base::sList){

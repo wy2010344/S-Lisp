@@ -68,6 +68,10 @@ namespace s{
             "
         Node * library(){
             Node * m=NULL;
+            /*使其不轻易销毁*/
+            m=kvs::extend(Function::S_args(),NULL,m);
+            m=kvs::extend(Function::S_this(),NULL,m);
+            /**/
             m=kvs::extend(\"true\",Bool::True,m);
             m=kvs::extend(\"false\",Bool::False,m);
             "

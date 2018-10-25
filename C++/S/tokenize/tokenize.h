@@ -14,7 +14,7 @@ namespace s{
     			if(isQuoteLeft(c)){
                     char cs[2]={c,'\0'};
                     rest=new Node(
-                        new Token(string(cs),Token::Token_BracketLeft,code->currentLoc()),
+                        new Token(new String(string(cs)),Token::Token_BracketLeft,code->currentLoc()),
                         rest
                     );
                     code->shift();
@@ -22,7 +22,7 @@ namespace s{
     			if(isQuoteRight(c)){
                     char cs[2]={c,'\0'};
                     rest=new Node(
-                        new Token(string(cs),Token::Token_BracketRight,code->currentLoc()),
+                        new Token(new String(string(cs)),Token::Token_BracketRight,code->currentLoc()),
                         rest
                     );
                     code->shift();
@@ -59,7 +59,7 @@ namespace s{
                         stre=str::stringFromEscape(stre,end,trans_time);
                     }
     				rest=new Node(
-                        new Token(stre,type,loc),
+                        new Token(new String(stre),type,loc),
                         rest
                     );
                     code->shift();
