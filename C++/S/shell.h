@@ -20,18 +20,15 @@ namespace s{
             come=true;
         }
         void destroy(){
-            Node* bScope=qr->get_scope();
-            bScope->retain();
-            bScope->release();
             Node *t=library::LoadFunc::core;
             if(t!=NULL){
                 t->retain();
                 t->release();
             }
+            delete qr;
             Base::print_node();
             cout<<"开始回收"<<endl;
             Base::clear();
-            delete qr;
             Base::print_node();
             cout<<"输入任意字符，按回车退出"<<endl;
             cin>>buff;

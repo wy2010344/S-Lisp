@@ -28,6 +28,13 @@ namespace s{
             return lex;
         }
 
+        /*每次增加1*/
+        static Node* kvs_extend(String* key,Base* value,Node* scope){
+            Node* n_scope=kvs::extend(key,value,scope);
+            scope->eval_release();/*不需要检查销毁，因为不会销毁*/
+            n_scope->retain();
+            return n_scope;
+        }
         static Node * letSmallMatch(Exp * small,Base * v,Node * scope){
             Node * ks=static_cast<BracketExp*>(small)->Children();
             if(v==NULL || v->stype()==Base::sList){
@@ -41,13 +48,13 @@ namespace s{
                     ks=ks->Rest();
 
                     if(k->exp_type()==Exp::Exp_LetId){
-                        scope=kvs::extend(k->Value(),v,scope);
+                        scope=kvs_extend(k->Value(),v,scope);
                     }else
                     if(k->exp_type()==Exp::Exp_LetSmall){
                         scope=letSmallMatch(k,v,scope);
                     }else
                     if(k->exp_type()==Exp::Exp_LetRest){
-                        scope=kvs::extend(k->Value(),vs,scope);
+                        scope=kvs_extend(k->Value(),vs,scope);
                     }
                     if(vs!=NULL){
                         vs=vs->Rest();
@@ -61,7 +68,7 @@ namespace s{
 
         static Node * match(Exp * key,Base * value,Node * scope){
             if(key->exp_type()==Exp::Exp_LetId){
-                scope=kvs::extend(key->Value(),value,scope);
+                scope=kvs_extend(key->Value(),value,scope);
             }else
             if(key->exp_type()==Exp::Exp_LetSmall){
                 scope=letSmallMatch(key,value,scope);
@@ -132,16 +139,22 @@ namespace s{
     public:
         QueueRun(Node * scope){
             this->scope=scope;
+            scope->retain();
         }
-        Node* get_scope(){
-            return scope;
+        ~QueueRun(){
+            scope->release();
         }
         Base * exec(BracketExp *exp){
             Base * ret=NULL;
             for (Node * tmp=exp->Children(); tmp!=NULL; tmp=tmp->Rest()) {
                 if(ret!=NULL)
                 {
-                    //上一次的计算结果，未加到作用域
+                    /*上一次的计算结果，未加到作用域*/
+                    /*
+                        如果表达式中有函数
+                        作用域作为此函数的父作用域，此函数在下一次销毁，则本作用域会销毁
+                        所以let表达式必须每次增加1，下一次追加时减1
+                    */
                     ret->retain();
                     ret->release();
                 }
@@ -164,16 +177,11 @@ namespace s{
         {
             Node * scope=kvs::extend(Function::S_args(),args,parentScope);
             scope=kvs::extend(Function::S_this(),this,scope);
-            QueueRun qr(scope);
+            QueueRun qr(scope);//结束时自动销毁
             Base *ret=qr.exec(exp);
-            scope=qr.get_scope();
             if (ret!=NULL) {
                 ret->retain();
             }
-            //不能直接delete，可能被自定义函数闭包引用
-            scope->retain();
-            scope->release();
-            //delete scope;
             return ret;
         }
         virtual ~UserFunction(){
@@ -192,10 +200,6 @@ namespace s{
     };
     Base *QueueRun::interpret(Exp* e,Node * scope){
         if(e->isBracket()){
-            /*
-             *scope可能作为父作用域，避免被销毁
-             */
-            scope->retain();
             Base *b;
             BracketExp * be=static_cast<BracketExp*>(e);
             if(be->exp_type()==Exp::Exp_Small)
@@ -245,7 +249,6 @@ namespace s{
             }else{
                 b=NULL;
             }
-            scope->eval_release();
             return b;
         }else
         if(e->exp_type()==Exp::Exp_String)
