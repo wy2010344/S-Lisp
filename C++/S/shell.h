@@ -70,12 +70,8 @@ namespace s{
                                 r=qr->exec(exp);
 
                                 cout<<"=>";
-                                if(r==NULL)
-                                {
-                                    cout<<"[]"<<endl;
-                                }else
-                                {
-                                    cout<<r->toString()<<endl;
+                                cout<<system::toString(r,true)<<endl;
+                                if(r!=NULL){
                                     r->retain();
                                     r->release();
                                 }

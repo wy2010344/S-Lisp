@@ -320,4 +320,102 @@
             )
         }
     ]
+
+    indexOf [
+        `默认只找第一个，假设无重复，如果想找所有的，另定义方法`
+        cpp [
+            run "
+                Node* vs=static_cast<Node*>(args->First());
+                args=args->Rest();
+                Base* k=args->First();
+                args=args->Rest();
+                Function* eq=EqFun::instance();
+                if(args!=NULL){
+                    eq=static_cast<Function*>(args->First());
+                }
+
+                int index=-1;
+                int flag=0;
+                while(vs!=NULL && index==-1){
+                    Node* nargs=new Node(vs->First(),new Node(k,NULL));
+                    nargs->retain();
+                    Bool *b=static_cast<Bool*>(eq->exec(nargs));
+                    nargs->release();
+                    if(b->Value()){
+                        index=flag;
+                    }else{
+                        vs=vs->Rest();
+                        flag++;
+                    }
+                    b->release();
+                }
+                if(index==-1){
+                    return NULL;
+                }else{
+                    return new Int(index);
+                }
+            "
+        ]
+        C# [
+            run "
+                Node<Object> vs=args.First() as Node<Object>;
+                args=args.Rest();
+                Object k=args.First();
+                args=args.Rest();
+                Function eq=EqFun.instance();
+                if(args!=null){
+                    eq=args.First() as Function;
+                }
+
+                int index=-1;
+                int flag=0;
+                while(vs!=null && index==-1){
+                    if((bool)eq.exec(Node<Object>.list(vs.First(),k))){
+                        index=flag;
+                    }else{
+                        vs=vs.Rest();
+                        flag++;
+                    }
+                }
+                if(index==-1){
+                    return null;
+                }else{
+                    return index;
+                }
+            "
+        ]
+        lisp {
+            (let 
+                (vs k is_eq) args
+                is_eq (default eq)
+            )
+            (loop 
+                {
+                    (let ((v ...vs) index) args)
+                    (if-run (is_eq v k)
+                        {
+                            (list
+                                false
+                                index
+                            )
+                        }
+                        {
+                            (if-run (exist? vs)
+                                {
+                                    (list
+                                        true
+                                        (list
+                                            vs
+                                            (+ index 1)
+                                        )
+                                    ) 
+                                }
+                            )
+                        }
+                    )
+                }
+                (list vs 0)
+            )
+        }
+    ]
 ]

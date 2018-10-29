@@ -5,23 +5,6 @@
 #include "./interpret.h"
 #include "./library/load.h"
 namespace s{
-    void print(BracketExp *x,int indent)
-    {
-        for(Node *tmp=x->Children();tmp!=NULL;tmp=tmp->Rest()){
-            Exp * e=static_cast<Exp*>(tmp->First());
-            for(int i=0;i<indent;i++)
-            {
-                cout<<"    ";
-            }
-            cout<<e->Value()<<endl;
-            if(e->isBracket())
-            {
-
-                BracketExp *exp=static_cast<BracketExp *>(e);
-                print(exp,indent+1);
-            }
-        }
-    }
     void run(const char * _file,Node* baseScope,char line_split){
         //set_terminate(terminal_exception);
         string file=_file;

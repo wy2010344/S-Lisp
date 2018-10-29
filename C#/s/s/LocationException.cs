@@ -8,23 +8,27 @@ namespace s
     {
         class Stack {
             public String path;
-            public Location loc;
+            public Location left;
+            public Location right;
             public String exp;
         }
         private Location loc;
-        public LocationException(Location loc, String msg):base(msg)
+        public LocationException(Location loc, String msg)
+            : base(msg)
         {
             this.loc = loc;
         }
-        public Location Loc() {
+        public Location Loc()
+        {
             return loc;
         }
         Node<Stack> stacks = null;
-        public void addStack(String path,Location loc,String exp)
+        public void addStack(String path,Location left,Location right,String exp)
         {
             Stack stack = new Stack();
             stack.path = path;
-            stack.loc = loc;
+            stack.left = left;
+            stack.right = right;
             stack.exp = exp;
             stacks = Node<Stack>.extend(stack, stacks);
         }
@@ -34,7 +38,12 @@ namespace s
             for (Node<Stack> tmp = stacks; tmp != null; tmp = tmp.Rest())
             {
                 Stack stack = tmp.First();
-                sb.Append(stack.path).Append("\t").Append(stack.loc.ToString()).Append("\t").Append(stack.exp).Append("\r\n");
+                sb.Append(stack.path)
+                  .Append("\t")
+                  .Append(stack.left.ToString()).Append("-").Append(stack.right.ToString())
+                  .Append("\t")
+                  .Append(stack.exp)
+                  .Append("\r\n");
             }
             sb.Append(loc.ToString()).Append("\r\n");
             sb.Append(base.ToString()).Append("\r\n");

@@ -20,6 +20,7 @@
 			listView需要begin和end的watch
 		`
 		other_build_children [
+			list-view ((load './list-view.lisp) DOM build-children-Factory util)
 		]
 	)
 	(util.Exp
@@ -52,6 +53,20 @@
 					(x.bindEvent o.event 
 						{
 							(apply DOM.event (extend e args))
+						}
+					)
+					`内部字符`
+					(x.if-bind o.text 
+						{
+							(let (v) args)
+							(DOM.text e v)
+						}
+					)
+					`内部值`
+					(x.if-bind o.value
+						{
+							(let (v) args)
+							(DOM.value e v)
 						}
 					)
 					(let build-children 

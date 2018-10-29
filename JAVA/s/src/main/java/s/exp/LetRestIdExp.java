@@ -14,11 +14,6 @@ public class LetRestIdExp extends AtomExp{
     	return value;
     }
 	@Override
-	protected void toString(StringBuilder sb) {
-		// TODO Auto-generated method stub
-		toString(sb,value,"...","");
-	}
-	@Override
 	public Exp_Type xtype() {
 		// TODO Auto-generated method stub
 		return Exp_Type.Let_Rest_ID;

@@ -10,7 +10,7 @@ namespace s{
             return std_str;
         }
         string toString(){
-            return str::stringToEscape(std_str,'"','"');
+            return std_str;
         }
         S_Type stype(){
             return Base::sString;

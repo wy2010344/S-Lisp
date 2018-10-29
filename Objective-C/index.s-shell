@@ -1,0 +1,91 @@
+{
+	(
+		(load (lib-path 'g_Lib/g_common.lisp))
+		[
+			k OC
+			in-type SFunction_buildIn
+			better-type SFunction_user
+			build-cls
+			    {
+			        `
+			            key
+			            run
+			            other 可选
+			            toString
+			            type
+			        `
+			        (let (p) args)
+			        [
+			            "\n
+@interface S_"(quote p.key)" : SLibFunction
+
+@end
+
+@implementation S_"(quote p.key)"
+"(default p.other "")"
+- (NSObject*)run:(SNode*)args{
+	"(quote p.run)"
+}
+- (SFunctionType)function_type{
+	return "(quote p.type)";
+}
+- (NSString*)description{
+	return @\""(p.toString)"\";
+}
+@end
+			            "
+			        ]
+			    }
+		    build-m 
+			    {
+			        (let (k key) args)
+			        [
+			            "
+	m=[SNode kvs_extendKey:@\""(quote k)"\" value:[S_"(quote key)" new] kvs:m];"
+			        ]
+			    }
+			write-result 
+				{
+					(let (cls fun) args)
+					(write
+				    	(pathOf './SSystem.m)
+					    (str-join
+					        [
+"
+@interface SSystem : NSObject{
+    
+}
++ (NSString*)toString:(NSObject*)o trans:(BOOL)trans;
+@end
+"
+(str-join cls)
+"
+@implementation SSystem
++ (NSString*)toString:(NSObject*)o trans:(BOOL)trans{
+    if (o==nil) {
+        return @\"[]\";
+    }else if (trans){
+        if ([o isKindOfClass:[NSString class]]) {
+            return [NSString stringWithFormat:@\"\\\"%@\\\"\",o];
+        }else{
+            return [o description];
+        }
+    }else{
+        return [o description];
+    }
+}
++ (SNode*)library{
+    SNode* m=nil;
+    "(str-join fun)"
+    return m;
+}
+
+@end"        
+	        
+					        ]
+					    )
+					)
+				}
+		]
+	)
+}

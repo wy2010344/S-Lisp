@@ -8,31 +8,18 @@ namespace s{
             Exp_Small,
             Exp_String,
             Exp_Int,
+            Exp_Bool,
             Exp_Id,//,Comment//不要Comment
             Exp_Let,
             Exp_LetId,//一般的ID
             Exp_LetSmall,//()
             Exp_LetRest//...
         };
-    private:
-        String* value;
-        Location* loc;
     protected:
         Exp_Type type;
     public:
-        Exp(Exp_Type type,String* value,Location* loc):Base(){
+        Exp(Exp_Type type):Base(){
             this->type=type;
-            this->value=value;
-            value->retain();
-            this->loc=loc;
-            loc->retain();
-        }
-        virtual ~Exp(){
-            value->release();
-            loc->release();
-        }
-        String* Value(){
-            return value;
         }
         /*
         *目前，主要是()->letSmall,letID,letRestID
@@ -43,38 +30,51 @@ namespace s{
         Exp_Type exp_type(){
             return type;
         }
+        virtual bool isBracket()=0;
+        S_Type stype(){
+            return Base::sExp;
+        }
+        virtual LocationException* exception(string msg)=0;
+        virtual void warn(string msg)=0;
+    };
+    class AtomExp:public Exp{
+    private:
+        Token* token;
+    public:
+        AtomExp(Exp_Type type,Token* token):Exp(type){
+            this->token=token;
+            token->retain();
+        }
+        ~AtomExp(){
+            token->release();
+        }
+        String* Value(){
+            return token->Value();
+        }
         Location* Loc(){
-            return loc;
+            return token->Loc();
+        }
+
+        LocationException* exception(string msg){
+            return new LocationException(msg+":"+toString(),token->Loc());
+        }
+
+        void warn(string msg){
+            cout<<"warn:"<<msg<<":"<<Loc()->toString()<<":"<<toString()<<endl;
+        }
+        virtual string toString(){
+            return token->toString();
         }
         virtual bool isBracket(){
             return false;
         }
-        Token::Token_Type original_type;
-        virtual string toString(){
-            string & v=value->StdStr();
-            if(original_type==Token::Token_Prevent){
-                return "'"+v;
-            }else
-            if(type==Exp::Exp_String)
-            {
-                return str::stringToEscape(v,'"','"');
-            }else
-            if(type==Exp::Exp_LetRest){
-                return "..."+v;
-            }else{
-                return v;
-            }
-        }
-        S_Type stype(){
-            return Base::sExp;
-        }
     };
-    class IntExp:public Exp{
+    class IntExp:public AtomExp{
     private:
         Int* int_value;
     public:
-        IntExp(String* value,Location* loc):Exp(Exp::Exp_Int,value,loc){
-            int_value=new Int(value->StdStr());
+        IntExp(Token *token):AtomExp(Exp::Exp_Int,token){
+            int_value=new Int(token->Value()->StdStr());
             int_value->retain();
         }
         Int* Int_Value(){
@@ -84,11 +84,26 @@ namespace s{
             int_value->release();
         }
     };
-    class IDExp:public Exp{
+    class BoolExp:public AtomExp{
+    private:
+        Bool* bool_value;
+    public:
+        BoolExp(Token *token):AtomExp(Exp::Exp_Bool,token){
+            bool_value=Bool::trans(token->Value()->StdStr()=="true");
+            bool_value->retain();
+        }
+        Bool* Bool_Value(){
+            return bool_value;
+        }
+        ~BoolExp(){
+            bool_value->release();
+        }
+    };
+    class IDExp:public AtomExp{
         Node* paths;
     public:
-        IDExp(String* v,Location* loc):Exp(Exp::Exp_Id,v,loc){
-            string & value=v->StdStr();
+        IDExp(Token *token):AtomExp(Exp::Exp_Id,token){
+            string & value=token->Value()->StdStr();
             if(value[0]=='.' || value[value.size()-1]=='.'){
                 paths=NULL;
             }else{
@@ -111,7 +126,7 @@ namespace s{
                 }
                 r=new Node(new String(value.substr(last_i)),r);
                 if(has_error){
-                    throw new LocationException(value+"不是合法的ID，不允许.连续",loc);
+                    throw new LocationException(value+"不是合法的ID，不允许.连续",token->Loc());
                 }else{
                     paths=list::reverseAndDelete(r);
                 }
@@ -133,15 +148,30 @@ namespace s{
         Node *children;
         /*减少计算时的反转*/
         Node *r_children;
+        Token * left;
+        Token * right;
     public:
-        BracketExp(Exp_Type type,String* value,Node * children,Location* loc,Node* r_children=NULL)
-            :Exp(type,value,loc){
+        BracketExp(
+            Exp_Type type,
+            Token * left,
+            Token * right,
+            Node * children,
+            Node* r_children=NULL
+        ):Exp(type){
+            this->left=left;
+            if(left!=NULL){
+                left->retain();
+            }
+            this->right=right;
+            if(right!=NULL){
+                right->retain();
+            }
             this->children=children;
-            this->r_children=r_children;
             if(children!=NULL)
             {
                 children->retain();
             }
+            this->r_children=r_children;
             if(r_children!=NULL)
             {
                 r_children->retain();
@@ -158,7 +188,19 @@ namespace s{
             return r_children;
         }
 
+        Token* Left(){
+            return left;
+        }
+        Token* Right(){
+            return right;
+        }
         virtual ~BracketExp(){
+            if(left!=NULL){
+                left->release();
+            }
+            if(right!=NULL){
+                right->release();
+            }
             if(children!=NULL)
             {
                 children->release();
@@ -168,17 +210,21 @@ namespace s{
                 r_children->release();
             }
         }
-
+        LocationException* exception(string msg){
+            return new LocationException(msg+":"+toString(),left->Loc(),right->Loc());
+        }
+        void warn(string msg){
+            cout<<"warn:"<<msg<<":"<<left->Loc()->toString()<<right->Loc()->toString()<<":"<<toString()<<endl;
+        }
         virtual string toString(){
-            char a[2]={Value()->StdStr()[0],'\0'};
-            string x=string(a);
+            string x=left->Value()->StdStr();
             for(Node * t=children;t!=NULL;t=t->Rest())
             {
                 Exp *e=static_cast<Exp*>(t->First());
                 x+=e->toString();
                 x+=" ";
             }
-            x+=Value()->StdStr()[1];
+            x+=right->Value()->StdStr();
             return x;
         }
     };

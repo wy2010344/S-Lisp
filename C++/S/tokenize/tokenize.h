@@ -13,16 +13,18 @@ namespace s{
     			}else
     			if(isQuoteLeft(c)){
                     char cs[2]={c,'\0'};
+                    string cs_s=string(cs);
                     rest=new Node(
-                        new Token(new String(string(cs)),Token::Token_BracketLeft,code->currentLoc()),
+                        new Token(new String(cs_s),cs_s,Token::Token_BracketLeft,code->currentLoc()),
                         rest
                     );
                     code->shift();
     			}else
     			if(isQuoteRight(c)){
                     char cs[2]={c,'\0'};
+                    string cs_s=string(cs);
                     rest=new Node(
-                        new Token(new String(string(cs)),Token::Token_BracketRight,code->currentLoc()),
+                        new Token(new String(cs_s),cs_s,Token::Token_BracketRight,code->currentLoc()),
                         rest
                     );
                     code->shift();
@@ -55,11 +57,12 @@ namespace s{
     			char c=code->current();
     			if(c==end){
                     string stre=code->substr(start,code->index());
+                    string old_stre=code->substr(start-1,code->index()+1);
                     if(trans_time!=0){
                         stre=str::stringFromEscape(stre,end,trans_time);
                     }
     				rest=new Node(
-                        new Token(new String(stre),type,loc),
+                        new Token(new String(stre),old_stre,type,loc),
                         rest
                     );
                     code->shift();

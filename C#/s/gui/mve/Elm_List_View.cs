@@ -17,6 +17,7 @@ namespace gui.mve
             this.listview = new ListView();
             set_real_control(listview);
         }
+
         private ListView listview;
         public ListView ListView() { return listview; }
 
@@ -59,31 +60,26 @@ namespace gui.mve
             }
             return null;
         }
-        private Elm_List_View_Columns columns;
-        private Elm_List_View_Rows rows;
-        public override void appendChild(Elm el)
+
+        public void appendColumn(Elm_List_View_Col cel)
         {
-            if (el is Elm_List_View_Columns)
-            {
-                this.columns = el as Elm_List_View_Columns;
-                this.columns.setParent(this);
-            }
-            else if (el is Elm_List_View_Rows)
-            {
-                this.rows = el as Elm_List_View_Rows;
-                this.rows.setParent(this);
-            }
+            ColumnHeader ch= cel.Real_Control() as ColumnHeader;
+            listview.Columns.Add(ch);
         }
-        public override void removeChild(Elm el)
+        public void removeColumn(Elm_List_View_Col cel)
         {
-            if (el == columns)
-            {
-                columns = null;
-            }
-            else if (el == rows)
-            {
-                rows = null;
-            }
+            ColumnHeader ch = cel.Real_Control() as ColumnHeader;
+            listview.Columns.Remove(ch);
+        }
+        public void appendRow(Elm_List_View_Row rel)
+        {
+            ListViewItem lvi = rel.Real_Control() as ListViewItem;
+            listview.Items.Add(lvi);
+        }
+        public void removeRow(Elm_List_View_Row rel)
+        {
+            ListViewItem lvi = rel.Real_Control() as ListViewItem;
+            listview.Items.Remove(lvi);
         }
         public override void replaceWith(Elm el)
         {
@@ -97,57 +93,140 @@ namespace gui.mve
         {
             listview.EndUpdate();
         }
+
+        public s.Node<Object> selectedIndexs(){
+            s.Node<Object> o = null;
+            foreach(int lvi in listview.SelectedIndices)
+            {
+               o=s.Node<Object>.extend(lvi, o);
+            }
+            return o;
+        }
+        public void selectedIndexs(s.Node<Object> o)
+        {
+            listview.SelectedIndices.Clear();
+            for (s.Node<Object> t = o; t != null; t = t.Rest())
+            {
+                listview.SelectedIndices.Add((int)t.First());
+            }
+        }
+        public s.Node<Object> checkedIndexs()
+        {
+            s.Node<Object> o = null;
+            foreach (int lvi in listview.CheckedIndices)
+            {
+                o = s.Node<Object>.extend(lvi, o);
+            }
+            return o;
+        }
+        public void checkedIndexs(s.Node<Object> o)
+        {
+            foreach (ListViewItem lvi in listview.CheckedItems)
+            {
+                lvi.Checked = false;
+            }
+            for (s.Node<Object> t = o; t != null; t = t.Rest())
+            {
+                int index = (int)t.First();
+                listview.Items[index].Checked = true;
+            }
+        }
     }
-    /// <summary>
-    /// 
-    /// </summary>
-    public class Elm_List_View_Columns : Elm
+
+    public class DOMListViewBeginUpdate : DOM
     {
-        public Elm_List_View_Columns()
+        public override object exec(s.Node<object> args)
         {
-            this.cols = new List<Elm_List_View_Col>();
-            set_real_control(cols);
+            Elm_List_View ev = args.First() as Elm_List_View;
+            ev.begin_update();
+            return null;
         }
-        private List<Elm_List_View_Col> cols;
-        public void setParent(Elm_List_View elv)
+    }
+    public class DOMListViewEndUpdate : DOM
+    {
+        public override object exec(s.Node<object> args)
         {
-            if (this.parent != null)
+            Elm_List_View ev = args.First() as Elm_List_View;
+            ev.end_update();
+            return null;
+        }
+    }
+
+    public class DOMListViewAppendColumn : DOM {
+        public override object exec(s.Node<object> args)
+        {
+            Elm_List_View ev = args.First() as Elm_List_View;
+            args = args.Rest();
+            Elm_List_View_Col col = args.First() as Elm_List_View_Col;
+            ev.appendColumn(col);
+            return null;
+        }
+    }
+    public class DOMListViewRemoveColumn : DOM {
+        public override object exec(s.Node<object> args)
+        {
+            Elm_List_View ev = args.First() as Elm_List_View;
+            args = args.Rest();
+            Elm_List_View_Col col = args.First() as Elm_List_View_Col;
+            ev.removeColumn(col);
+            return null;
+        }
+    }
+
+    public class DOMListViewAppendRow : DOM
+    {
+        public override object exec(s.Node<object> args)
+        {
+            Elm_List_View ev = args.First() as Elm_List_View;
+            args = args.Rest();
+            Elm_List_View_Row row = args.First() as Elm_List_View_Row;
+            ev.appendRow(row);
+            return null;
+        }
+    }
+    public class DOMListViewRemoveRow : DOM
+    {
+        public override object exec(s.Node<object> args)
+        {
+            Elm_List_View ev = args.First() as Elm_List_View;
+            args = args.Rest();
+            Elm_List_View_Row row = args.First() as Elm_List_View_Row;
+            ev.removeRow(row);
+            return null;
+        }
+    }
+    public class DOMListViewSelectedIndexs : DOM
+    {
+        public override object exec(s.Node<object> args)
+        {
+            Elm_List_View ev = args.First() as Elm_List_View;
+            args = args.Rest();
+            if (args == null)
             {
-                foreach (Elm_List_View_Col col in cols)
-                {
-                    parent.ListView().Columns.Remove(col.Real_Control() as ColumnHeader);
-                }
+                return ev.selectedIndexs();
             }
-            this.parent = elv;
-            if (this.parent != null)
+            else
             {
-                foreach (Elm_List_View_Col col in cols)
-                {
-                    parent.ListView().Columns.Add(col.Real_Control() as ColumnHeader);
-                }
+                ev.selectedIndexs(args.First() as s.Node<Object>);
+                return null;
             }
         }
-        private Elm_List_View parent;
-        public override void appendChild(Elm el)
+    }
+    public class DOMListViewCheckedIndexs : DOM
+    {
+        public override object exec(s.Node<object> args)
         {
-            cols.Add(el as Elm_List_View_Col);
-            if (parent != null)
+            Elm_List_View ev = args.First() as Elm_List_View;
+            args = args.Rest();
+            if (args == null)
             {
-                parent.ListView().Columns.Add(el.Real_Control() as ColumnHeader);
+                return ev.checkedIndexs();
             }
-        }
-        public override void removeChild(Elm el)
-        {
-            cols.Remove(el as Elm_List_View_Col);
-            if (parent != null)
+            else
             {
-                parent.ListView().Columns.Remove(el.Real_Control() as ColumnHeader);
+                ev.checkedIndexs(args.First() as s.Node<Object>);
+                return null;
             }
-        }
-        public override void replaceWith(Elm el)
-        {
-            parent.removeChild(this);
-            parent.appendChild(el);
         }
     }
     /// <summary>
@@ -178,68 +257,12 @@ namespace gui.mve
     /// <summary>
     /// 
     /// </summary>
-    public class Elm_List_View_Rows : Elm
-    {
-        public Elm_List_View_Rows()
-        {
-            this.rows = new List<Elm_List_View_Row>();
-            set_real_control(rows);
-        }
-        public List<Elm_List_View_Row> rows;
-
-        public void setParent(Elm_List_View elv)
-        {
-            if (this.parent != null)
-            {
-                foreach (Elm_List_View_Row row in rows)
-                {
-                    parent.ListView().Items.Remove(row.Real_Control() as ListViewItem);
-                }
-            }
-            this.parent = elv;
-            if (this.parent != null)
-            {
-                foreach(Elm_List_View_Row row in rows)
-                {
-                    parent.ListView().Items.Add(row.Real_Control() as ListViewItem);
-                }
-            }
-        }
-
-        public override void appendChild(Elm el)
-        {
-            rows.Add(el as Elm_List_View_Row);
-            if (parent != null)
-            {
-                parent.ListView().Items.Add(el.Real_Control() as ListViewItem);
-            }
-        }
-
-        public override void removeChild(Elm el)
-        {
-            rows.Remove(el as Elm_List_View_Row);
-            if (parent != null)
-            {
-                parent.ListView().Items.Remove(el.Real_Control() as ListViewItem);
-            }
-        }
-
-        public override void replaceWith(Elm el)
-        {
-            parent.removeChild(this);
-            parent.appendChild(el);
-        }
-        private Elm_List_View parent;
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
     public class Elm_List_View_Row : Elm
     {
         public Elm_List_View_Row()
         {
             this.list_view_item = new ListViewItem();
+            this.list_view_item.Tag = this;/*为了获得反向查询*/
             set_real_control(list_view_item);
         }
         private ListViewItem list_view_item;

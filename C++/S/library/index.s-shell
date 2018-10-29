@@ -62,6 +62,20 @@
 #pragma once
 namespace s{
     namespace system{
+        string toString(Base* v,bool trans_str){
+            if(v==NULL){
+                return \"[]\";
+            }else
+            if(trans_str){
+                if(v->stype()==Base::sString){
+                    return str::stringToEscape(v->toString(),'\"','\"');
+                }else{
+                    return v->toString();
+                }
+            }else{
+                return v->toString();
+            }
+        }
             "
             `生成几个类体`
             (str-join cls)
@@ -72,8 +86,6 @@ namespace s{
             m=kvs::extend(Function::S_args(),NULL,m);
             m=kvs::extend(Function::S_this(),NULL,m);
             /**/
-            m=kvs::extend(\"true\",Bool::True,m);
-            m=kvs::extend(\"false\",Bool::False,m);
             "
             (str-join fun)
             "

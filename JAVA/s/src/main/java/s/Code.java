@@ -33,8 +33,8 @@ public class Code {
     public int length() {
     	return maxLength;
     }
-    public String substr(int start,int size) {
-    	return code.substring(start, start+size);
+    public String substr(int start,int end) {
+    	return code.substring(start, end);
     }
     public Character current(){
         return c;

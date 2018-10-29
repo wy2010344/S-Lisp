@@ -15,17 +15,6 @@ public class FunctionExp extends BracketsExp{
 		super(first,children,last);
 	}
 	@Override
-	public String left() {
-		// TODO Auto-generated method stub
-		return "{";
-	}
-	@Override
-	public String right() {
-		// TODO Auto-generated method stub
-		return "}";
-	}
-
-	@Override
 	public Exp_Type xtype() {
 		// TODO Auto-generated method stub
 		return Exp_Type.Function;

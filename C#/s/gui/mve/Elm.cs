@@ -53,13 +53,16 @@ namespace gui.mve
                     Object o = args.First();
                     if (info.PropertyType == typeof(bool))
                     {
-                        if ("true" == o as String)
+                        if (o is String)
                         {
-                            o = true;
-                        }
-                        else
-                        {
-                            o = false;
+                            if ("true" == o as String)
+                            {
+                                o = true;
+                            }
+                            else
+                            {
+                                o = false;
+                            }
                         }
                     }else if(info.PropertyType==typeof(Color))
                     {

@@ -30,39 +30,45 @@ namespace s
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append("[");
             toString(sb);
-            sb.Append("]");
             return sb.ToString();
         }
-        public void toString(StringBuilder sb)
+        protected void toString(StringBuilder sb)
         {
-            toString(sb, first,true);
+            sb.Append("[");
+            toString(sb, first);
             for (Node<T> tmp = rest; tmp != null; tmp = tmp.Rest())
             {
                 sb.Append(" ");
-                toString(sb, tmp.First(),true);
+                toString(sb, tmp.First());
             }
+            sb.Append("]");
         }
-        public static void toString(StringBuilder sb, Object v,bool trans)
+        /// <summary>
+        /// 专供调用
+        /// </summary>
+        /// <param name="sb"></param>
+        /// <param name="v"></param>
+        private static void toString(StringBuilder sb, Object v)
         {
             if (v == null)
             {
                 sb.Append("[]");
             }
+            else if (v is Node<Object>)
+            {
+                (v as Node<Object>).toString(sb);
+            }
             else if (v is String)
             {
-                sb.Append(Util.stringToEscape((String)v, '"', '"', null));
+                sb.Append(Util.stringToEscape(v as String, '"', '"', null));
             }
             else if (v is Function)
             {
                 Function f = v as Function;
                 if (f.Function_type() == Function.Function_Type.Fun_BuildIn)
                 {
-                    if (trans)
-                    {
-                        sb.Append("'");
-                    }
+                    sb.Append("'");
                     sb.Append(v.ToString());
                 }
                 else if (f.Function_type() == Function.Function_Type.Fun_Better)
@@ -73,17 +79,16 @@ namespace s
                 {
                     (f as UserFunction).toString(sb);
                 }
-                else
+                else if (f.Function_type() == Function.Function_Type.Fun_Cache)
+                {
+                    sb.Append("[]");
+                }else
                 {
                     sb.Append(v.ToString());
                 }
             }
             else if (v is bool)
             {
-                if (trans)
-                {
-                    sb.Append("'");
-                }
                 if ((bool)v)
                 {
                     sb.Append("true");
@@ -93,9 +98,21 @@ namespace s
                     sb.Append("false");
                 }
             }
-            else
+            else if (v is int)
             {
                 sb.Append(v.ToString());
+            }
+            else
+            {
+                String vx = v.ToString();
+                if (vx == null)
+                {
+                    sb.Append("[]");
+                }
+                else
+                {
+                    sb.Append("'").Append(v.ToString());
+                }
             }
         }
 

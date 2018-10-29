@@ -11,6 +11,7 @@ public abstract class Exp {
 		ID,
 		String,
 		Int,
+		Bool,
 		Call,//()
 		List,//[]
 		Function,//{}
@@ -19,24 +20,17 @@ public abstract class Exp {
 		Let_Bra,//(a b ...c)
 		Let_Rest_ID//...x
 	}
-	public abstract boolean isBracket();
-	public abstract s.Location Loc();
 	public abstract Exp_Type xtype();
-    public static void repeat(StringBuilder sb,int indent){
-        int i=0;
-        while(i<indent){
-            sb.append("  ");
-            i++;
-        }
-    }
-    public BracketsExp parent;
-    //换行
-    public abstract String toString(int indent);
+    public abstract Object eval(Node<Object> scope) throws Exception;
     //不换行，组合
     protected abstract void toString(StringBuilder sb);
-    //换行，组合
-    protected abstract void toString(StringBuilder sb,int indent);
-    public abstract Object eval(Node<Object> scope) throws Exception;
+	@Override
+	public String toString() {
+		StringBuilder sb=new StringBuilder();
+		toString(sb);
+		return sb.toString();
+	}
+
 	/*****/
 	protected static enum ParseStep{
 		Function,
@@ -45,7 +39,6 @@ public abstract class Exp {
 		Call,/*函数调用*/
 		LetBracket
 	}
-	
 	protected static class Cache{
 		public Cache(
 			Token value,
@@ -73,6 +66,12 @@ public abstract class Exp {
 	public static class TokenQueue{
 		public TokenQueue(Node<Token> tokens) {
 			this.tokens=tokens;
+			jumpComment();
+		}
+		private void jumpComment() {
+			while(tokens!=null && tokens.First().Type()==Token.Type.Comment) {
+				tokens=tokens.Rest();
+			}
 		}
 		private Node<Token> tokens;
 		public Token current() {
@@ -80,6 +79,7 @@ public abstract class Exp {
 		}
 		public void shift() {
 			tokens=tokens.Rest();
+			jumpComment();
 		}
 		public Token next() {
 			if(tokens.Rest()!=null) {

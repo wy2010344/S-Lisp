@@ -7,6 +7,30 @@ namespace s.library
 {
     public class System
     {
+        public static String toString(Object v, bool trans_str)
+        {
+            if (v == null)
+            {
+                return "[]";
+            }
+            else if (trans_str)
+            {
+                /*作为日志输出*/
+                if (v is String)
+                {
+                    return Util.stringToEscape(v as String, '"', '"', null);
+                }
+                else
+                {
+                    return v.ToString();
+                }
+            }
+            else
+            {
+                /*单纯转换*/
+                return v.ToString();
+            }
+        }
     
 
         class FirstFun:Function{
@@ -101,9 +125,41 @@ namespace s.library
             public override object exec(Node<object> args){
                 
                 StringBuilder sb = new StringBuilder();
-                args.toString(sb);
+                for(Node<Object> t=args;t!=null;t=t.Rest()){
+                    sb.Append(System.toString(t.First(),true)).Append(" ");
+                }
                 Console.WriteLine(sb.ToString());
                 return null;
+            
+            }
+            
+        }
+			            
+
+        class ToStringFun:Function{
+            private static ToStringFun _ini_=new ToStringFun();
+            public static ToStringFun instance(){return _ini_;}
+            public override string ToString(){return "toString";}
+            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override object exec(Node<object> args){
+                
+                Object b=args.First();
+                return System.toString(b,false);
+            
+            }
+            
+        }
+			            
+
+        class StringifyFun:Function{
+            private static StringifyFun _ini_=new StringifyFun();
+            public static StringifyFun instance(){return _ini_;}
+            public override string ToString(){return "stringify";}
+            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override object exec(Node<object> args){
+                
+                Object b=args.First();
+                return System.toString(b,true);
             
             }
             
@@ -173,22 +229,6 @@ namespace s.library
                 Function f=args.First() as Function;
                 args=args.Rest();
                 return f.exec(args.First() as Node<Object>);
-            
-            }
-            
-        }
-			            
-
-        class StringifyFun:Function{
-            private static StringifyFun _ini_=new StringifyFun();
-            public static StringifyFun instance(){return _ini_;}
-            public override string ToString(){return "stringify";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
-            public override object exec(Node<object> args){
-                
-                StringBuilder sb=new StringBuilder();
-                Node<Object>.toString(sb, args.First(), false);
-                return sb.ToString();
             
             }
             
@@ -761,6 +801,43 @@ namespace s.library
         }
 			            
 
+        class IndexOfFun:Function{
+            private static IndexOfFun _ini_=new IndexOfFun();
+            public static IndexOfFun instance(){return _ini_;}
+            public override string ToString(){return "{(let (vs k is_eq ) args is_eq (default eq ) ) (loop {(let ((v ...vs ) index ) args ) (if-run (is_eq v k ) {(list fa index ) } {(if-run (exist? vs ) {(list tr (list vs (+ index 1 ) ) ) } ) } ) } (list vs 0 ) ) }";}
+            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
+            public override object exec(Node<object> args){
+                
+                Node<Object> vs=args.First() as Node<Object>;
+                args=args.Rest();
+                Object k=args.First();
+                args=args.Rest();
+                Function eq=EqFun.instance();
+                if(args!=null){
+                    eq=args.First() as Function;
+                }
+
+                int index=-1;
+                int flag=0;
+                while(vs!=null && index==-1){
+                    if((bool)eq.exec(Node<Object>.list(vs.First(),k))){
+                        index=flag;
+                    }else{
+                        vs=vs.Rest();
+                        flag++;
+                    }
+                }
+                if(index==-1){
+                    return null;
+                }else{
+                    return index;
+                }
+            
+            }
+            
+        }
+			            
+
         class If_runFun:Function{
             private static If_runFun _ini_=new If_runFun();
             public static If_runFun instance(){return _ini_;}
@@ -1058,8 +1135,6 @@ namespace s.library
 			            
         public static Node<Object> library(){
             Node<Object> m = null;
-            m = Node<Object>.kvs_extend("true",true, m);
-            m = Node<Object>.kvs_extend("false", false, m);
             
         m=Node<Object>.kvs_extend("first",FirstFun.instance(),m);
         m=Node<Object>.kvs_extend("rest",RestFun.instance(),m);
@@ -1068,10 +1143,11 @@ namespace s.library
         m=Node<Object>.kvs_extend("empty?",IsemptyFun.instance(),m);
         m=Node<Object>.kvs_extend("exist?",IsexistFun.instance(),m);
         m=Node<Object>.kvs_extend("log",LogFun.instance(),m);
+        m=Node<Object>.kvs_extend("toString",ToStringFun.instance(),m);
+        m=Node<Object>.kvs_extend("stringify",StringifyFun.instance(),m);
         m=Node<Object>.kvs_extend("if",IfFun.instance(),m);
         m=Node<Object>.kvs_extend("eq",EqFun.instance(),m);
         m=Node<Object>.kvs_extend("apply",ApplyFun.instance(),m);
-        m=Node<Object>.kvs_extend("stringify",StringifyFun.instance(),m);
         m=Node<Object>.kvs_extend("type",TypeFun.instance(),m);
         m=Node<Object>.kvs_extend("+",AddFun.instance(),m);
         m=Node<Object>.kvs_extend("-",SubFun.instance(),m);
@@ -1099,6 +1175,7 @@ namespace s.library
         m=Node<Object>.kvs_extend("empty-fun",Empty_funFun.instance(),m);
         m=Node<Object>.kvs_extend("default",DefaultFun.instance(),m);
         m=Node<Object>.kvs_extend("len",LenFun.instance(),m);
+        m=Node<Object>.kvs_extend("indexOf",IndexOfFun.instance(),m);
         m=Node<Object>.kvs_extend("if-run",If_runFun.instance(),m);
         m=Node<Object>.kvs_extend("loop",LoopFun.instance(),m);
         m=Node<Object>.kvs_extend("reverse",ReverseFun.instance(),m);

@@ -18,7 +18,7 @@
 	                );
 	            },
 	            toString:function(obj){
-	                return s_lisp.s_trans(obj).toString();
+	                return s_lisp.toString(obj,true).toString();
 	            }
 	        })();
         };

@@ -17,19 +17,6 @@ public class CallExp extends BracketsExp{
 	public Node<Exp> R_children(){
 		return r_children;
 	}
-	
-	@Override
-	public String left() {
-		// TODO Auto-generated method stub
-		return "(";
-	}
-
-	@Override
-	public String right() {
-		// TODO Auto-generated method stub
-		return ")";
-	}
-
 	@Override
 	public Exp_Type xtype() {
 		// TODO Auto-generated method stub

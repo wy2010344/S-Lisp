@@ -575,10 +575,9 @@ mb.init=(function(){
 	        var res=ini.get("response");
 	        var servlet=mb.servlet(req,res);
 	        var request=(function(){
-	            var url=(""+req.getRequestURI());
+	            var url=decodeURI((""+req.getRequestURI()));
 	            var url_prefix=""+ini.get("url_prefix");
 	            var act=url.substring(url.indexOf(url_prefix)+url_prefix.length,url.length);
-	            act=""+decodeURI(act);
 	            if(url_prefix!="/"){
 	                var log_prefix=url_prefix.substring(0,url_prefix.indexOf("/"));
 	                ini.put("log",ini.get("me").getLogger(log_prefix));

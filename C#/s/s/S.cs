@@ -119,16 +119,7 @@ namespace s
                             Object r = null;
                             r = qr.exec(exp);
                             Console.Write("=>");
-                            if (r == null)
-                            {
-                                Console.WriteLine("[]");
-                            }
-                            else
-                            {
-                                StringBuilder sb = new StringBuilder();
-                                Node<Object>.toString(sb, r, false);
-                                Console.WriteLine(sb.ToString());
-                            }
+                            Console.WriteLine(s.library.System.toString(r,true));
                             Console.WriteLine();
                         }
                     }

@@ -19,16 +19,6 @@ public class ListExp extends BracketsExp{
 		return r_children;
 	}
 	@Override
-	public String left() {
-		// TODO Auto-generated method stub
-		return "[";
-	}
-	@Override
-	public String right() {
-		// TODO Auto-generated method stub
-		return "]";
-	}
-	@Override
 	public Exp_Type xtype() {
 		// TODO Auto-generated method stub
 		return Exp_Type.List;

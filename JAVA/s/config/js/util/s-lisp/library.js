@@ -5,6 +5,7 @@
     },
     success:function(){
         var Fun=Java.type("s.Function");
+        var Node=Java.type("s.Node");
         var Parse=Java.type("s.library.Parse");
         var System=Java.type("java.lang.System");
         var mb_Util=Java.type("mb.Util");
@@ -18,12 +19,16 @@
         var double_quotes=mb.charAt('"',0);
         var line_split=mb.charAt("\n",0);
         
-        var s_trans=function(v){
+        var toString=function(v,trans){
             if(v==null){
                 v="[]";
             }else
-            if(v instanceof Java_String){
-                v=mb_Util.string_to_trans(v,double_quotes,double_quotes,null);
+            if(trans){
+	            if(v instanceof Java_String){
+	                v=mb_Util.string_to_trans(v,double_quotes,double_quotes,null);
+	            }else{
+                    v=v.toString();
+                }
             }else{
                 v=v.toString();
             }
@@ -32,7 +37,7 @@
         var log_factory=function(append){
             return function(args){
                 for(var t=args;t!=null;t=t.Rest()){
-                    append(s_trans(t.First()));
+                    append(toString(t.First()));
                     append("\t");
                 }
                 append("\n");
@@ -208,7 +213,7 @@
             isFun:function(f){
                 return (f instanceof Fun);
             },
-            log_trans:s_trans,
+            toString:toString,
             Fun:Fun
         });
         mb.Object.forEach(library,function(v,k){
@@ -245,7 +250,7 @@
             buildFunc:buildFunc,
             log_factory:log_factory,
             S_Root:S_Root,
-            s_trans:s_trans
+            toString:toString
         };
     }
 });

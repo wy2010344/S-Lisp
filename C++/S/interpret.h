@@ -22,10 +22,9 @@ namespace s{
             return path;
         }
 
-        static LocationException *match_Exception(string msg,Location *loc,Node * scope)
+        static LocationException *match_Exception(string msg,Exp *e,Node * scope)
         {
-            LocationException* lex=new LocationException(getPath(scope)+":\t"+msg,loc);
-            return lex;
+            return e->exception(getPath(scope)+":\t"+msg);
         }
 
         /*每次增加1*/
@@ -35,8 +34,8 @@ namespace s{
             n_scope->retain();
             return n_scope;
         }
-        static Node * letSmallMatch(Exp * small,Base * v,Node * scope){
-            Node * ks=static_cast<BracketExp*>(small)->Children();
+        static Node * letSmallMatch(BracketExp * small,Base * v,Node * scope){
+            Node * ks=small->Children();
             if(v==NULL || v->stype()==Base::sList){
                 Node * vs=static_cast<Node*>(v);
                 while(ks!=NULL){
@@ -48,13 +47,13 @@ namespace s{
                     ks=ks->Rest();
 
                     if(k->exp_type()==Exp::Exp_LetId){
-                        scope=kvs_extend(k->Value(),v,scope);
+                        scope=kvs_extend(static_cast<AtomExp*>(k)->Value(),v,scope);
                     }else
                     if(k->exp_type()==Exp::Exp_LetSmall){
-                        scope=letSmallMatch(k,v,scope);
+                        scope=letSmallMatch(static_cast<BracketExp*>(k),v,scope);
                     }else
                     if(k->exp_type()==Exp::Exp_LetRest){
-                        scope=kvs_extend(k->Value(),vs,scope);
+                        scope=kvs_extend(static_cast<AtomExp*>(k)->Value(),vs,scope);
                     }
                     if(vs!=NULL){
                         vs=vs->Rest();
@@ -62,18 +61,18 @@ namespace s{
                 }
                 return scope;
             }else{
-                throw new LocationException(v->toString()+"不是合法的List类型，无法参与元组匹配:"+small->toString(),small->Loc());
+                throw small->exception(v->toString()+"不是合法的List类型，无法参与元组匹配:"+small->toString());
             }
         }
 
         static Node * match(Exp * key,Base * value,Node * scope){
             if(key->exp_type()==Exp::Exp_LetId){
-                scope=kvs_extend(key->Value(),value,scope);
+                scope=kvs_extend(static_cast<AtomExp*>(key)->Value(),value,scope);
             }else
             if(key->exp_type()==Exp::Exp_LetSmall){
-                scope=letSmallMatch(key,value,scope);
+                scope=letSmallMatch(static_cast<BracketExp*>(key),value,scope);
             }else{
-                throw new LocationException("尚不支持的Let-key类型"+key->toString(),key->Loc());
+                throw key->exception("尚不支持的Let-key类型"+key->toString());
             }
             return scope;
         }
@@ -123,7 +122,7 @@ namespace s{
             scope->retain();
             scope->release();
             */
-            return new LocationException(msg,exp->Loc());
+            return exp->exception(msg);
         }
         static Base * exec(Function* func,Node *rst,Node *children){
             /*函数的计算结果默认是+1的*/
@@ -225,7 +224,7 @@ namespace s{
                 try{
                     b=exec(func,rst,children);
                 }catch(LocationException *lex){
-                    lex->addStack(getPath(scope),be->Loc(),be->toString());
+                    lex->addStack(getPath(scope),be->Left()->Loc(),be->Right()->Loc(),be->toString());
                     throw lex;
                 }catch(string & err_str){
                     throw call_exception(err_str,be,children,scope);
@@ -250,41 +249,42 @@ namespace s{
                 b=NULL;
             }
             return b;
-        }else
-        if(e->exp_type()==Exp::Exp_String)
-        {
-            return e->Value();
-        }else
-        if(e->exp_type()==Exp::Exp_Int)
-        {
-            return static_cast<IntExp*>(e)->Int_Value();
-        }else
-        if(e->exp_type()==Exp::Exp_Id)
-        {
-            IDExp * idexp=static_cast<IDExp*>(e);
-            Node* paths=idexp->Paths();
-            if(paths==NULL){
-                throw match_Exception(idexp->Value()->StdStr()+"不是合法的ID类型",e->Loc(),scope);
-            }else{
-                Node * c_scope=scope;
-                Base * value=NULL;
-                while(paths!=NULL){
-                    String* key=static_cast<String*>(paths->First());
-                    value=kvs::find1st(c_scope,key);
-                    paths=paths->Rest();
-                    if(paths!=NULL){
-                        if(value==NULL || value->stype()==Base::sList){
-                            c_scope=static_cast<Node*>(value);
-                        }else{
-                            throw match_Exception("计算"+paths->toString()+"出错，"+value->toString()+"不是kvs类型:\t"+e->toString(),e->Loc(),scope);
+        }else{
+            AtomExp* ae=static_cast<AtomExp*>(e);
+            if(ae->exp_type()==Exp::Exp_String)
+            {
+                return ae->Value();
+            }else
+            if(ae->exp_type()==Exp::Exp_Int)
+            {
+                return static_cast<IntExp*>(ae)->Int_Value();
+            }else
+            if(ae->exp_type()==Exp::Exp_Id)
+            {
+                IDExp * idexp=static_cast<IDExp*>(ae);
+                Node* paths=idexp->Paths();
+                if(paths==NULL){
+                    throw match_Exception(idexp->Value()->StdStr()+"不是合法的ID类型",e,scope);
+                }else{
+                    Node * c_scope=scope;
+                    Base * value=NULL;
+                    while(paths!=NULL){
+                        String* key=static_cast<String*>(paths->First());
+                        value=kvs::find1st(c_scope,key);
+                        paths=paths->Rest();
+                        if(paths!=NULL){
+                            if(value==NULL || value->stype()==Base::sList){
+                                c_scope=static_cast<Node*>(value);
+                            }else{
+                                throw match_Exception("计算"+paths->toString()+"出错，"+value->toString()+"不是kvs类型:\t"+e->toString(),e,scope);
+                            }
                         }
                     }
+                    return value;
                 }
-                return value;
+            }else{
+                return NULL;
             }
-            return kvs::find1st(scope,e->Value());
-        }else{
-            return NULL;
         }
     }
 };

@@ -51,17 +51,6 @@ public class IdExp extends AtomExp{
     	return value;
     }
 	@Override
-	protected void toString(StringBuilder sb) {
-		// TODO Auto-generated method stub
-		if(token.Original_type()==Token.Type.Quote) {
-			//中括号引用转id
-            toString(sb,value,"'","");
-		}else {
-			//默认id
-			toString(sb,value,"","");
-		}
-	}
-	@Override
 	public Exp_Type xtype() {
 		// TODO Auto-generated method stub
 		return Exp_Type.ID;
@@ -86,7 +75,7 @@ public class IdExp extends AtomExp{
 				if(value==null || value instanceof Node) {
 					c_scope=(Node<Object>)value;
 				}else {
-					throw new LocationException("计算"+paths.toString()+"，其中"+value + "不是kvs类型:\t"+toString(),Loc());
+					throw new LocationException("计算"+paths.toString()+"，其中"+value + "不是kvs类型:\t"+toString(),token.Loc());
 				}
 			}
 		}

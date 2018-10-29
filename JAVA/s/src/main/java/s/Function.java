@@ -37,17 +37,9 @@ public interface Function {
 		public String toString() {
 			return exp.toString();
 		}
-		//换行
-		public String toString(int indent) {
-			return exp.toString(indent);
-		}
 		//嵌套不换行
 		public void toString(StringBuilder sb) {
 			exp.toString(sb);
-		}
-		//嵌套换行
-		public void toString(StringBuilder sb,int indent) {
-			exp.toString(sb, indent);
 		}
 		@Override
 		public Type ftype() {

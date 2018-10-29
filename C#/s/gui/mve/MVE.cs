@@ -26,7 +26,7 @@ namespace gui.mve
         public s.Function width;
     }
 
-    abstract class DOM : s.Function
+    public abstract class DOM : s.Function
     {
         public override string ToString()
         {
@@ -55,6 +55,16 @@ namespace gui.mve
             dom = s.Node<Object>.kvs_extend("style", new DOMUnDefined(), dom);
             dom = s.Node<Object>.kvs_extend("prop", new DOMUnDefined(), dom);
             dom = s.Node<Object>.kvs_extend("html", new DOMUnDefined(), dom);
+
+            dom = s.Node<Object>.kvs_extend("list-view-beginUpdate", new DOMListViewBeginUpdate(), dom);
+            dom = s.Node<Object>.kvs_extend("list-view-endUpdate", new DOMListViewEndUpdate(), dom);
+            dom = s.Node<Object>.kvs_extend("list-view-appendColumn", new DOMListViewAppendColumn(), dom);
+            dom = s.Node<Object>.kvs_extend("list-view-removeColumn", new DOMListViewRemoveColumn(), dom);
+            dom = s.Node<Object>.kvs_extend("list-view-appendRow", new DOMListViewAppendRow(), dom);
+            dom = s.Node<Object>.kvs_extend("list-view-removeRow", new DOMListViewRemoveRow(), dom);
+            dom = s.Node<Object>.kvs_extend("list-view-selectedIndexs", new DOMListViewSelectedIndexs(), dom);
+            dom = s.Node<Object>.kvs_extend("list-view-checkedIndexs", new DOMListViewCheckedIndexs(), dom);
+
             return dom;
         }
     }
@@ -83,17 +93,9 @@ namespace gui.mve
             {
                 return new mve.Elm_List_View();
             }
-            else if (type == "columns")
-            {
-                return new mve.Elm_List_View_Columns();
-            }
             else if (type == "col")
             {
                 return new mve.Elm_List_View_Col();
-            }
-            else if (type == "rows")
-            {
-                return new mve.Elm_List_View_Rows();
             }
             else if (type == "row")
             {

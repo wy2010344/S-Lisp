@@ -48,11 +48,15 @@ namespace s{
             r=r+"]";
             return r;//"$Node";//"$Node:"+First()->toString()+","+Rest()->toString();
         }
+    private:
         static string toString(Base * b)
         {
             if(b==NULL){
                 return "[]";
             }else{
+                if(b->stype()==Base::sString){
+                    return str::stringToEscape(b->toString(),'"','"');
+                }else
                 if(b->stype()==Base::sFunction)
                 {
                     Function *f=static_cast<Function*>(b);
@@ -62,16 +66,11 @@ namespace s{
                     }else{
                         return f->toString();
                     }
-                }else
-                if(b->stype()==Base::sBool){
-                    return "'"+b->toString();
-                }else
-                {
+                }else{
                     return b->toString();
                 }
             }
         }
-    private:
         int length;
         Base* first;
         Node *rest;

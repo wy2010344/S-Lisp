@@ -3,17 +3,13 @@ package s;
 public class Token {
     public Token(
             String _value,
+            String _old_value,
             Location _loc,
             Type _type){
         value=_value;
+        old_value=_old_value;
         loc=_loc;
         type=_type;
-        original_type=_type;
-    }
-    //未转义前原始类型
-    private Type original_type;
-    public Type Original_type() {
-    	return original_type;
     }
     private Type type;
     public Type Type(){
@@ -27,6 +23,10 @@ public class Token {
     public String Value(){
         return value;
     }
+    private String old_value;
+    public String Old_Value() {
+    	return old_value;
+    }
     private Location loc;
     public Location Loc(){
         return loc;
@@ -34,7 +34,7 @@ public class Token {
     
     @Override
     public String toString() {
-    	return value;
+    	return old_value;
     }
     
     public static enum Type{
@@ -46,6 +46,7 @@ public class Token {
         Str,//"  "
         Int,
         Float,
+        Bool
     }
 
 	/***tokenize***********************************************************************************************************************************************/
@@ -61,9 +62,7 @@ public class Token {
 	 * @return
 	 * @throws LocationException 
 	 */
-	static String parseStr(Code code,char end) throws LocationException{
-	    Location loc=code.currentLoc();
-	    code.shift();
+	static Node<Token> tokenize_split(Code code,s.Node<Token> tokens,Token.Type type,Location loc,char end) throws LocationException{
 	    int start=code.index();
 	    boolean nobreak=true;
 	    int trans_time=0;
@@ -81,7 +80,9 @@ public class Token {
 	    if(code.current()==null){
 	        throw code.msgThrow(end);
 	    }else{
-	    	String s=code.substr(start, code.index()-start);
+	    	String s=code.substr(start, code.index());
+	    	String old_s=code.substr(start-1, code.index()+1);
+            loc.setLength(old_s.length());
 	    	if(trans_time!=0) {
 	    		try {
 	    			s=mb.Util.string_from_trans(s,end,trans_map,trans_time);
@@ -90,7 +91,7 @@ public class Token {
 	    		}
 	    	}
 	        code.shift();
-	        return s;
+	        return Node.extend(new Token(s,old_s,loc,type), tokens);
 	    }
 	}
 	
@@ -159,16 +160,15 @@ public class Token {
 	        }else
 	        if(code.current()=='"'){
 	            //字符串
-	            Location loc=code.currentLoc();
-	            String s=parseStr(code,'"');
-	            loc.setLength(s.length()+2);
-	            tokens=Node.extend(new Token(s,loc,Token.Type.Str),tokens);
+	    	    Location loc=code.currentLoc();
+	    	    code.shift();
+	        	tokens=tokenize_split(code,tokens,Token.Type.Str,loc,'"');
 	        }else
 	        if(code.current()=='`'){
 	            //注释
-	            Location loc=code.currentLoc();
-	            String s=parseStr(code,'`');
-	            loc.setLength(s.length()+2);
+	    	    Location loc=code.currentLoc();
+	    	    code.shift();
+	            tokens=tokenize_split(code, tokens, Token.Type.Comment,loc, '`');
 	            //tokens=Node.extend(new Token(s,loc,Token.Type.Comment),tokens);
 	            //不处理
 	        }else
@@ -176,14 +176,16 @@ public class Token {
 	            //([{
 	            Location loc=code.currentLoc();
 	            loc.setLength(1);
-	            tokens=Node.extend(new Token(code.current()+"",loc,Token.Type.BraL),tokens);
+	            String v=code.current()+"";
+	            tokens=Node.extend(new Token(v,v,loc,Token.Type.BraL),tokens);
 	            code.shift();
 	        }else
 	        if(has(code.current(),brackets_out)){
 	            //)]}
 	            Location loc=code.currentLoc();
 	            loc.setLength(1);
-	            tokens=Node.extend(new Token(code.current()+"",loc,Token.Type.BraR),tokens);
+	            String v=code.current()+"";
+	            tokens=Node.extend(new Token(v,v,loc,Token.Type.BraR),tokens);
 	            code.shift();
 	        }else
 	        {
@@ -193,7 +195,7 @@ public class Token {
 	            while(code.current()!=null && isNotEnd(code.current())){
 	                code.shift();
 	            }
-	            String s=code.substr(start, code.index()-start);
+	            String s=code.substr(start, code.index());
 	            loc.setLength(s.length());
 	        	//长度超过1
 	            if(s.charAt(0)=='\'' && s.length()!=1){
@@ -201,12 +203,15 @@ public class Token {
 	                if(s.length()==1){
 	                    code.msgThrow('\'');
 	                }else{
-	                    s=s.substring(1);
-	                    tokens=Node.extend(new Token(s,loc,Token.Type.Quote),tokens);
+	                    String n_s=s.substring(1);
+	                    tokens=Node.extend(new Token(n_s,s,loc,Token.Type.Quote),tokens);
 	                }
 	            }else
 	            if((!s.equals("-"))&&isInt(s)){
-	                tokens=Node.extend(new Token(s,loc,Token.Type.Int),tokens);
+	                tokens=Node.extend(new Token(s,s,loc,Token.Type.Int),tokens);
+	            }else
+	            if("true".equals(s)||"false".equals(s)){
+	            	tokens=Node.extend(new Token(s,s,loc,Token.Type.Bool),tokens);
 	            }else
 	            /*
 	            if(isFloat(s)){
@@ -215,7 +220,7 @@ public class Token {
 	            else
 	            */
 	            {
-	            	tokens=Node.extend(new Token(s,loc,Token.Type.Id),tokens);
+	            	tokens=Node.extend(new Token(s,s,loc,Token.Type.Id),tokens);
 	            }
 	        }
 	    }

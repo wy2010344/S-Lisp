@@ -26,6 +26,10 @@ namespace s
             return ret;
         }
 
+        private static Node<Object> kvs_extend(String key, Object value, Node<Object> kvs)
+        {
+            return Node<Object>.kvs_extend(key,value,kvs);
+        }
         Node<Object> letSmallMatch(Exp small, Object v, Node<Object> scope)
         {
             Node<Exp> ks = small.Children();
@@ -44,7 +48,7 @@ namespace s
 
                     if (k.Exp_type() == Exp.Exp_Type.Exp_LetId)
                     {
-                        scope = Node<Object>.kvs_extend(k.Value(), v, scope);
+                        scope = kvs_extend(k.Value(), v, scope);
                     }
                     else if (k.Exp_type() == Exp.Exp_Type.Exp_LetSmall)
                     {
@@ -52,11 +56,11 @@ namespace s
                     }
                     else if (k.Exp_type() == Exp.Exp_Type.Exp_LetRest)
                     {
-                        scope = Node<Object>.kvs_extend(k.Value(), vs, scope);
+                        scope =kvs_extend(k.Value(), vs, scope);
                     }
                     else
                     {
-                        throw new LocationException(k.Loc(),"异常匹配" + k.ToString());
+                        throw k.exception("异常匹配" + k.ToString());/*已经排出了，不会有这个问题*/
                     }
                     if (vs != null)
                     {
@@ -67,7 +71,7 @@ namespace s
             }
             else
             {
-                throw new LocationException(small.Loc(), v.ToString() + "不是合法的List类型，无法参与元组匹配:" + small.ToString());
+                throw small.exception(v.ToString() + "不是合法的List类型，无法参与元组匹配:" + small.ToString());/*计算结果值不是列表*/
             }
         }
         Object run(Exp exp)
@@ -83,7 +87,7 @@ namespace s
                     cs = cs.Rest();
                     if (key.Exp_type() == Exp.Exp_Type.Exp_LetId)
                     {
-                        scope = Node<Object>.kvs_extend(key.Value(), value, scope);
+                        scope = kvs_extend(key.Value(), value, scope);
                     }
                     else if (key.Exp_type() == Exp.Exp_Type.Exp_LetSmall)
                     {
@@ -117,11 +121,6 @@ namespace s
             }
             return path;
         }
-        LocationException match_Exception(Node<Object> scope, String msg, Location loc)
-        {
-            LocationException lox = new LocationException(loc, getPath(scope) + ":\t" + msg);
-            return lox;
-        }
         Node<Object> calNode(Node<Exp> list, Node<Object> scope)
         {
             Node<Object> r = null;
@@ -134,11 +133,28 @@ namespace s
             }
             return r;
         }
+        /// <summary>
+        /// 有作用域时抛出错误
+        /// </summary>
+        /// <param name="scope"></param>
+        /// <param name="msg"></param>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        LocationException match_Exception(Node<Object> scope, String msg, Exp e)
+        {
+            return e.exception(getPath(scope) + ":\t" + msg);
+        }
+        /// <summary>
+        /// 函数执行时的错误
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <param name="exp"></param>
+        /// <param name="scope"></param>
+        /// <param name="children"></param>
+        /// <returns></returns>
         LocationException error_throw(String msg, Exp exp,Node<Object> scope,Node<Object> children)
         {
-            LocationException locexp=new LocationException(exp.Loc(),  msg + ":\r\n"+children.ToString()+"\r\n"+ exp.Children().First() + "\r\n" + exp.Children().ToString());
-            locexp.addStack(getPath(scope),exp.Loc(),exp.ToString());
-            return locexp;
+            return exp.exception( msg + ":\r\n"+children.ToString()+"\r\n"+ exp.Children().First() + "\r\n" + exp.Children().ToString());
         }
         Object interpret(Exp exp, Node<Object> scope)
         {
@@ -155,7 +171,7 @@ namespace s
                     }
                     catch (LocationException lex)
                     {
-                        lex.addStack(getPath(scope), exp.Loc(), exp.ToString());
+                        lex.addStack(getPath(scope), exp.Left().Loc(),exp.Right().Loc(), exp.ToString());
                         throw lex;
                     }
                     catch (Exception ex)
@@ -191,12 +207,16 @@ namespace s
             {
                 return exp.Int_Value();
             }
+            else if (exp.Exp_type() == Exp.Exp_Type.Exp_Bool)
+            {
+                return exp.Bool_Value();
+            }
             else if (exp.Exp_type() == Exp.Exp_Type.Exp_Id)
             {
                 Node<String> paths = exp.KVS_paths();
                 if (paths == null)
                 {
-                    throw match_Exception(scope, exp.Value() + "不是合法的ID类型:\t"+exp.ToString(), exp.Loc());
+                    throw match_Exception(scope, exp.Value() + "不是合法的ID类型:\t" + exp.ToString(), exp);
                 }
                 else
                 {
@@ -209,19 +229,20 @@ namespace s
                         paths = paths.Rest();
                         if (paths != null)
                         {
-                            if (value==null || value is Node<Object>)
+                            if (value == null || value is Node<Object>)
                             {
                                 c_scope = value as Node<Object>;
                             }
                             else
                             {
-                                throw match_Exception(scope, "计算"+paths.ToString()+"，其中"+value + "不是kvs类型:\t"+exp.ToString(), exp.Loc());
+                                throw match_Exception(scope, "计算" + paths.ToString() + "，其中" + value + "不是kvs类型:\t" + exp.ToString(), exp);
                             }
                         }
                     }
                     return value;
                 }
-            }else
+            }
+            else
             {
                 return null;
             }

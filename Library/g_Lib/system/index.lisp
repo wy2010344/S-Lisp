@@ -157,12 +157,7 @@
 			run "
                 for (Node * tmp=args; tmp!=NULL; tmp=tmp->Rest()) {
                     Base * v=tmp->First();
-                    if(v==NULL){
-                        cout<<\"[]\";
-                    }else{
-                        cout<<v->toString();
-                    }
-                    cout<<\"  \";
+                    cout<<system::toString(v,true)<<\" \";
                 }
                 cout<<endl;
                 return NULL;
@@ -171,7 +166,9 @@
         C# [
             run "
                 StringBuilder sb = new StringBuilder();
-                args.toString(sb);
+                for(Node<Object> t=args;t!=null;t=t.Rest()){
+                    sb.Append(System.toString(t.First(),true)).Append(\" \");
+                }
                 Console.WriteLine(sb.ToString());
                 return null;
             "
@@ -180,18 +177,92 @@
             run "
                 var cs=[];
                 for(var t=args;t!=null;t=t.Rest()){
-                    cs.push(p.log_trans(t.First()));
+                    cs.push(p.toString(t.First(),true));
                 }
                 p.log(cs);
             "
         ]
         OC [
             run "
-                NSLog(@\"%@\",[SNode description:args trans:NO]);
+                NSMutableString* str=[NSMutableString new];
+                for (SNode* t=args; t!=nil; t=[t Rest]) {
+                    [str appendString:[SSystem toString:[t First] trans:YES]];
+                    [str appendString:@\" \"];
+                }
+                NSLog(@\"%@\",str);
+                [SBase SEvalRelease:str];
                 return nil;
             "
         ]
 	]
+    toString [
+        `
+        String->不变
+        Int->String
+        Bool->String
+        List->[]
+        Function->{}
+        `
+        cpp [
+            run "
+                Base* b=args->First();
+                return new String(system::toString(b,false));
+            "
+        ]
+
+        C# [
+            run "
+                Object b=args.First();
+                return System.toString(b,false);
+            "
+        ]
+
+        js [
+            run "
+                var b=args.First();
+                return p.toString(b,false);
+            "
+        ]
+
+        OC [
+            run "
+                NSObject* b=[args First];
+                return [SSystem toString:b trans:NO];
+            "
+        ]
+    ]
+    stringify [
+        `
+            和log不同，log如果是字符串，会加上引号log函数是多个，返回值显示是1个。
+            log函数对每一个转换，不是单纯的列表内
+            只是转换成字符串类型
+        `
+        cpp [
+            run "
+                Base* b=args->First();
+                return new String(system::toString(b,true));
+            "
+        ]
+        C# [
+            run "
+                Object b=args.First();
+                return System.toString(b,true);
+            "
+        ]
+        js [
+            run "
+                var b=args.First();  
+                return p.toString(b,true);
+            "
+        ]
+
+        OC [
+            run "
+                NSObject* b=[args First];
+                return [SSystem toString:b trans:YES];
+            "
+        ]
+    ]
 	if [
 		cpp [
             other "
@@ -325,8 +396,11 @@
             "
         ]
     ]
-	`apply函数`
     apply [
+        `
+            计划这样改造这个函数，只有两个参数时，按原计划。
+            N个参数时，后面的计算结果依次返回作前面的参数
+        `
         cpp [
             run "
                 Function *f=static_cast<Function*>(args->First());
@@ -365,32 +439,6 @@
             "
         ]
     ]
-	stringify [
-		cpp [
-			run "
-                return new String(args->First()->toString());
-			"
-		]
-        C# [
-            run "
-                StringBuilder sb=new StringBuilder();
-                Node<Object>.toString(sb, args.First(), false);
-                return sb.ToString();
-            "
-        ]
-        js [
-            run "
-                //类似于JSON.stringify，没想好用toString还是stringify;
-                return args.First().toString();  
-            "
-        ]
-
-        OC [
-            run "
-                return [SNode toString:[args First] trans:NO];
-            "
-        ]
-	]
     type [
         cpp [
             other 

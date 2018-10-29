@@ -47,7 +47,7 @@
                     return qr.exec(str,line_split);
                 }
             },
-            s_trans:library.s_trans
+            toString:library.toString
         }
     }
 })

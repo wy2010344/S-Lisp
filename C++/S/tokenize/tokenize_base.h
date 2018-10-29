@@ -8,12 +8,14 @@ namespace s{
             Token_Comment,
             Token_Prevent,
             Token_String,
+            Token_Bool,
             Token_Id,
             Token_Int
         };
-        Token(String* value,Token_Type type,Location* loc):Base(){
+        Token(String* value,string old_value,Token_Type type,Location* loc):Base(){
             //cout<<"TOKEN:"<<value<<"  "<<type<<endl;
             this->value=value;
+            this->old_value=old_value;
             value->retain();
             this->type=type;
             this->loc=loc;
@@ -32,7 +34,7 @@ namespace s{
             return Base::sToken;
         }
         virtual string toString(){
-            return "$Token";
+            return old_value;
         }
         virtual ~Token(){
             value->release();
@@ -41,6 +43,7 @@ namespace s{
     private:
         Location* loc;
         String* value;
+        string old_value;
         Token_Type type;
     };
     class Code
@@ -137,16 +140,19 @@ namespace s{
                 if(Id.size()==1){
                     throw new LocationException("单个'不允许",loc);
                 }else{
-                    token=new Token(new String(Id.substr(1,Id.size()-1)),Token::Token_Prevent,loc);
+                    token=new Token(new String(Id.substr(1,Id.size()-1)),Id,Token::Token_Prevent,loc);
                 }
             }else
             if (isInt(Id)){
                 //转成Int，方便数值计算
-                token=new Token(new String(Id),Token::Token_Int,loc);
+                token=new Token(new String(Id),Id,Token::Token_Int,loc);
+            }else
+            if(Id=="true"||Id=="false"){
+                token=new Token(new String(Id),Id,Token::Token_Bool,loc);
             }else
             {
                 //ID类型
-                token=new Token(new String(Id),Token::Token_Id,loc);
+                token=new Token(new String(Id),Id,Token::Token_Id,loc);
             }
             return token;
         }

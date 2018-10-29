@@ -8,6 +8,8 @@
 		Watcher 
 		appendChild 
 		removeChild
+		before 可选
+		after 可选
 		`
 		(p) args
 		nokey (load './nokey.lisp)
@@ -39,6 +41,8 @@
 			}
 		}
 		type-key (str-join ['p.key - type])
+		p-before (default p.before empty-fun)
+		p-after (default p.after empty-fun)
 	)
 	{
 		(let 
@@ -86,13 +90,17 @@
 						)
 					`Array的计算观察`
 					watch 
-						(p.Watcher 
+						(p.Watcher
 							[
+								before {
+									(p-before pel)
+								}
 								exp {
 									(children.array)
 								}
 								after {
 									(bc-after (first args))
+									(p-after pel)
 								}
 							]
 						)

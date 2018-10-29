@@ -13,13 +13,20 @@ namespace s
             Token_Prevent,
             Token_String,
             Token_Id,
-            Token_Int
+            Token_Int,
+            Token_Bool
         }
         private String value;
+        private String old_value;
+        public String Old_Value()
+        {
+            return old_value;
+        }
         private Token_Type type;
         private Location loc;
-        public Token(String value, Token_Type type, Location loc) {
+        public Token(String value,String old_value, Token_Type type, Location loc) {
             this.value = value;
+            this.old_value = old_value;
             this.type = type;
             this.loc = loc;
         }
@@ -38,7 +45,7 @@ namespace s
 
         public override string ToString()
         {
-            return value;
+            return old_value;
         }
 
         static bool isBlank(char c)
@@ -47,7 +54,7 @@ namespace s
         }
         static bool notNumber(char c)
         {
-            return ('0' > c || c > '9');
+            return (c < '0'|| '9' < c) ;
         }
         static bool isQuoteLeft(char c)
         {
@@ -57,12 +64,12 @@ namespace s
         {
             return (c == '}' || c == ']' || c == ')');
         }
-        static bool isInt(String id)
+        public static bool isInt(String id)
         {
             bool ret=true;
             for(int i=0;i<id.Length;i++)
             {
-                char c=id[0];
+                char c=id[i];
                 if(notNumber(c)){
                     ret=false;
                 }
@@ -83,23 +90,25 @@ namespace s
                 }
                 else
                 {
-                    token = new Token(Id.Substring(1), Token_Type.Token_Prevent, loc);
+                    token = new Token(Id.Substring(1),Id, Token_Type.Token_Prevent, loc);
                 }
             }else if (isInt(Id))
             {
-                token = new Token(Id, Token_Type.Token_Int, loc);
+                token = new Token(Id,Id, Token_Type.Token_Int, loc);
             }
-            else
+            else if (Id == "true" || Id=="false")
             {
-                token = new Token(Id, Token_Type.Token_Id, loc);
+                token = new Token(Id,Id, Token_Type.Token_Bool, loc);
+            }else
+            {
+                token = new Token(Id,Id, Token_Type.Token_Id, loc);
             }
             return token;
         }
 
-        static Node<Token> tokenize_split(Code code,Node<Token> rest,Token_Type type,Location loc,char end)
+        static Node<Token> tokenize_split(Code code,Node<Token> tokens,Token_Type type,Location loc,char end)
         {
             bool unbreak = true;
-            code.shift();
             int start = code.index();
             int trans_time = 0;
             while (code.noEnd() && unbreak) {
@@ -111,9 +120,9 @@ namespace s
                     {
                         str = Util.stringFromEscape(str, end, trans_time);
                     }
-                    rest = Node<Token>.extend(
-                        new Token(str,type,loc),
-                        rest
+                    tokens = Node<Token>.extend(
+                        new Token(str,code.substr(start-1,code.index()+1),type,loc),
+                        tokens
                     );
                     code.shift();
                     unbreak = false;
@@ -132,7 +141,7 @@ namespace s
             {
                 throw new LocationException(loc, "³¬³ö·¶Î§ÈÔÎ´½áÊø");
             }
-            return rest;
+            return tokens;
         }
         static Node<Token> tokenize_ID(Code code,Location loc, Node<Token> rest)
         {
@@ -170,19 +179,25 @@ namespace s
                     code.shift();
                 }else if (isQuoteLeft(c))
                 {
-                    rest = Node<Token>.extend(new Token("" + c, Token_Type.Token_BracketLeft, code.currentLoc()), rest);
+                    String cs=""+c;
+                    rest = Node<Token>.extend(new Token(cs,cs, Token_Type.Token_BracketLeft, code.currentLoc()), rest);
                     code.shift();
                 }else if (isQuoteRight(c))
                 {
-                    rest = Node<Token>.extend(new Token("" + c, Token_Type.Token_BracketRight, code.currentLoc()), rest);
+                    String cs=""+c;
+                    rest = Node<Token>.extend(new Token(cs,cs, Token_Type.Token_BracketRight, code.currentLoc()), rest);
                     code.shift();
                 }else if(c=='"')
                 {
-                    rest=tokenize_split(code,rest,Token_Type.Token_String,code.currentLoc(),'"');
+                    Location loc = code.currentLoc();
+                    code.shift();
+                    rest=tokenize_split(code,rest,Token_Type.Token_String,loc,'"');
                 }
                 else if (c == '`')
                 {
-                    rest = tokenize_split(code, rest, Token_Type.Token_Comment, code.currentLoc(), '`');
+                    Location loc = code.currentLoc();
+                    code.shift();
+                    rest =tokenize_split(code, rest, Token_Type.Token_Comment,loc, '`');
                 }
                 else
                 {

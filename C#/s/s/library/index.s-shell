@@ -54,13 +54,35 @@ namespace s.library
 {
     public class System
     {
+        public static String toString(Object v, bool trans_str)
+        {
+            if (v == null)
+            {
+                return \"[]\";
+            }
+            else if (trans_str)
+            {
+                /*作为日志输出*/
+                if (v is String)
+                {
+                    return Util.stringToEscape(v as String, '\"', '\"', null);
+                }
+                else
+                {
+                    return v.ToString();
+                }
+            }
+            else
+            {
+                /*单纯转换*/
+                return v.ToString();
+            }
+        }
     "
         (str-join cls)
     "
         public static Node<Object> library(){
             Node<Object> m = null;
-            m = Node<Object>.kvs_extend(\"true\",true, m);
-            m = Node<Object>.kvs_extend(\"false\", false, m);
             "
             (str-join fun)
             "
