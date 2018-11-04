@@ -22,6 +22,11 @@
                 return [(SNode*)[args First] First];
             "
         ]
+        python [
+            run "
+        return args.First().First()
+            "
+        ]
 	]
 	rest [
 		cpp [
@@ -43,6 +48,11 @@
         OC [
             run "
                 return [(SNode*)[args First] Rest];
+            "
+        ]
+        python [
+            run "
+        return args.First().Rest()
             "
         ]
 	]
@@ -67,6 +77,11 @@
                 return [SNode extend:[args First] with:(SNode*)[[args Rest] First]];
             "
         ]
+        python [
+            run "
+        return Node.extend(args.First(),args.Rest().First())
+            "
+        ]
 	]
 	length [
 		cpp [
@@ -87,6 +102,11 @@
         OC [
             run "
                 return [NSNumber numberWithInt:[(SNode*)[args First] Length]];
+            "
+        ]
+        python [
+            run "
+        return args.First().Length()
             "
         ]
 	]
@@ -128,6 +148,12 @@
                 return [SBool trans:[args First]==nil];
             "
         ]
+
+        python [
+            run "
+        return args.First()==None
+            "
+        ]
 	]
 	exist? [
 		cpp [
@@ -149,6 +175,12 @@
         OC [
             run "
                 return [SBool trans:[args First]!=nil];
+            "
+        ]
+
+        python [
+            run "
+        return args.First()!=None
             "
         ]
 	]
@@ -194,6 +226,18 @@
                 return nil;
             "
         ]
+        python [
+            run "
+        sb=[]
+        tmp=args
+        while tmp!=None:
+            sb.append(str(tmp.First()))
+            sb.append(\" \")
+            tmp=tmp.Rest()
+        print(\"\".join(sb))
+        return None
+            "
+        ]
 	]
     toString [
         `
@@ -230,6 +274,13 @@
                 return [SSystem toString:b trans:NO];
             "
         ]
+
+        python [
+            run "
+        b=args.First()
+        return System.toString(b,False)
+            "
+        ]
     ]
     stringify [
         `
@@ -260,6 +311,12 @@
             run "
                 NSObject* b=[args First];
                 return [SSystem toString:b trans:YES];
+            "
+        ]
+        python [
+            run "
+        b=args.First()
+        return System.toString(b,True)
             "
         ]
     ]
@@ -348,6 +405,23 @@
                 return [S_IfFun base_run:args];
             "
         ]
+        python [
+            other "
+    @staticmethod
+    def base_run(args):
+        if args.First():
+            return args.Rest().First()
+        else:
+            args=args.Rest().Rest()
+            if args!=None:
+                return args.First()
+            else:
+                return None
+            "
+            run "
+        return IfFun.base_run(args)
+            "
+        ]
 	]
     `是否是同一个内存对象`
     eq [
@@ -393,6 +467,18 @@
                     t=[t Rest];
                 }
                 return [SBool trans:eq];
+            "
+        ]
+        python [
+            run "
+        eq=True 
+        old=args.First()
+        t=args.Rest()
+        while(eq and t!=None):
+            eq=(t.First()==old)
+            old=t.First()
+            t=t.Rest()
+        return eq
             "
         ]
     ]

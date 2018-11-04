@@ -20,9 +20,9 @@ namespace s
             QueueRun run = new QueueRun(scope);
             return run.exec(exp);
         }
-        public override Function_Type Function_type()
+        public override FunctionType Function_type()
         {
-            return Function_Type.Fun_User;
+            return FunctionType.Fun_User;
         }
 
         public void toString(StringBuilder sb)

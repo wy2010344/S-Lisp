@@ -18,9 +18,9 @@ namespace s.library
         {
             return "parse";
         }
-        public override Function.Function_Type Function_type()
+        public override Function.FunctionType Function_type()
         {
-            return Function_Type.Fun_BuildIn;
+            return FunctionType.Fun_BuildIn;
         }
         public override object exec(Node<object> args)
         {

@@ -21,7 +21,7 @@
             private static "(quote p.key)" _ini_=new "(quote p.key)"();
             public static "(quote p.key)" instance(){return _ini_;}
             public override string ToString(){return \"" (p.toString) "\";}
-            public override Function_Type Function_type(){return Function.Function_Type."(quote p.type)";}
+            public override FunctionType Function_type(){return Function.FunctionType."(quote p.type)";}
             public override object exec(Node<object> args){
                 "(quote p.run)"
             }

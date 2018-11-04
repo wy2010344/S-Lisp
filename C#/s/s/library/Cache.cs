@@ -10,9 +10,9 @@ namespace s.library
         {
             return "cache";
         }
-        public override Function_Type Function_type()
+        public override FunctionType Function_type()
         {
-            return Function_Type.Fun_BuildIn;
+            return FunctionType.Fun_BuildIn;
         }
         public override object exec(Node<object> args)
         {
@@ -28,9 +28,9 @@ namespace s.library
         {
             return "[]";
         }
-        public override Function_Type Function_type()
+        public override FunctionType Function_type()
         {
-            return Function_Type.Fun_Cache;
+            return FunctionType.Fun_Cache;
         }
         private Object value;
         public override object exec(Node<object> args)

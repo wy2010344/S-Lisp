@@ -37,7 +37,7 @@ namespace s.library
             private static FirstFun _ini_=new FirstFun();
             public static FirstFun instance(){return _ini_;}
             public override string ToString(){return "first";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_BuildIn;}
             public override object exec(Node<object> args){
                 
                 return (args.First() as Node<Object>).First();
@@ -51,7 +51,7 @@ namespace s.library
             private static RestFun _ini_=new RestFun();
             public static RestFun instance(){return _ini_;}
             public override string ToString(){return "rest";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_BuildIn;}
             public override object exec(Node<object> args){
                 
                 return (args.First() as Node<Object>).Rest();
@@ -65,7 +65,7 @@ namespace s.library
             private static ExtendFun _ini_=new ExtendFun();
             public static ExtendFun instance(){return _ini_;}
             public override string ToString(){return "extend";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_BuildIn;}
             public override object exec(Node<object> args){
                 
                 return Node<Object>.extend(args.First(),(args.Rest().First() as Node<Object>));
@@ -79,7 +79,7 @@ namespace s.library
             private static LengthFun _ini_=new LengthFun();
             public static LengthFun instance(){return _ini_;}
             public override string ToString(){return "length";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_BuildIn;}
             public override object exec(Node<object> args){
                 
                 return (args.First() as Node<Object>).Length();
@@ -93,7 +93,7 @@ namespace s.library
             private static IsemptyFun _ini_=new IsemptyFun();
             public static IsemptyFun instance(){return _ini_;}
             public override string ToString(){return "empty?";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_BuildIn;}
             public override object exec(Node<object> args){
                 
                 return args.First()==null;
@@ -107,7 +107,7 @@ namespace s.library
             private static IsexistFun _ini_=new IsexistFun();
             public static IsexistFun instance(){return _ini_;}
             public override string ToString(){return "exist?";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_BuildIn;}
             public override object exec(Node<object> args){
                 
                 return args.First()!=null;
@@ -121,7 +121,7 @@ namespace s.library
             private static LogFun _ini_=new LogFun();
             public static LogFun instance(){return _ini_;}
             public override string ToString(){return "log";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_BuildIn;}
             public override object exec(Node<object> args){
                 
                 StringBuilder sb = new StringBuilder();
@@ -140,7 +140,7 @@ namespace s.library
             private static ToStringFun _ini_=new ToStringFun();
             public static ToStringFun instance(){return _ini_;}
             public override string ToString(){return "toString";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_BuildIn;}
             public override object exec(Node<object> args){
                 
                 Object b=args.First();
@@ -155,7 +155,7 @@ namespace s.library
             private static StringifyFun _ini_=new StringifyFun();
             public static StringifyFun instance(){return _ini_;}
             public override string ToString(){return "stringify";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_BuildIn;}
             public override object exec(Node<object> args){
                 
                 Object b=args.First();
@@ -170,7 +170,7 @@ namespace s.library
             private static IfFun _ini_=new IfFun();
             public static IfFun instance(){return _ini_;}
             public override string ToString(){return "if";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_BuildIn;}
             public override object exec(Node<object> args){
                 
                 return base_run(args);
@@ -201,7 +201,7 @@ namespace s.library
             private static EqFun _ini_=new EqFun();
             public static EqFun instance(){return _ini_;}
             public override string ToString(){return "eq";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_BuildIn;}
             public override object exec(Node<object> args){
                 
                 Object old=args.First();
@@ -223,7 +223,7 @@ namespace s.library
             private static ApplyFun _ini_=new ApplyFun();
             public static ApplyFun instance(){return _ini_;}
             public override string ToString(){return "apply";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_BuildIn;}
             public override object exec(Node<object> args){
                 
                 Function f=args.First() as Function;
@@ -239,7 +239,7 @@ namespace s.library
             private static TypeFun _ini_=new TypeFun();
             public static TypeFun instance(){return _ini_;}
             public override string ToString(){return "type";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_BuildIn;}
             public override object exec(Node<object> args){
                 
                 Object b=args.First();
@@ -290,7 +290,7 @@ namespace s.library
             private static AddFun _ini_=new AddFun();
             public static AddFun instance(){return _ini_;}
             public override string ToString(){return "+";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_BuildIn;}
             public override object exec(Node<object> args){
                 
                 int all=0;
@@ -310,7 +310,7 @@ namespace s.library
             private static SubFun _ini_=new SubFun();
             public static SubFun instance(){return _ini_;}
             public override string ToString(){return "-";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_BuildIn;}
             public override object exec(Node<object> args){
                 
                 int all=(int)args.First();
@@ -331,7 +331,7 @@ namespace s.library
             private static MBiggerFun _ini_=new MBiggerFun();
             public static MBiggerFun instance(){return _ini_;}
             public override string ToString(){return ">";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_BuildIn;}
             public override object exec(Node<object> args){
                 
                 bool ret=true;
@@ -355,7 +355,7 @@ namespace s.library
             private static MSmallerFun _ini_=new MSmallerFun();
             public static MSmallerFun instance(){return _ini_;}
             public override string ToString(){return "<";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_BuildIn;}
             public override object exec(Node<object> args){
                 
                 bool ret=true;
@@ -379,7 +379,7 @@ namespace s.library
             private static MEqFun _ini_=new MEqFun();
             public static MEqFun instance(){return _ini_;}
             public override string ToString(){return "=";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_BuildIn;}
             public override object exec(Node<object> args){
                 
                 return base_run(args);
@@ -407,7 +407,7 @@ namespace s.library
             private static AndFun _ini_=new AndFun();
             public static AndFun instance(){return _ini_;}
             public override string ToString(){return "and";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_BuildIn;}
             public override object exec(Node<object> args){
                 
                 bool ret=true;
@@ -427,7 +427,7 @@ namespace s.library
             private static OrFun _ini_=new OrFun();
             public static OrFun instance(){return _ini_;}
             public override string ToString(){return "or";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_BuildIn;}
             public override object exec(Node<object> args){
                 
                 bool ret=false;
@@ -447,7 +447,7 @@ namespace s.library
             private static NotFun _ini_=new NotFun();
             public static NotFun instance(){return _ini_;}
             public override string ToString(){return "not";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_BuildIn;}
             public override object exec(Node<object> args){
                 
                 return !(bool)args.First();
@@ -461,7 +461,7 @@ namespace s.library
             private static Str_eqFun _ini_=new Str_eqFun();
             public static Str_eqFun instance(){return _ini_;}
             public override string ToString(){return "str-eq";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_BuildIn;}
             public override object exec(Node<object> args){
                 
                 String a=args.First() as String;
@@ -478,7 +478,7 @@ namespace s.library
             private static Str_lengthFun _ini_=new Str_lengthFun();
             public static Str_lengthFun instance(){return _ini_;}
             public override string ToString(){return "str-length";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_BuildIn;}
             public override object exec(Node<object> args){
                 
                 String a=args.First() as String;
@@ -493,7 +493,7 @@ namespace s.library
             private static Str_charAtFun _ini_=new Str_charAtFun();
             public static Str_charAtFun instance(){return _ini_;}
             public override string ToString(){return "str-charAt";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_BuildIn;}
             public override object exec(Node<object> args){
                 
                 String a=args.First() as String;
@@ -510,7 +510,7 @@ namespace s.library
             private static Str_substrFun _ini_=new Str_substrFun();
             public static Str_substrFun instance(){return _ini_;}
             public override string ToString(){return "str-substr";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_BuildIn;}
             public override object exec(Node<object> args){
                 
                 String a=args.First() as String;
@@ -534,7 +534,7 @@ namespace s.library
             private static Str_joinFun _ini_=new Str_joinFun();
             public static Str_joinFun instance(){return _ini_;}
             public override string ToString(){return "str-join";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_BuildIn;}
             public override object exec(Node<object> args){
                 
                 Node<Object> vs=args.First() as Node<Object>;
@@ -564,7 +564,7 @@ namespace s.library
             private static Str_splitFun _ini_=new Str_splitFun();
             public static Str_splitFun instance(){return _ini_;}
             public override string ToString(){return "str-split";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_BuildIn;}
             public override object exec(Node<object> args){
                 
                 String str = args.First() as String;
@@ -613,7 +613,7 @@ namespace s.library
             private static Str_upperFun _ini_=new Str_upperFun();
             public static Str_upperFun instance(){return _ini_;}
             public override string ToString(){return "str-upper";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_BuildIn;}
             public override object exec(Node<object> args){
                 
                 return (args.First() as String).ToUpper();
@@ -627,7 +627,7 @@ namespace s.library
             private static Str_lowerFun _ini_=new Str_lowerFun();
             public static Str_lowerFun instance(){return _ini_;}
             public override string ToString(){return "str-lower";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_BuildIn;}
             public override object exec(Node<object> args){
                 
                 return (args.First() as String).ToLower();
@@ -641,7 +641,7 @@ namespace s.library
             private static QuoteFun _ini_=new QuoteFun();
             public static QuoteFun instance(){return _ini_;}
             public override string ToString(){return "{(first args ) }";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_Better;}
             public override object exec(Node<object> args){
                 
                 return args.First();
@@ -655,7 +655,7 @@ namespace s.library
             private static ListFun _ini_=new ListFun();
             public static ListFun instance(){return _ini_;}
             public override string ToString(){return "{args }";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_Better;}
             public override object exec(Node<object> args){
                 
                 return args;
@@ -669,7 +669,7 @@ namespace s.library
             private static Kvs_find1stFun _ini_=new Kvs_find1stFun();
             public static Kvs_find1stFun instance(){return _ini_;}
             public override string ToString(){return "{(let (key kvs ) args find1st this ) (let (k v ...kvs ) args ) (if-run (str-eq k key ) {v } {(find1st key kvs ) } ) }";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_Better;}
             public override object exec(Node<object> args){
                 
                 Node<Object> kvs=args.First() as Node<Object>;
@@ -686,7 +686,7 @@ namespace s.library
             private static Kvs_extendFun _ini_=new Kvs_extendFun();
             public static Kvs_extendFun instance(){return _ini_;}
             public override string ToString(){return "{(let (k v kvs ) args ) (extend k (extend v kvs ) ) }";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_Better;}
             public override object exec(Node<object> args){
                 
                 String key=args.First() as String;
@@ -705,7 +705,7 @@ namespace s.library
             private static IstypeFun _ini_=new IstypeFun();
             public static IstypeFun instance(){return _ini_;}
             public override string ToString(){return "{(let (x n ) args ) (str-eq (type x ) n ) }";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_Better;}
             public override object exec(Node<object> args){
                 
                 Object x=args.First();
@@ -722,7 +722,7 @@ namespace s.library
             private static CallFun _ini_=new CallFun();
             public static CallFun instance(){return _ini_;}
             public override string ToString(){return "call";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_BuildIn;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_BuildIn;}
             public override object exec(Node<object> args){
                 
                 Function f=args.First() as Function;
@@ -738,7 +738,7 @@ namespace s.library
             private static MNotEqFun _ini_=new MNotEqFun();
             public static MNotEqFun instance(){return _ini_;}
             public override string ToString(){return "{(not (apply = args ) ) }";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_Better;}
             public override object exec(Node<object> args){
                 
                 return !MEqFun.base_run(args);
@@ -752,7 +752,7 @@ namespace s.library
             private static Empty_funFun _ini_=new Empty_funFun();
             public static Empty_funFun instance(){return _ini_;}
             public override string ToString(){return "{}";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_Better;}
             public override object exec(Node<object> args){
                 
                 return null;
@@ -766,7 +766,7 @@ namespace s.library
             private static DefaultFun _ini_=new DefaultFun();
             public static DefaultFun instance(){return _ini_;}
             public override string ToString(){return "{(let (a d ) args ) (if (exist? a ) a d ) }";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_Better;}
             public override object exec(Node<object> args){
                 
                 Object v=args.First();
@@ -786,7 +786,7 @@ namespace s.library
             private static LenFun _ini_=new LenFun();
             public static LenFun instance(){return _ini_;}
             public override string ToString(){return "{(let (cs ) args ) (if-run (exist? cs ) {(length cs ) } {0 } ) }";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_Better;}
             public override object exec(Node<object> args){
                 
                 Node<Object> list=args.First() as Node<Object>;
@@ -804,8 +804,8 @@ namespace s.library
         class IndexOfFun:Function{
             private static IndexOfFun _ini_=new IndexOfFun();
             public static IndexOfFun instance(){return _ini_;}
-            public override string ToString(){return "{(let (vs k is_eq ) args is_eq (default eq ) ) (loop {(let ((v ...vs ) index ) args ) (if-run (is_eq v k ) {(list fa index ) } {(if-run (exist? vs ) {(list tr (list vs (+ index 1 ) ) ) } ) } ) } (list vs 0 ) ) }";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
+            public override string ToString(){return "{(let (vs k is_eq ) args is_eq (default eq ) ) (loop {(let ((v ...vs ) index ) args ) (if-run (is_eq v k ) {(list false index ) } {(if-run (exist? vs ) {(list true (list vs (+ index 1 ) ) ) } ) } ) } (list vs 0 ) ) }";}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_Better;}
             public override object exec(Node<object> args){
                 
                 Node<Object> vs=args.First() as Node<Object>;
@@ -842,7 +842,7 @@ namespace s.library
             private static If_runFun _ini_=new If_runFun();
             public static If_runFun instance(){return _ini_;}
             public override string ToString(){return "{(let (a b c ) args ) (let x (default (if a b c ) ) ) (x ) }";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_Better;}
             public override object exec(Node<object> args){
                 
                 Object o=IfFun.base_run(args);
@@ -861,7 +861,7 @@ namespace s.library
             private static LoopFun _ini_=new LoopFun();
             public static LoopFun instance(){return _ini_;}
             public override string ToString(){return "{(let (f init ) args loop this ) (let (will init ) (f init ) ) (if-run will {(loop f init ) } {init } ) }";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_Better;}
             public override object exec(Node<object> args){
                 
                 Function f=args.First() as Function;
@@ -888,7 +888,7 @@ namespace s.library
             private static ReverseFun _ini_=new ReverseFun();
             public static ReverseFun instance(){return _ini_;}
             public override string ToString(){return "{(let (xs ) args ) (reduce xs {(let (init x ) args ) (extend x init ) } [] ) }";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_Better;}
             public override object exec(Node<object> args){
                 
                 return base_run(args.First() as Node<Object>);
@@ -913,7 +913,7 @@ namespace s.library
             private static Kvs_reverseFun _ini_=new Kvs_reverseFun();
             public static Kvs_reverseFun instance(){return _ini_;}
             public override string ToString(){return "{(let (kvs ) args ) (kvs-reduce kvs {(let (init v k ) args ) (kvs-extend k v init ) } [] ) }";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_Better;}
             public override object exec(Node<object> args){
                 
                 return base_run(args.First() as Node<Object>);
@@ -940,7 +940,7 @@ namespace s.library
             private static ReduceFun _ini_=new ReduceFun();
             public static ReduceFun instance(){return _ini_;}
             public override string ToString(){return "{(let (xs run init ) args reduce this ) (if-run (exist? xs ) {(let (x ...xs ) xs ) (let init (run init x ) ) (reduce xs run init ) } {init } ) }";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_Better;}
             public override object exec(Node<object> args){
                 
                 Node<Object> list = args.First() as Node<Object>;
@@ -971,7 +971,7 @@ namespace s.library
             private static Reduce_rightFun _ini_=new Reduce_rightFun();
             public static Reduce_rightFun instance(){return _ini_;}
             public override string ToString(){return "{(let (xs run init ) args reduce-right this ) (if-run (exist? xs ) {(let (x ...xs ) xs ) (run (reduce-right xs run init ) x ) } {init } ) }";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_Better;}
             public override object exec(Node<object> args){
                 
                 Node<Object> list = args.First() as Node<Object>;
@@ -988,7 +988,7 @@ namespace s.library
             private static Kvs_reduceFun _ini_=new Kvs_reduceFun();
             public static Kvs_reduceFun instance(){return _ini_;}
             public override string ToString(){return "{(let (kvs run init ) args kvs-reduce this ) (if-run (exist? kvs ) {(let (k v ...kvs ) kvs ) (let init (run init v k ) ) (kvs-reduce kvs run init ) } {init } ) }";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_Better;}
             public override object exec(Node<object> args){
                 
                 Node<Object> kvs = args.First() as Node<Object>;
@@ -1020,7 +1020,7 @@ namespace s.library
             private static Kvs_reduce_rightFun _ini_=new Kvs_reduce_rightFun();
             public static Kvs_reduce_rightFun instance(){return _ini_;}
             public override string ToString(){return "{(let (kvs run init ) args kvs-reduce-right this ) (if-run (exist? kvs ) {(let (k v ...kvs ) kvs ) (run (kvs-reduce-right kvs run init ) v k ) } {init } ) }";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_Better;}
             public override object exec(Node<object> args){
                 
                 Node<Object> kvs = args.First() as Node<Object>;
@@ -1037,7 +1037,7 @@ namespace s.library
             private static Kvs_pathFun _ini_=new Kvs_pathFun();
             public static Kvs_pathFun instance(){return _ini_;}
             public override string ToString(){return "{(let (e paths ) args kvs-path this ) (if-run (exist? paths ) {(let (path ...paths ) paths ) (kvs-path (kvs-find1st e path ) paths ) } {e } ) }";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_Better;}
             public override object exec(Node<object> args){
                 
                 Node<Object> o=args.First() as Node<Object>;
@@ -1070,7 +1070,7 @@ namespace s.library
             private static Kvs_path_runFun _ini_=new Kvs_path_runFun();
             public static Kvs_path_runFun instance(){return _ini_;}
             public override string ToString(){return "{(let (e paths ...ps ) args ) (apply (kvs-path e paths ) ps ) }";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_Better;}
             public override object exec(Node<object> args){
                 
                 Node<Object> o=args.First() as Node<Object>;
@@ -1089,7 +1089,7 @@ namespace s.library
             private static OffsetFun _ini_=new OffsetFun();
             public static OffsetFun instance(){return _ini_;}
             public override string ToString(){return "{(let (list i ) args offset this ) (if-run (= i 0 ) {list } {(offset (rest list ) (- i 1 ) ) } ) }";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_Better;}
             public override object exec(Node<object> args){
                 
                 Node<Object> list=args.First() as Node<Object>;
@@ -1114,7 +1114,7 @@ namespace s.library
             private static Slice_toFun _ini_=new Slice_toFun();
             public static Slice_toFun instance(){return _ini_;}
             public override string ToString(){return "{(let (xs to ) args slice-to this ) (if-run (= to 0 ) {[] } {(let (x ...xs ) xs ) (extend x (slice-to xs (- to 1 ) ) ) } ) }";}
-            public override Function_Type Function_type(){return Function.Function_Type.Fun_Better;}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_Better;}
             public override object exec(Node<object> args){
                 
                 Node<Object> list=args.First() as Node<Object>;

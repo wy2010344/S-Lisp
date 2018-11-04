@@ -46,15 +46,15 @@ namespace s
                     Exp k = ks.First();
                     ks = ks.Rest();
 
-                    if (k.Exp_type() == Exp.Exp_Type.Exp_LetId)
+                    if (k.Exp_type() == Exp.ExpType.Exp_LetId)
                     {
                         scope = kvs_extend(k.Value(), v, scope);
                     }
-                    else if (k.Exp_type() == Exp.Exp_Type.Exp_LetSmall)
+                    else if (k.Exp_type() == Exp.ExpType.Exp_LetSmall)
                     {
                         scope = letSmallMatch(k, v, scope);
                     }
-                    else if (k.Exp_type() == Exp.Exp_Type.Exp_LetRest)
+                    else if (k.Exp_type() == Exp.ExpType.Exp_LetRest)
                     {
                         scope =kvs_extend(k.Value(), vs, scope);
                     }
@@ -76,7 +76,7 @@ namespace s
         }
         Object run(Exp exp)
         {
-            if (exp.Exp_type() == Exp.Exp_Type.Exp_Let)
+            if (exp.Exp_type() == Exp.ExpType.Exp_Let)
             {
                 Node<Exp> cs = exp.Children().Rest();
                 while (cs != null)
@@ -85,11 +85,11 @@ namespace s
                     cs=cs.Rest();
                     Object value = interpret(cs.First(), scope);
                     cs = cs.Rest();
-                    if (key.Exp_type() == Exp.Exp_Type.Exp_LetId)
+                    if (key.Exp_type() == Exp.ExpType.Exp_LetId)
                     {
                         scope = kvs_extend(key.Value(), value, scope);
                     }
-                    else if (key.Exp_type() == Exp.Exp_Type.Exp_LetSmall)
+                    else if (key.Exp_type() == Exp.ExpType.Exp_LetSmall)
                     {
                         scope = letSmallMatch(key, value, scope);
                     }
@@ -158,7 +158,7 @@ namespace s
         }
         Object interpret(Exp exp, Node<Object> scope)
         {
-            if (exp.Exp_type() == Exp.Exp_Type.Exp_Small)
+            if (exp.Exp_type() == Exp.ExpType.Exp_Small)
             {
                 Node<Object> children = calNode(exp.R_children(), scope);
                 Object o=children.First();
@@ -191,27 +191,27 @@ namespace s
                     }
                 }
             }
-            else if (exp.Exp_type() == Exp.Exp_Type.Exp_Medium)
+            else if (exp.Exp_type() == Exp.ExpType.Exp_Medium)
             {
                 return calNode(exp.R_children(), scope);
             }
-            else if (exp.Exp_type() == Exp.Exp_Type.Exp_Large)
+            else if (exp.Exp_type() == Exp.ExpType.Exp_Large)
             {
                 return new UserFunction(exp, scope);
             }
-            else if (exp.Exp_type() == Exp.Exp_Type.Exp_String)
+            else if (exp.Exp_type() == Exp.ExpType.Exp_String)
             {
                 return exp.Value();
             }
-            else if (exp.Exp_type() == Exp.Exp_Type.Exp_Int)
+            else if (exp.Exp_type() == Exp.ExpType.Exp_Int)
             {
                 return exp.Int_Value();
             }
-            else if (exp.Exp_type() == Exp.Exp_Type.Exp_Bool)
+            else if (exp.Exp_type() == Exp.ExpType.Exp_Bool)
             {
                 return exp.Bool_Value();
             }
-            else if (exp.Exp_type() == Exp.Exp_Type.Exp_Id)
+            else if (exp.Exp_type() == Exp.ExpType.Exp_Id)
             {
                 Node<String> paths = exp.KVS_paths();
                 if (paths == null)

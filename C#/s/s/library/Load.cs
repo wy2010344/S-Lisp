@@ -21,9 +21,9 @@ namespace s.library
         {
             return "load";
         }
-        public override Function.Function_Type Function_type()
+        public override Function.FunctionType Function_type()
         {
-            return Function_Type.Fun_BuildIn;
+            return FunctionType.Fun_BuildIn;
         }
         public override object exec(Node<object> args)
         {
@@ -86,9 +86,9 @@ namespace s.library
                 return Util.absolute_from_relative(basePath, r_path);
             }
         }
-        public override Function_Type Function_type()
+        public override FunctionType Function_type()
         {
-            return Function_Type.Fun_BuildIn;
+            return FunctionType.Fun_BuildIn;
         }
     }
 }

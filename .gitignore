@@ -32,3 +32,4 @@
 *.app
 /C#/s/gui/obj
 /C#/s/gui/bin
+/Python/s/*.pyc

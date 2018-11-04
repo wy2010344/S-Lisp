@@ -66,20 +66,20 @@ namespace s
             else if (v is Function)
             {
                 Function f = v as Function;
-                if (f.Function_type() == Function.Function_Type.Fun_BuildIn)
+                if (f.Function_type() == Function.FunctionType.Fun_BuildIn)
                 {
                     sb.Append("'");
                     sb.Append(v.ToString());
                 }
-                else if (f.Function_type() == Function.Function_Type.Fun_Better)
+                else if (f.Function_type() == Function.FunctionType.Fun_Better)
                 {
                     sb.Append(v.ToString());
                 }
-                else if (f.Function_type() == Function.Function_Type.Fun_User)
+                else if (f.Function_type() == Function.FunctionType.Fun_User)
                 {
                     (f as UserFunction).toString(sb);
                 }
-                else if (f.Function_type() == Function.Function_Type.Fun_Cache)
+                else if (f.Function_type() == Function.FunctionType.Fun_Cache)
                 {
                     sb.Append("[]");
                 }else

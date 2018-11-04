@@ -17,9 +17,9 @@ namespace s.library
         {
             return Util.readTxt(args.First() as String, lineSplit, encoding);
         }
-        public override Function_Type Function_type()
+        public override FunctionType Function_type()
         {
-            return Function_Type.Fun_BuildIn;
+            return FunctionType.Fun_BuildIn;
         }
         public override string ToString()
         {

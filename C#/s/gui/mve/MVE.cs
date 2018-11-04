@@ -32,9 +32,9 @@ namespace gui.mve
         {
             return "DOM";
         }
-        public override Function_Type Function_type()
+        public override FunctionType Function_type()
         {
-            return Function_Type.Fun_BuildIn;
+            return FunctionType.Fun_BuildIn;
         }
         public static s.Node<Object> build()
         {

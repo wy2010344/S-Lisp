@@ -6,7 +6,7 @@ namespace s
 {
     public abstract class Function
     {
-        public enum Function_Type
+        public enum FunctionType
         {
             Fun_User,
             Fun_BuildIn,
@@ -14,6 +14,6 @@ namespace s
             Fun_Cache
         }
         public abstract Object exec(Node<Object> args);
-        public abstract Function_Type Function_type();
+        public abstract FunctionType Function_type();
     }
 }

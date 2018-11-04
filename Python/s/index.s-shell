@@ -1,0 +1,84 @@
+{
+    (
+        (load (lib-path 'g_Lib/g_common.lisp))
+        [
+            k python
+            in-type Fun_buildIn
+            better-type Fun_user
+            build-cls
+                {
+                    `
+                        key
+                        run
+                        other 可选
+                        toString
+                        type
+                    `
+                    (let (p) args)
+                    [
+                        "\n
+class "(quote p.key)"(Function):
+    def __str__(self):
+        return \"" (p.toString) "\"
+    def Function_type(self):
+        return FunctionType."(quote p.type)"
+    def exe(self,args):
+        "(quote p.run)"
+    
+    "(default p.other "")"
+    
+                        "
+                    ]
+                }
+            build-m 
+                {
+                    (let (k key) args)
+                    [
+                        "
+        m=Node.kvs_extend(\""(quote k)"\","(quote key)"(),m);"
+                    ]
+                }
+            write-result 
+                {
+                    (let (cls fun) args)
+                    (write
+                        (pathOf './System.py)
+                        (str-join
+                            [
+"
+# coding=utf-8
+
+from Util import Util
+from Function import Function,FunctionType
+from Node import Node
+class System: 
+    @staticmethod
+    def toString(v,trans_str):
+        if v==None:
+            return \"[]\"
+        elif trans_str:
+            if type(v)==basestring:
+                return Util.stringToEscape(v,'\"','\"')
+            else:
+                return str(v)
+        else:
+            return str(v)
+    @staticmethod
+    def library():
+        m = None;
+        "
+        (str-join fun)
+        "
+        return m;
+    "
+(str-join cls)
+    "
+"        
+            
+                            ]
+                        )
+                    )
+                }
+        ]
+    )
+}

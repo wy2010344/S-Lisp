@@ -6,7 +6,7 @@ namespace s
 {
     public class Token
     {
-        public enum Token_Type { 
+        public enum TokenType { 
             Token_BracketLeft,
             Token_BracketRight,
             Token_Comment,
@@ -22,9 +22,9 @@ namespace s
         {
             return old_value;
         }
-        private Token_Type type;
+        private TokenType type;
         private Location loc;
-        public Token(String value,String old_value, Token_Type type, Location loc) {
+        public Token(String value,String old_value, TokenType type, Location loc) {
             this.value = value;
             this.old_value = old_value;
             this.type = type;
@@ -35,7 +35,7 @@ namespace s
         {
             return value;
         }
-        public Token_Type Token_type()
+        public TokenType Token_type()
         {
             return type;
         }
@@ -90,23 +90,23 @@ namespace s
                 }
                 else
                 {
-                    token = new Token(Id.Substring(1),Id, Token_Type.Token_Prevent, loc);
+                    token = new Token(Id.Substring(1),Id, TokenType.Token_Prevent, loc);
                 }
             }else if (isInt(Id))
             {
-                token = new Token(Id,Id, Token_Type.Token_Int, loc);
+                token = new Token(Id,Id, TokenType.Token_Int, loc);
             }
             else if (Id == "true" || Id=="false")
             {
-                token = new Token(Id,Id, Token_Type.Token_Bool, loc);
+                token = new Token(Id,Id, TokenType.Token_Bool, loc);
             }else
             {
-                token = new Token(Id,Id, Token_Type.Token_Id, loc);
+                token = new Token(Id,Id, TokenType.Token_Id, loc);
             }
             return token;
         }
 
-        static Node<Token> tokenize_split(Code code,Node<Token> tokens,Token_Type type,Location loc,char end)
+        static Node<Token> tokenize_split(Code code,Node<Token> tokens,TokenType type,Location loc,char end)
         {
             bool unbreak = true;
             int start = code.index();
@@ -143,7 +143,7 @@ namespace s
             }
             return tokens;
         }
-        static Node<Token> tokenize_ID(Code code,Location loc, Node<Token> rest)
+        static Node<Token> tokenize_ID(Code code,Location loc, Node<Token> tokens)
         {
             bool unbreak = true;
             while (code.noEnd() && unbreak)
@@ -156,21 +156,21 @@ namespace s
                 else
                 {
                     Token token = deal_id(code, loc);
-                    rest=Node<Token>.extend(token,rest);
+                    tokens=Node<Token>.extend(token,tokens);
                     unbreak=false;
                 }
             }
             if(unbreak)
             {
                 Token token=deal_id(code,loc);
-                rest=Node<Token>.extend(token,rest);
+                tokens=Node<Token>.extend(token,tokens);
             }
-            return rest;
+            return tokens;
         }
         public static Node<Token> run(String txt, char lineSplit)
         {
             Code code = new Code(txt, lineSplit);
-            Node<Token> rest = null;
+            Node<Token> tokens = null;
             while (code.noEnd())
             {
                 char c = code.current();
@@ -180,31 +180,31 @@ namespace s
                 }else if (isQuoteLeft(c))
                 {
                     String cs=""+c;
-                    rest = Node<Token>.extend(new Token(cs,cs, Token_Type.Token_BracketLeft, code.currentLoc()), rest);
+                    tokens = Node<Token>.extend(new Token(cs,cs, TokenType.Token_BracketLeft, code.currentLoc()), tokens);
                     code.shift();
                 }else if (isQuoteRight(c))
                 {
                     String cs=""+c;
-                    rest = Node<Token>.extend(new Token(cs,cs, Token_Type.Token_BracketRight, code.currentLoc()), rest);
+                    tokens = Node<Token>.extend(new Token(cs,cs, TokenType.Token_BracketRight, code.currentLoc()), tokens);
                     code.shift();
                 }else if(c=='"')
                 {
                     Location loc = code.currentLoc();
                     code.shift();
-                    rest=tokenize_split(code,rest,Token_Type.Token_String,loc,'"');
+                    tokens=tokenize_split(code,tokens,TokenType.Token_String,loc,'"');
                 }
                 else if (c == '`')
                 {
                     Location loc = code.currentLoc();
                     code.shift();
-                    rest =tokenize_split(code, rest, Token_Type.Token_Comment,loc, '`');
+                    tokens =tokenize_split(code, tokens, TokenType.Token_Comment,loc, '`');
                 }
                 else
                 {
-                    rest = tokenize_ID(code, code.currentLoc(), rest);
+                    tokens = tokenize_ID(code, code.currentLoc(), tokens);
                 }
             }
-            return rest;
+            return tokens;
         }
     }
 }
