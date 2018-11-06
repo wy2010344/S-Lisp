@@ -34,6 +34,15 @@
                 }
             "
         ]
+        python [
+            run "
+        o=IfFun.base_run(args)
+        if o==None:
+            return None
+        else:
+            return o.exe(None)
+            "
+        ]
         lisp {
             (let (a b c) args)
             (let x (default (if a b c)))

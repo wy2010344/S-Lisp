@@ -4,15 +4,11 @@ using System.Text;
 
 namespace s.library
 {
-    public class Cache:Function
+    public class Cache : LibFunction
     {
         public override string ToString()
         {
             return "cache";
-        }
-        public override FunctionType Function_type()
-        {
-            return FunctionType.Fun_BuildIn;
         }
         public override object exec(Node<object> args)
         {

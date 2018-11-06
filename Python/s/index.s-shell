@@ -56,8 +56,10 @@ class System:
     def toString(v,trans_str):
         if v==None:
             return \"[]\"
+        if isinstance(v, bool):
+            \"true\" if v else \"false\"
         elif trans_str:
-            if type(v)==basestring:
+            if isinstance(v,basestring):
                 return Util.stringToEscape(v,'\"','\"')
             else:
                 return str(v)

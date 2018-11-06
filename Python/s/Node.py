@@ -1,5 +1,6 @@
 # coding=utf-8
 from Function import Function,FunctionType
+from Util import Util
 
 class Node:
     """docstring for Node"""
@@ -27,9 +28,7 @@ class Node:
         elif isinstance(o,Node):
             o.toString(sb)
         elif isinstance(o,basestring):
-            sb.append("\"")
-            sb.append(str(o))
-            sb.append("\"")
+            sb.append(Util.stringToEscape(o,'"','"'))
         elif isinstance(o,Function):
             if o.Function_type()==FunctionType.Fun_buildIn:
                 sb.append("'")
@@ -39,7 +38,7 @@ class Node:
             elif o.Function_type()==FunctionType.Fun_cache:
                 sb.append("[]")
             else:
-                sb.append(o)
+                sb.append(str(o))
         elif isinstance(o,bool):
             if o:
                 sb.append("true")
@@ -99,4 +98,13 @@ class Node:
         while tmp!=None:
             r=Node.extend(tmp.First(), r)
             tmp=tmp.Rest()
+        return r
+    
+    @staticmethod
+    def list(*args):
+        r=None
+        len_c=len(args)-1
+        while len_c>-1:
+            r=Node.extend(args[len_c],r)
+            len_c=len_c-1
         return r

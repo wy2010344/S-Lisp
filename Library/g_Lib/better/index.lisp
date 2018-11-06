@@ -21,6 +21,12 @@
                 return [args First];
             "
         ]
+
+        python [
+            run "
+        return args.First()
+            "
+        ]
         lisp {
             (first args)
         }
@@ -45,6 +51,11 @@
         OC [
             run "
                 return args;
+            "
+        ]
+        python [
+            run "
+        return args
             "
         ]
 		lisp {
@@ -84,6 +95,15 @@
                 args=[args Rest];
                 NSString* key=(NSString*)[args First];
                 return [SNode kvs_find1stFrom:kvs of:key];
+            "
+        ]
+
+        python [
+            run "
+        kvs=args.First()
+        args=args.Rest()
+        key=args.First()
+        return Node.kvs_find1st(kvs,key)
             "
         ]
         lisp {
@@ -137,6 +157,16 @@
                 return [SNode kvs_extendKey:key value:value kvs:kvs];
             "
         ]
+        python [
+            run "
+        key=args.First()
+        args=args.Rest()
+        value=args.First()
+        args=args.Rest()
+        kvs=args.First()
+        return Node.kvs_extend(key,value,kvs)
+            "
+        ]
         lisp {
             (let (k v kvs) args)
             (extend k (extend v kvs))
@@ -171,6 +201,15 @@
                 return (TypeFun.base_run(x)==n);
             "
         ]
+
+        python [
+            run "
+        x=args.First()
+        args=args.Rest()
+        n=args.First()
+        return (TypeFun.base_run(x)==n)
+            "
+        ]
         lisp {
             (let (x n) args)
             (str-eq (type x) n)
@@ -203,6 +242,13 @@
                 return run.exec(args);
             "
         ]
+        python [
+            run "
+        run=args.First()
+        args=args.Rest()
+        return run.exe(args)
+            "
+        ]
         list {
             (let (f ...args) args)
             (apply f args)
@@ -225,6 +271,11 @@
                 return !MEqFun.base_run(args);
             "
         ]
+        python[
+            run "
+        return (not MEqFun.base_run(args))
+            "
+        ]
         lisp {
             (not (apply = args))
         }
@@ -244,6 +295,11 @@
         js [
             run "
                 return null;
+            "
+        ]
+        python [
+            run "
+        return None
             "
         ]
         lisp {}
@@ -283,6 +339,16 @@
                 }
             "
         ]
+        python [
+            run "
+        v=args.First()
+        if v!=None:
+            return v
+        else:
+            args=args.Rest()
+            return args.First()
+            "
+        ]
         lisp {
             (let (a d) args)
             (if (exist? a) a d)
@@ -308,6 +374,15 @@
                 }else{
                     return 0;
                 }
+            "
+        ]
+        python [
+            run "
+        list=args.First()
+        if list!=None:
+            return list.Length()
+        else:
+            return 0
             "
         ]
         lisp {
@@ -382,6 +457,33 @@
                 }else{
                     return index;
                 }
+            "
+        ]
+
+        python [
+            run "
+        vs=args.First()
+        args=args.Rest()
+        k=args.First()
+        args=args.Rest()
+        eq=None
+        if args!=None:
+            eq=args.First()
+        else:
+            eq=EqFun()
+        index=-1
+        flag=0
+        while (vs!=None and index==-1):
+            if eq.exe(Node.list(vs.First(),k)):
+                index=flag
+            else:
+                vs=vs.Rest()
+                flag=flag+1
+        if index==-1:
+            return None
+        else:
+            return index
+
             "
         ]
         lisp {

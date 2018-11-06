@@ -2,8 +2,9 @@
 
 from Node import Node
 from Exp import ExpType
-from Function import Function
+from Function import Function,FunctionType
 from LocationException import LocationException
+import traceback
 
 class QueueRun:
     def __init__(self,scope):
@@ -31,7 +32,7 @@ class QueueRun:
                 value=QueueRun.interpret(cs.First(),self.scope)
                 cs=cs.Rest()
                 if key.exp_type==ExpType.Exp_LetId:
-                    self.scope=kvs_extend(key.value,value,self.scope)
+                    self.scope=QueueRun.kvs_extend(key.value,value,self.scope)
                 elif key.exp_type==ExpType.Exp_LetSmall:
                     self.scope=QueueRun.letSmallMatch(key,value,self.scope)
             return None
@@ -111,12 +112,13 @@ class QueueRun:
                     lex.addStack(
                         QueueRun.getPath(scope),
                         exp.left.loc,
-                        exp,right.loc,
+                        exp.right.loc,
                         str(exp)
                     )
                     raise lex
                 except BaseException,ex:
-                    print(ex)
+                    exstr = traceback.format_exc()
+                    print(exstr)
                     raise QueueRun.error_throw("函数执行内部错误",exp,scope,children)
             else:
                 if o==None:
@@ -152,3 +154,21 @@ class QueueRun:
             return value    
         else:
             return None
+        
+class UserFunction(Function):
+    """docstring for UserFunction"""
+    def __init__(self, exp,parentScope):
+        self.exp = exp
+        self.parentScope = parentScope
+        
+    def exe(self,args):
+        scope=Node.kvs_extend("args",args,self.parentScope)
+        scope=Node.kvs_extend("this",self,scope)
+        qr=QueueRun(scope)
+        return qr.exe(self.exp)
+    
+    def Function_type(self):
+        return FunctionType.Fun_user
+    
+    def __str__(self):
+        return str(self.exp)

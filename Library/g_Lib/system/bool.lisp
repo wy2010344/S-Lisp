@@ -41,6 +41,17 @@
                 return [SBool trans:init];
             "
         ]
+
+        python [
+            run "
+        init=True
+        t=args
+        while (t!=None and init):
+            init=t.First()
+            t=t.Rest()
+        return init
+            "
+        ]
     ]
 
     or [
@@ -85,6 +96,16 @@
                 return [SBool trans:init];
             "
         ]
+        python [
+            run "
+        init=False
+        t=args
+        while(t!=None and (not init)):
+            init=t.First()
+            t=t.Rest()
+        return t
+            "
+        ]
     ]
 
     not [
@@ -107,6 +128,11 @@
         OC [
             run "
                 return [SBool trans:![(SBool*)[args First] Value]];
+            "
+        ]
+        python [
+            run "
+        return (not args.First())
             "
         ]
     ]

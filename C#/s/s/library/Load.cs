@@ -4,7 +4,7 @@ using System.Text;
 
 namespace s.library
 {
-    public class Load:Function
+    public class Load : LibFunction
     {
         public Load(Node<Object> baseScope,String base_path,char lineSpilt,Encoding encoding):base()
         {
@@ -20,10 +20,6 @@ namespace s.library
         public override string ToString()
         {
             return "load";
-        }
-        public override Function.FunctionType Function_type()
-        {
-            return FunctionType.Fun_BuildIn;
         }
         public override object exec(Node<object> args)
         {
@@ -63,7 +59,7 @@ namespace s.library
             }
         }
     }
-    class PathOf : Function
+    class PathOf : LibFunction
     {
         public PathOf(String basePath)
         {
@@ -85,10 +81,6 @@ namespace s.library
                 String r_path = args.First() as String;
                 return Util.absolute_from_relative(basePath, r_path);
             }
-        }
-        public override FunctionType Function_type()
-        {
-            return FunctionType.Fun_BuildIn;
         }
     }
 }

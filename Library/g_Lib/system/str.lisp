@@ -47,6 +47,11 @@
                 return str.length;
             "
         ]
+        python [
+            run "
+        return len(args.First())
+            "
+        ]
     ]
     str-charAt [
         cpp [
@@ -73,9 +78,19 @@
                 return str[index];
             "
         ]
+        python [
+            run "
+        return args.First()[args.Rest().First()]
+            "
+        ]
     ]
 
     str-substr [
+        `
+        参数1：字符串
+        参数2：开始位置
+        参数3：长度
+        `
         cpp [
             run "
                 String * stre=static_cast<String*>(args->First());
@@ -116,6 +131,18 @@
                 }else{
                     return a.substr(begin,args.First());
                 }
+            "
+        ]
+        python [
+            run "
+        a=args.First()
+        args=args.Rest()
+        begin=args.First()
+        args=args.Rest()
+        if args==None:
+            return a[begin:len(a)]
+        else:
+            return a[begin:(begin+args.First())]
             "
         ]
     ]
@@ -199,6 +226,20 @@
                 return r.substr(0,r.length-split.length);
             "
         ]
+        python [
+            run "
+        array=args.First()
+        split=\"\";
+        args=args.Rest()
+        if args!=None:
+            split=args.First()
+        sb=[]
+        while array!=None:
+            sb.append(array.First())
+            array=array.Rest()
+        return split.join(sb)
+            "
+        ]
     ]
     str-split [
         C# [
@@ -242,13 +283,33 @@
             "
         ]
         js [
-            "
+            run "
             var a=args.First();
             var split="";
             if(args.Rest()!=null){
                 split=args.Rest().First();
             }
             return a.split(split);
+            "
+        ]
+
+        python [
+            run "
+        a=args.First()
+        split=\"\"
+        args=args.Rest()
+        if args!=None:
+            split=args.First()
+        if split==\"\":
+            sb=[]
+            i=0
+            len_a=len(a)
+            while i<len_a:
+                sb.append(a[i])
+                i=i+1
+            return sb
+        else:
+            return a.split(split)
             "
         ]
     ]
@@ -263,6 +324,11 @@
                 return args.First().toUpperCase();
             "
         ]
+        python [
+            run "
+        return args.First().upper()
+            "
+        ]
     ]
     str-lower[
         C# [
@@ -275,12 +341,22 @@
                 return args.First().toLowerCase();
             "
         ]
+        python [
+            run "
+        return args.First().lower()
+            "
+        ]
     ]
     str-trim [
         js [
             run "
                 var str=args.First();
                 return str.trim();
+            "
+        ]
+        python [
+            run "
+        return args.First().strip()
             "
         ]
     ]
@@ -291,6 +367,14 @@
                 args=args.Rest();
                 var v=args.First();
                 return str.indexOf(v);
+            "
+        ]
+        python [
+            run "
+        stre=args.First()
+        args=args.Rest()
+        v=args.First()
+        return stre.find(v)
             "
         ]
     ]

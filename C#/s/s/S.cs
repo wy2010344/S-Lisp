@@ -15,11 +15,11 @@ namespace s
             this.lineSplit = lineSplit;
             scope = library.System.library();
             scope = Node<Object>.kvs_extend("lib-path", LibPath.instance(), scope);
-            loadLib(LibPath.instance().calculate("index.lisp"));
+            loadLibKVS(LibPath.instance().calculate("index.lisp"));
         }
-        private Object loadValue(String relative_path,bool delay,s.Node<Object> delay_args)
+        private Object loadValue(String path, bool delay, s.Node<Object> delay_args)
         {
-            Object value = s.library.Load.run_e(s.Util.exe_path(relative_path), scope, lineSplit,encoding);
+            Object value = s.library.Load.run_e(path, scope, lineSplit,encoding);
             if (delay)
             {
                 value = (value as Function).exec(delay_args);
@@ -27,22 +27,34 @@ namespace s
             return value;
         }
         /*将值挂载到指定节点上*/
-        private S loadLibKey(String key,Object value)
+        private S __loadLibKV__(String key,Object value)
         {
             scope = s.Node<Object>.kvs_extend(key, value, scope);
             return this;
         }
-        public S loadLib(String relative_path, String key, s.Node<Object> delay_args)
+        /// <summary>
+        /// 延迟kv
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="key"></param>
+        /// <param name="delay_args"></param>
+        /// <returns></returns>
+        public S loadLibKV_delay(String path, String key, s.Node<Object> delay_args)
         {
-            return loadLibKey(key,loadValue(relative_path, true,delay_args));
+            return __loadLibKV__(key, loadValue(path, true, delay_args));
         }
-        public S loadLib(String relative_path,String key)
+        /// <summary>
+        /// 不延迟kv
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public S loadLibKV(String path, String key)
         {
-            return loadLibKey(key,loadValue(relative_path, false, null));
+            return __loadLibKV__(key, loadValue(path, false, null));
         }
-
         /*将值作为kvs挂载*/
-        private S loadLibKVS(Object kvs)
+        private S __loadLibKVS__(Object kvs)
         {
             s.Node<Object> tmp = kvs as s.Node<Object>;
             while (tmp != null)
@@ -55,19 +67,32 @@ namespace s
             }
             return this;
         }
-        public S loadLib(String relative_path, s.Node<Object> delay_args)
+        /// <summary>
+        /// 延迟kvs
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="delay_args"></param>
+        /// <returns></returns>
+        public S loadLibKVS_delay(String path, s.Node<Object> delay_args)
         {
-            return loadLibKVS(loadValue(relative_path, true,delay_args));
+            return __loadLibKVS__(loadValue(path, true, delay_args));
         }
-        public S loadLib(String relative_path)
+        /// <summary>
+        /// 不延迟kvs
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public S loadLibKVS(String path)
         {
-            return loadLibKVS(loadValue(relative_path, false, null));
+            return __loadLibKVS__(loadValue(path, false, null));
         }
+
         public S addDef(String key, Object value)
         {
             scope = Node<Object>.kvs_extend(key, value, scope);
             return this;
         }
+
         public Object run(String path)
         {
             return s.library.Load.run_e(path, scope, lineSplit, encoding);
@@ -138,17 +163,21 @@ namespace s
             try
             {
                 lib_path = Environment.GetEnvironmentVariable("S_LISP");
-                lib_path = lib_path.Replace('\\', '/');
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }
-            if (lib_path==null || lib_path == "")
+            if (lib_path == null || lib_path == "")
             {
                 lib_path = "D:/S-Lisp/";
             }
-            else if (!(lib_path[lib_path.Length - 1] == '/'))
+            else
+            {
+                lib_path = lib_path.Replace('\\', '/');
+            }
+            
+            if (!(lib_path[lib_path.Length - 1] == '/'))
             {
                 lib_path = lib_path + "/";
             }

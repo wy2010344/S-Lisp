@@ -10,7 +10,7 @@ namespace gui.mve
     {
         public MVE(s.S slib,String path)
         {
-            slib.loadLib(s.LibPath.instance().calculate("mve/winform/index.lisp"), "mve", s.Node<Object>.extend(DOM.build(),null));
+            slib.loadLibKV_delay(s.LibPath.instance().calculate("mve/winform/index.lisp"), "mve", s.Node<Object>.extend(DOM.build(),null));
 
             s.Node<Object> o = (slib.run(path) as s.Function).exec(null) as s.Node<Object>;
             element=((s.Node<Object>.kvs_find1st(o, "getElement") as s.Function).exec(null) as Elm).Real_Control() as Control;
@@ -26,15 +26,11 @@ namespace gui.mve
         public s.Function width;
     }
 
-    public abstract class DOM : s.Function
+    public abstract class DOM : s.LibFunction
     {
         public override string ToString()
         {
             return "DOM";
-        }
-        public override FunctionType Function_type()
-        {
-            return FunctionType.Fun_BuildIn;
         }
         public static s.Node<Object> build()
         {

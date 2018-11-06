@@ -34,6 +34,23 @@
             return OffsetFun.base_run(list,i);
             "
         ]
+
+        python [
+            other "
+    @staticmethod
+    def base_run(list,i):
+        while i!=0:
+            list=list.Rest()
+            i=i-1
+        return list
+            "
+            run "
+        list=args.First()
+        args=args.Rest()
+        i=args.First()
+        return OffsetFun.base_run(list,i)
+            "
+        ]
         lisp {
             (let (list i) args offset this)
             (if-run (= i 0) 
@@ -73,6 +90,19 @@
                     i--;
                 }
                 return ReverseFun.base_run(r);
+            "
+        ]
+        python [
+            run "
+        list=args.First()
+        args=args.Rest()
+        i=args.First()
+        r=None
+        while i!=0:
+            r=Node.extend(list.First(),r)
+            list=list.Rest()
+            i=i-1
+        return ReverseFun.base_run(r)
             "
         ]
         lisp {

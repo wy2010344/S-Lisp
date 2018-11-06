@@ -16,4 +16,11 @@ namespace s
         public abstract Object exec(Node<Object> args);
         public abstract FunctionType Function_type();
     }
+    public abstract class LibFunction : Function
+    {
+        public override Function.FunctionType Function_type()
+        {
+            return FunctionType.Fun_BuildIn;
+        }
+    }
 }

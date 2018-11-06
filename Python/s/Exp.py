@@ -128,7 +128,7 @@ class Exp:
                 elif x.value=="]":
                     tp=ExpType.Exp_Medium
                 elif x.value=="}":
-                    tp==ExpType.Exp_Large
+                    tp=ExpType.Exp_Large
                 else:
                     raise LocationException(x.loc,"不正常的左匹配")
                 caches=Node.extend(
@@ -165,7 +165,7 @@ class Exp:
                                         )
                                 else:
                                     if (not (first.exp_type==ExpType.Exp_Large or first.exp_type==ExpType.Exp_Id or first.exp_type==ExpType.Exp_Small)):
-                                        raise first.exception("函数调用第一个应该是id或{}或()，而不是"+str(first))
+                                        raise first.exception("函数调用第一个应该是id或{}或()，而不是"+str(first.exp_type)+str(first))
                 children=Node.extend(
                     BracketExp(
                         tp,
@@ -203,7 +203,7 @@ class Exp:
                         elif x.token_type==TokenType.Token_Id:
                             tp=ExpType.Exp_Id
                         else:
-                            deal=false
+                            deal=False
                             
                 if deal:
                     e=None

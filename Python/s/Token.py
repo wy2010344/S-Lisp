@@ -59,7 +59,7 @@ class Token:
             if id_len==1:
                 raise LocationException(loc,"单个‘不允许")
             else:
-                return Token(id[1,id_len-1],id,TokenType.Token_Prevent,loc)
+                return Token(id[1:id_len],id,TokenType.Token_Prevent,loc)
         elif Token.isInt(id):
             return Token(id,id,TokenType.Token_Int,loc)
         elif id=="true" or id=="false":
@@ -80,7 +80,7 @@ class Token:
                 if trans_time!=0:
                     stre=stre
                 tokens=Node.extend(
-                    Token(str,code.substr(start-1,code.index()+1),type,loc),
+                    Token(stre,code.substr(start-1,code.index()+1),type,loc),
                     tokens
                 )
                 code.shift()

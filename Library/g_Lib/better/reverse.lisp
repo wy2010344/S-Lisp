@@ -38,6 +38,16 @@
                 return ReverseFun.base_run(args.First());
             "
         ]
+        python [
+            other "
+    @staticmethod
+    def base_run(list):
+        return Node.reverse(list)
+            "
+            run "
+        return ReverseFun.base_run(args.First())
+            "
+        ]
         `可以用lisp实现，有点麻烦的样子`
         lisp {
             (let (xs) args)
@@ -92,6 +102,21 @@
             "
             run "
                 return Kvs_reverseFun.base_run(args.First());
+            "
+        ]
+        python [
+            other "
+    @staticmethod
+    def base_run(kvs):
+        r=None
+        tmp=kvs
+        while tmp!=None:
+            key=tmp.First()
+            tmp=tmp.Rest()
+            value=tmp.First()
+            tmp=tmp.Rest()
+            r=Node.kvs_extend(key,value,r)
+        return r
             "
         ]
         lisp {

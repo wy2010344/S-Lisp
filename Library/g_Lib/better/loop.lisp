@@ -67,6 +67,22 @@
             "
         ]
 
+        python [
+            run "
+        f=args.First()
+        args=args.Rest()
+        init=None
+        if args!=None:
+            init=args.First()
+        will=True 
+        while will:
+            o=f.exe(Node.list(init))
+            will=o.First()
+            o=o.Rest()
+            init=o.First()
+        return init
+            "
+        ]
         lisp {
             (let (f init) args loop this)
             (let (will init) (f init))

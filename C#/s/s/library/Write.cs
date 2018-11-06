@@ -4,17 +4,13 @@ using System.Text;
 
 namespace s.library
 {
-    public class Write:Function
+    public class Write : LibFunction
     {
         public Write(Encoding encoding)
         {
             this.encoding = encoding;
         }
         private Encoding encoding;
-        public override Function.FunctionType Function_type()
-        {
-            return FunctionType.Fun_BuildIn;
-        }
         public override string ToString()
         {
             return "write";

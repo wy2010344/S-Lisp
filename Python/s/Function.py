@@ -9,3 +9,7 @@ class Function:
         pass
     def Function_type(self):
         pass
+    
+class LibFunction(Function):
+    def Function_type(self):
+        return FunctionType.Fun_buildIn

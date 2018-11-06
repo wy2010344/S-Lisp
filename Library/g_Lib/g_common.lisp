@@ -11,6 +11,8 @@
 		libs  
 			(list
 				(load './system/index.lisp)
+				(load './system/toStr.lisp)
+				(load './system/type.lisp)
 				(load './system/math.lisp)
 				(load './system/bool.lisp)
 				(load './system/str.lisp)

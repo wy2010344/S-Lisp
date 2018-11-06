@@ -68,6 +68,27 @@
                 return ReduceFun.base_run(list,args);
             "
         ]
+
+        python [
+            other "
+    @staticmethod
+    def base_run(list,args):
+        f=args.First()
+        args=args.Rest()
+        init=args.First()
+        while list!=None:
+            x=list.First()
+            list=list.Rest()
+            nargs=Node.list(init,x)
+            init=f.exe(nargs)
+        return init
+            "
+            run "
+        list=args.First()
+        args=args.Rest()
+        return ReduceFun.base_run(list,args)
+            "
+        ]
         lisp {
             (let (xs run init) args reduce this)
             (if-run (exist? xs)
@@ -96,6 +117,14 @@
                 list=ReverseFun.base_run(list);
                 args = args.Rest();
                 return ReduceFun.base_run(list,args);
+            "
+        ]
+        python [
+            run "
+        list=args.First()
+        list=ReverseFun.base_run(list)
+        args=args.Rest()
+        return ReduceFun.base_run(list,args)
             "
         ]
         lisp {
@@ -161,6 +190,29 @@
                 return Kvs_reduceFun.base_run(kvs,args);
             "
         ]
+
+        python [
+            other "
+    @staticmethod
+    def base_run(kvs,args):
+        f=args.First()
+        args=args.Rest()
+        init=args.First()
+        while kvs!=None:
+            key=kvs.First()
+            kvs=kvs.Rest()
+            value=kvs.First()
+            kvs=kvs.Rest()
+            nargs=Node.list(init,value,key)
+            init=f.exe(nargs)
+        return init
+            "
+            run "
+        kvs=args.First()
+        args=args.Rest()
+        return Kvs_reduceFun.base_run(kvs,args)
+            "
+        ]
         lisp {
             (let (kvs run init) args kvs-reduce this)
             (if-run (exist? kvs)
@@ -189,6 +241,14 @@
                 kvs=Kvs_reverseFun.base_run(kvs);
                 args=args.Rest();
                 return Kvs_reduceFun.base_run(kvs,args);
+            "
+        ]
+        python [
+            run "
+        kvs=args.First()
+        kvs=Kvs_reverseFun.base_run(kvs)
+        args=args.Rest()
+        return Kvs_reduceFun.base_run(kvs,args)
             "
         ]
         lisp {

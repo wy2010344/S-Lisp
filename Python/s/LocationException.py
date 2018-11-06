@@ -8,7 +8,7 @@ class LocationException(BaseException):
         self.stacks=[]
         
     def addStack(self,path,left,right,exp):
-        self.stacks.push({
+        self.stacks.append({
             'path':path,
             'left':left,
             'right':right,

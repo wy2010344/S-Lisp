@@ -18,4 +18,6 @@ class Location:
 	def __str__(self):
 		return "位置"+str(self.row+1)+"行"+str(self.col+1)+"列，第"+str(self.i+1)+"个字符串"
 	
+'''
 print(Location(1,2,3))
+'''

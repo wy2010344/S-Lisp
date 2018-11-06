@@ -29,6 +29,17 @@
                 },0);
             "
         ]
+
+        python [
+            run "
+        all=0
+        t=args
+        while t!=None:
+            all=all+t.First()
+            t=t.Rest()
+        return all
+            "
+        ]
     ]
     - [
         alias SubFun
@@ -63,6 +74,16 @@
                 },r);
             "
         ]
+        python [
+            run "
+        all=args.First()
+        args=args.Rest()
+        while args!=None:
+            all=all-args.First()
+            args=args.Rest()
+        return all
+            "
+        ]
     ]
 
     * [
@@ -72,6 +93,17 @@
                 return reduce(args,function(last,now){
                     return last*now;
                 },1);
+            "
+        ]
+
+        python [
+            run "
+        all=0
+        t=args
+        while t!=None:
+            all=all*t.First()
+            t=t.Rest()
+        return all
             "
         ]
     ]
@@ -84,6 +116,17 @@
                 return reduce(args.Rest(),function(last,now){
                     return last/now;
                 },r);
+            "
+        ]
+
+        python [
+            run "
+        all=args.First()
+        args=args.Rest()
+        while args!=None:
+            all=all/args.First()
+            args=args.Rest()
+        return all
             "
         ]
     ]
@@ -135,6 +178,18 @@
                 });
             "
         ]
+
+        python [
+            run "
+        ret=True 
+        last=args.First()
+        args=args.Rest()
+        while (args!=None and ret):
+            ret=last>args.First()
+            args=args.Rest()
+        return ret
+            "
+        ]
     ]
 
     < [
@@ -174,6 +229,18 @@
                 return compare(args,check_is_number,function(last,now){
                     return (last<now);
                 });
+            "
+        ]
+
+        python [
+            run "
+        ret=True 
+        last=args.First()
+        args=args.Rest()
+        while (args!=None and ret):
+            ret=last<args.First()
+            args=args.Rest()
+        return ret
             "
         ]
     ]
@@ -227,6 +294,23 @@
             "
             run "
                 return MEqFun.base_run(args);
+            "
+        ]
+
+        python [
+            other "
+    @staticmethod
+    def base_run(args):
+        ret=True 
+        last=args.First()
+        args=args.Rest()
+        while (args!=None and ret):
+            ret=(last==args.First())
+            args=args.Rest()
+        return ret
+            "
+            run "
+        return MEqFun.base_run(args)
             "
         ]
     ]
