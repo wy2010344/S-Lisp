@@ -74,8 +74,9 @@ class System:
         m=Node.kvs_extend("kvs-reduce-right",Kvs_reduce_rightFun(),m);
         m=Node.kvs_extend("kvs-path",Kvs_pathFun(),m);
         m=Node.kvs_extend("kvs-path-run",Kvs_path_runFun(),m);
-        m=Node.kvs_extend("offset",OffsetFun(),m);
+        m=Node.kvs_extend("slice-from",Slice_fromFun(),m);
         m=Node.kvs_extend("slice-to",Slice_toFun(),m);
+        m=Node.kvs_extend("offset",OffsetFun(),m);
         return m;
     
 
@@ -350,7 +351,7 @@ class MultiFun(Function):
         return FunctionType.Fun_buildIn
     def exe(self,args):
         
-        all=0
+        all=1
         t=args
         while t!=None:
             all=all*t.First()
@@ -873,23 +874,19 @@ class If_runFun(Function):
 
 class LoopFun(Function):
     def __str__(self):
-        return "{(let (f init ) args loop this ) (let (will init ) (f init ) ) (if-run will {(loop f init ) } {init } ) }"
+        return "{(let (f ...init ) args loop this ) (let (will ...init ) (apply f init ) ) (if-run will {(apply loop (extend f init ) ) } {init } ) }"
     def Function_type(self):
         return FunctionType.Fun_user
     def exe(self,args):
         
         f=args.First()
         args=args.Rest()
-        init=None
-        if args!=None:
-            init=args.First()
         will=True 
         while will:
-            o=f.exe(Node.list(init))
-            will=o.First()
-            o=o.Rest()
-            init=o.First()
-        return init
+            args=f.exe(args)
+            will=args.First()
+            args=args.Rest()
+        return args
             
     
     
@@ -1051,7 +1048,7 @@ class Kvs_path_runFun(Function):
     
                         
 
-class OffsetFun(Function):
+class Slice_fromFun(Function):
     def __str__(self):
         return "{(let (list i ) args offset this ) (if-run (= i 0 ) {list } {(offset (rest list ) (- i 1 ) ) } ) }"
     def Function_type(self):
@@ -1061,7 +1058,7 @@ class OffsetFun(Function):
         list=args.First()
         args=args.Rest()
         i=args.First()
-        return OffsetFun.base_run(list,i)
+        return Slice_fromFun.base_run(list,i)
             
     
     
@@ -1091,6 +1088,23 @@ class Slice_toFun(Function):
             list=list.Rest()
             i=i-1
         return ReverseFun.base_run(r)
+            
+    
+    
+    
+                        
+
+class OffsetFun(Function):
+    def __str__(self):
+        return "{(first (apply slice-from args ) ) }"
+    def Function_type(self):
+        return FunctionType.Fun_user
+    def exe(self,args):
+        
+        list=args.First()
+        args=args.Rest()
+        i=args.First()
+        return Slice_fromFun.base_run(list,i).First()
             
     
     

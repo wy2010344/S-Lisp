@@ -1,5 +1,22 @@
 [
-    offset [
+    slice-from [
+        cpp [
+            other "
+            static Node* base_run(Node* list,int i){
+                while(i!=0){
+                    list=list->Rest();
+                    i--;
+                }
+                return list;
+            }
+            "
+            run "
+            Node* list=static_cast<Node*>(args->First());
+            args=args->Rest();
+            int i=static_cast<Int*>(args->First())->Value();
+            return base_run(list,i);
+            "
+        ]
         C# [
             other "
             public static Node<Object> base_run(Node<Object> list,int i){
@@ -19,7 +36,7 @@
         ]
         js [
             other "
-            OffsetFun.base_run=function(list,i){
+            Slice_fromFun.base_run=function(list,i){
                 while(i!=0){
                     list=list.Rest();
                     i--;
@@ -31,7 +48,7 @@
             var list=args.First();
             args=args.Rest();
             var i=args.First();
-            return OffsetFun.base_run(list,i);
+            return Slice_fromFun.base_run(list,i);
             "
         ]
 
@@ -48,7 +65,7 @@
         list=args.First()
         args=args.Rest()
         i=args.First()
-        return OffsetFun.base_run(list,i)
+        return Slice_fromFun.base_run(list,i)
             "
         ]
         lisp {
@@ -114,6 +131,47 @@
                     (extend x (slice-to xs (- to 1)))
                 }
             )
+        }
+    ]
+
+    offset [
+        `
+        offset与slice-from不同，offset是取slice-from的第一个元素
+        `
+        cpp [
+            run "
+            Node* list=static_cast<Node*>(args->First());
+            args=args->Rest();
+            int i=static_cast<Int*>(args->First())->Value();
+            return Slice_fromFun::base_run(list,i)->First();
+            "
+        ]
+        C# [
+            run "
+                Node<Object> list=args.First() as Node<Object>;
+                args=args.Rest();
+                int i=(int)args.First();
+                return Slice_fromFun.base_run(args,i).First();
+            "
+        ]
+        js [
+            run "
+                var list=args.First();
+                args=args.Rest();
+                var i=args.First();
+                return Slice_fromFun.base_run(list,i).First()
+            "
+        ]
+        python [
+            run "
+        list=args.First()
+        args=args.Rest()
+        i=args.First()
+        return Slice_fromFun.base_run(list,i).First()
+            "
+        ]
+        lisp {
+            (first (apply slice-from args))
         }
     ]
 ]

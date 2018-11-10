@@ -1,11 +1,12 @@
 {
 	(let 
-		x (py-eval "__import__('Tkinter')")
-		tk (py-call x "Tk")
-		center_window (load './center-window.lisp)
-		lb (py-call x "Listbox" (list tk))
-		btn (py-call x "Button" (list tk))
+		x (load './tk.lisp)
+		tk (x.run 'Tk)
+		lbfram (x.c 'LabelFrame tk [text 登录])
+		lb (x.c 'Listbox lbfram)
+		btn (x.c 'Button lbfram)
 	)
+	`
 	(forEach [a b c d e]
 		{
 			(py-call lb "insert" (list 0 (first args)))
@@ -21,6 +22,54 @@
 		)
 	)
 	(py-call btn "pack")
-	(center_window tk 500 500)
+	`
+	`列扩展比率1:2`
+	(py-call lbfram "columnconfigure"
+		[0]
+		[weight 1]
+	)
+	(py-call lbfram "columnconfigure"
+		[1]
+		[weight 2]
+	)
+	
+	(py-call
+		(x.c "Label" lbfram [text First])
+		"grid"
+		[]
+		[row 0  sticky W]
+	)
+	(py-call
+		(x.c "Label" lbfram
+			[text Second]
+		)
+		"grid"
+		[]
+		[row 1]
+	)
+	(py-call 
+		(x.c "Entry" lbfram)
+		"grid"
+		[]
+		[row 0 column 1]
+	)
+	`向左右扩展`
+	(py-call
+		(x.c "Entry" lbfram)
+		"grid"
+		[]
+		[row 1 column 1 sticky EW]
+	)	
+	(let var (x.run 'IntVar))
+	(py-call 
+		(x.c "Checkbutton" lbfram
+			[text "Precerve aspect" variable 'var]
+		)
+		"grid"
+		[]
+		[columnspan 2 sticky W]
+	)
+	(py-call lbfram 'pack)
+	(x.center-window tk 500 500)
 	(py-call tk "mainloop")
 }

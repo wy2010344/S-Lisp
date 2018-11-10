@@ -284,12 +284,13 @@
         ]
         js [
             run "
-            var a=args.First();
-            var split="";
-            if(args.Rest()!=null){
-                split=args.Rest().First();
-            }
-            return a.split(split);
+                var a=args.First();
+                var split=\"\";
+                args=args.Rest()
+                if(args!=null){
+                    split=args.First();
+                }
+                return a.split(split);
             "
         ]
 

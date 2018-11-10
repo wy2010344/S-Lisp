@@ -44,7 +44,6 @@ class Exp:
         children=None
         if vs!=None:
             k=vs.First()
-            vs=vs.Rest()
             if k.exp_type==ExpType.Exp_Id:
                 v=k.value
                 if v.find("...")==0:
@@ -57,10 +56,9 @@ class Exp:
                             ),
                             children
                         )
+                        vs=vs.Rest()#如果是剩余匹配，则处理，否则不处理
                     else:
                         raise k.exception("let表达式中，"+str(k)+"不是合法的剩余匹配ID")
-                else:
-                    children=Node.extend(Exp.resetLetID(k),children)
             while vs!=None:
                 k=vs.First()
                 vs=vs.Rest()

@@ -11,5 +11,7 @@ s.addDef("py-apply",Py_Apply())
 s.addDef("py-attr",Py_Attr())
 s.addDef("py-dict",Py_Dict())
 s.addDef("py-function",Py_Function())
-s.run(Util.exe_path("index.lisp")).exe(None)
+#path="index.lisp"
+path="Gomoku/index.lisp"
+s.run(Util.exe_path(path)).exe(None)
 #s.shell()

@@ -197,7 +197,6 @@ namespace s
             if (vs != null)
             {
                 Exp k = vs.First();
-                vs = vs.Rest();
                 if (k.Exp_type() == ExpType.Exp_Id)
                 {
                     String v = k.Value();
@@ -213,18 +212,13 @@ namespace s
                                 ),
                                 children
                              );
+                             //如果是剩余匹配，则处理，否则不处理
+                             vs = vs.Rest();
                         }
                         else
                         {
                             throw k.exception("let表达式中，" + k.ToString() + "不是合法的剩余匹配ID");/*剩余匹配的id，只允许三个开头的点*/
                         }
-                    }
-                    else
-                    {
-                        /*
-                         * 最后一个只是普通的ID
-                         */
-                        children = Node<Exp>.extend(resetLetID(k),children);
                     }
                 }
             }

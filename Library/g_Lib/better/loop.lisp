@@ -4,47 +4,40 @@
         列表的遍历有reduce，但非列表的递归调用会报错，用宿主语言的while语句优化一下。
         reduce也可以用loop来实现。
         loop可以说是所有尾递归优化的根
+
+        进一步改造，init不是一个值，是剩下的所有值
         `
         cpp [
             run "
                 Function * f=static_cast<Function*>(args->First());
                 args=args->Rest();
-                Base * init=NULL;
-                if(args!=NULL){
-                    init=args->First();
-                }
                 bool will=true;
                 while(will){
-                    Node * o=static_cast<Node*>(f->exec(list::extend(init,NULL)));
+                    Node* o=static_cast<Node*>(f->exec(args));
                     will=static_cast<Bool*>(o->First())->Value();
-                    init=o->Rest()->First();
-                    if(init!=NULL){
-                        init->retain();
+                    args=o->Rest();
+                    if(args!=NULL){
+                        args->retain();
                         o->release();
-                        init->eval_release();
+                        args->eval_release();
                     }else{
                         o->release();
                     }
                 }
-                return init;
+                return args;
             "
         ]
         C# [
             run "
                 Function f=args.First() as Function;
                 args=args.Rest();
-                Object init=null;
-                if(args!=null){
-                    init=args.First();
-                }
                 bool will=true;
                 while(will){
-                    Node<Object> o=f.exec(Node<Object>.extend(init,null)) as Node<Object>;
-                    will=(bool)(o.First());
-                    o=o.Rest();
-                    init=o.First();
+                    args=f.exec(args) as Node<Object>;
+                    will=(bool)(args.First());
+                    args=args.Rest();
                 }
-                return init;
+                return args;
             "
         ]
 
@@ -52,18 +45,13 @@
             run "
                 var f=args.First();
                 args=args.Rest();
-                var init=null;
-                if(args!=null){
-                    init=args.First();
-                }
                 var will=true;
                 while(will){
-                    var o=f.exec(lib.s.extend(init,null));
-                    will=o.First();
-                    o=o.Rest();
-                    init=o.First();
+                    args=f.exec(args);
+                    will=args.First();
+                    args=args.Rest();
                 }
-                return init;
+                return args;
             "
         ]
 
@@ -71,24 +59,20 @@
             run "
         f=args.First()
         args=args.Rest()
-        init=None
-        if args!=None:
-            init=args.First()
         will=True 
         while will:
-            o=f.exe(Node.list(init))
-            will=o.First()
-            o=o.Rest()
-            init=o.First()
-        return init
+            args=f.exe(args)
+            will=args.First()
+            args=args.Rest()
+        return args
             "
         ]
         lisp {
-            (let (f init) args loop this)
-            (let (will init) (f init))
+            (let (f ...init) args loop this)
+            (let (will ...init) (apply f init))
             (if-run will
                 {
-                    (loop f init)
+                    (apply loop (extend f init))
                 }
                 {init}
             )

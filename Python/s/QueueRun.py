@@ -94,7 +94,7 @@ class QueueRun:
     
     @staticmethod
     def match_Exception(scope,msg,e):
-        return e.exception(getPath(scope)+":\t"+msg)
+        return e.exception(QueueRun.getPath(scope)+":\t"+msg)
     
     @staticmethod
     def error_throw(msg,exp,scope,children):

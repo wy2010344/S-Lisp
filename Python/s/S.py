@@ -249,6 +249,17 @@ class Py_Call(LibFunction):
 				avs.append("ps["+str(i)+"]")
 				tmp=tmp.Rest()
 				i=i+1
+			args=args.Rest()
+			if args!=None:
+				tmp=args.First()
+				while tmp!=None:
+					key=tmp.First()
+					tmp=tmp.Rest()
+					value=tmp.First()
+					tmp=tmp.Rest()
+					ps.append(value)
+					avs.append(key+"=ps["+str(i)+"]")
+					i=i+1
 		return (ps,"("+",".join(avs)+")")
 	
 '''
@@ -287,8 +298,9 @@ class Py_Attr(LibFunction):
 		if args!=None:
 			value=args.First()
 			setattr(o,key,value)
+			return None
 		else:
-			getattr(o,key)
+			return getattr(o,key)
 	
 '''
 设置字典方法o[key]=value o[key]

@@ -88,6 +88,16 @@
 
     * [
         alias MultiFun
+        cpp [
+            run "
+                int all=1;
+                for(Node * t=args;t!=NULL;t=t->Rest()){
+                    Int * it=static_cast<Int*>(t->First());
+                    all=all*it->Value();
+                }
+                return new Int(all);
+            "
+        ]
         js [
             run "
                 return reduce(args,function(last,now){
@@ -98,7 +108,7 @@
 
         python [
             run "
-        all=0
+        all=1
         t=args
         while t!=None:
             all=all*t.First()

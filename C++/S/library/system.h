@@ -131,8 +131,8 @@ namespace s{
         protected:
             Base * run(Node * args){
                 
-            Base *b=args->First();
-            return new Int(b->ref_count());
+                Base *b=args->First();
+                return new Int(b->ref_count());
             
             }
         };
@@ -185,85 +185,6 @@ namespace s{
             }
         };
         IsexistFun* IsexistFun::_in_=new IsexistFun();
-        
-
-        class LogFun: public LibFunction {
-        private:
-            static LogFun * _in_;
-        public:    
-            static LogFun*instance(){
-                return _in_;
-            }
-            string toString(){
-                return "log";
-            }
-            Fun_Type ftype(){
-                return Function::fBuildIn;
-            }
-            
-        protected:
-            Base * run(Node * args){
-                
-                for (Node * tmp=args; tmp!=NULL; tmp=tmp->Rest()) {
-                    Base * v=tmp->First();
-                    cout<<system::toString(v,true)<<" ";
-                }
-                cout<<endl;
-                return NULL;
-			
-            }
-        };
-        LogFun* LogFun::_in_=new LogFun();
-        
-
-        class ToStringFun: public LibFunction {
-        private:
-            static ToStringFun * _in_;
-        public:    
-            static ToStringFun*instance(){
-                return _in_;
-            }
-            string toString(){
-                return "toString";
-            }
-            Fun_Type ftype(){
-                return Function::fBuildIn;
-            }
-            
-        protected:
-            Base * run(Node * args){
-                
-                Base* b=args->First();
-                return new String(system::toString(b,false));
-            
-            }
-        };
-        ToStringFun* ToStringFun::_in_=new ToStringFun();
-        
-
-        class StringifyFun: public LibFunction {
-        private:
-            static StringifyFun * _in_;
-        public:    
-            static StringifyFun*instance(){
-                return _in_;
-            }
-            string toString(){
-                return "stringify";
-            }
-            Fun_Type ftype(){
-                return Function::fBuildIn;
-            }
-            
-        protected:
-            Base * run(Node * args){
-                
-                Base* b=args->First();
-                return new String(system::toString(b,true));
-            
-            }
-        };
-        StringifyFun* StringifyFun::_in_=new StringifyFun();
         
 
         class IfFun: public LibFunction {
@@ -365,6 +286,85 @@ namespace s{
             }
         };
         ApplyFun* ApplyFun::_in_=new ApplyFun();
+        
+
+        class LogFun: public LibFunction {
+        private:
+            static LogFun * _in_;
+        public:    
+            static LogFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "log";
+            }
+            Fun_Type ftype(){
+                return Function::fBuildIn;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+                for (Node * tmp=args; tmp!=NULL; tmp=tmp->Rest()) {
+                    Base * v=tmp->First();
+                    cout<<system::toString(v,true)<<" ";
+                }
+                cout<<endl;
+                return NULL;
+			
+            }
+        };
+        LogFun* LogFun::_in_=new LogFun();
+        
+
+        class ToStringFun: public LibFunction {
+        private:
+            static ToStringFun * _in_;
+        public:    
+            static ToStringFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "toString";
+            }
+            Fun_Type ftype(){
+                return Function::fBuildIn;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+                Base* b=args->First();
+                return new String(system::toString(b,false));
+            
+            }
+        };
+        ToStringFun* ToStringFun::_in_=new ToStringFun();
+        
+
+        class StringifyFun: public LibFunction {
+        private:
+            static StringifyFun * _in_;
+        public:    
+            static StringifyFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "stringify";
+            }
+            Fun_Type ftype(){
+                return Function::fBuildIn;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+                Base* b=args->First();
+                return new String(system::toString(b,true));
+            
+            }
+        };
+        StringifyFun* StringifyFun::_in_=new StringifyFun();
         
 
         class TypeFun: public LibFunction {
@@ -529,6 +529,35 @@ String* s_list;
             }
         };
         SubFun* SubFun::_in_=new SubFun();
+        
+
+        class MultiFun: public LibFunction {
+        private:
+            static MultiFun * _in_;
+        public:    
+            static MultiFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "*";
+            }
+            Fun_Type ftype(){
+                return Function::fBuildIn;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+                int all=1;
+                for(Node * t=args;t!=NULL;t=t->Rest()){
+                    Int * it=static_cast<Int*>(t->First());
+                    all=all*it->Value();
+                }
+                return new Int(all);
+            
+            }
+        };
+        MultiFun* MultiFun::_in_=new MultiFun();
         
 
         class MBiggerFun: public LibFunction {
@@ -1229,7 +1258,7 @@ String* s_list;
                 return _in_;
             }
             string toString(){
-                return "{(let (vs k is_eq ) args is_eq (default eq ) ) (loop {(let ((v ...vs ) index ) args ) (if-run (is_eq v k ) {(list fa index ) } {(if-run (exist? vs ) {(list tr (list vs (+ index 1 ) ) ) } ) } ) } (list vs 0 ) ) }";
+                return "{(let (vs k is_eq ) args is_eq (default eq ) ) (loop {(let ((v ...vs ) index ) args ) (if-run (is_eq v k ) {(list false index ) } {(if-run (exist? vs ) {(list true (list vs (+ index 1 ) ) ) } ) } ) } (list vs 0 ) ) }";
             }
             Fun_Type ftype(){
                 return Function::fUser;
@@ -1313,7 +1342,7 @@ String* s_list;
                 return _in_;
             }
             string toString(){
-                return "{(let (f init ) args loop this ) (let (will init ) (f init ) ) (if-run will {(loop f init ) } {init } ) }";
+                return "{(let (f ...init ) args loop this ) (let (will ...init ) (apply f init ) ) (if-run will {(apply loop (extend f init ) ) } {init } ) }";
             }
             Fun_Type ftype(){
                 return Function::fUser;
@@ -1324,24 +1353,20 @@ String* s_list;
                 
                 Function * f=static_cast<Function*>(args->First());
                 args=args->Rest();
-                Base * init=NULL;
-                if(args!=NULL){
-                    init=args->First();
-                }
                 bool will=true;
                 while(will){
-                    Node * o=static_cast<Node*>(f->exec(list::extend(init,NULL)));
+                    Node* o=static_cast<Node*>(f->exec(args));
                     will=static_cast<Bool*>(o->First())->Value();
-                    init=o->Rest()->First();
-                    if(init!=NULL){
-                        init->retain();
+                    args=o->Rest();
+                    if(args!=NULL){
+                        args->retain();
                         o->release();
-                        init->eval_release();
+                        args->eval_release();
                     }else{
                         o->release();
                     }
                 }
-                return init;
+                return args;
             
             }
         };
@@ -1418,6 +1443,68 @@ String* s_list;
         };
         ReduceFun* ReduceFun::_in_=new ReduceFun();
         
+
+        class Slice_fromFun: public LibFunction {
+        private:
+            static Slice_fromFun * _in_;
+        public:    
+            static Slice_fromFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "{(let (list i ) args offset this ) (if-run (= i 0 ) {list } {(offset (rest list ) (- i 1 ) ) } ) }";
+            }
+            Fun_Type ftype(){
+                return Function::fUser;
+            }
+            
+            static Node* base_run(Node* list,int i){
+                while(i!=0){
+                    list=list->Rest();
+                    i--;
+                }
+                return list;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+            Node* list=static_cast<Node*>(args->First());
+            args=args->Rest();
+            int i=static_cast<Int*>(args->First())->Value();
+            return base_run(list,i);
+            
+            }
+        };
+        Slice_fromFun* Slice_fromFun::_in_=new Slice_fromFun();
+        
+
+        class OffsetFun: public LibFunction {
+        private:
+            static OffsetFun * _in_;
+        public:    
+            static OffsetFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "{(first (apply slice-from args ) ) }";
+            }
+            Fun_Type ftype(){
+                return Function::fUser;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+            Node* list=static_cast<Node*>(args->First());
+            args=args->Rest();
+            int i=static_cast<Int*>(args->First())->Value();
+            return Slice_fromFun::base_run(list,i)->First();
+            
+            }
+        };
+        OffsetFun* OffsetFun::_in_=new OffsetFun();
+        
         Node * library(){
             Node * m=NULL;
             /*使其不轻易销毁*/
@@ -1432,15 +1519,16 @@ String* s_list;
             m=kvs::extend("ref-count",Ref_countFun::instance(),m);
             m=kvs::extend("empty?",IsemptyFun::instance(),m);
             m=kvs::extend("exist?",IsexistFun::instance(),m);
-            m=kvs::extend("log",LogFun::instance(),m);
-            m=kvs::extend("toString",ToStringFun::instance(),m);
-            m=kvs::extend("stringify",StringifyFun::instance(),m);
             m=kvs::extend("if",IfFun::instance(),m);
             m=kvs::extend("eq",EqFun::instance(),m);
             m=kvs::extend("apply",ApplyFun::instance(),m);
+            m=kvs::extend("log",LogFun::instance(),m);
+            m=kvs::extend("toString",ToStringFun::instance(),m);
+            m=kvs::extend("stringify",StringifyFun::instance(),m);
             m=kvs::extend("type",TypeFun::instance(),m);
             m=kvs::extend("+",AddFun::instance(),m);
             m=kvs::extend("-",SubFun::instance(),m);
+            m=kvs::extend("*",MultiFun::instance(),m);
             m=kvs::extend(">",MBiggerFun::instance(),m);
             m=kvs::extend("<",MSmallerFun::instance(),m);
             m=kvs::extend("=",MEqFun::instance(),m);
@@ -1468,6 +1556,8 @@ String* s_list;
             m=kvs::extend("loop",LoopFun::instance(),m);
             m=kvs::extend("reverse",ReverseFun::instance(),m);
             m=kvs::extend("reduce",ReduceFun::instance(),m);
+            m=kvs::extend("slice-from",Slice_fromFun::instance(),m);
+            m=kvs::extend("offset",OffsetFun::instance(),m);
             return m;
         }
     };

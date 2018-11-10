@@ -3,8 +3,6 @@
 
 `致力于变成多平台通用的文件`
 (let 
-	`从某处开始切片`
-	slice-from offset
 	`叠加两个，可以用reduce来做N次重复`
 	combine-two {
 		(let (adds olds) args combine-two this)
@@ -53,8 +51,6 @@
 	`如果没有，设置默认值`
 	default 'default
 	`从某处开始切片`
-	slice-from 'slice-from
-	slice-to 'slice-to
 	`暂不添加slice，因为不知道是(slice from to) 还是 (slice from length)`
 
 	reduce 'reduce
@@ -154,10 +150,10 @@
 
 	combine-two 'combine-two
 
-	`类似js-Array的splice:list,offset,count,...adds，先不考虑异常`
+	`类似js-Array的splice:list,slice-from,count,...adds，先不考虑异常`
 	splice  {
 		(let (xs i count ...adds) args)
-		(let olds  (offset xs (+ i count)))
+		(let olds  (slice-from xs (+ i count)))
 		(let olds (combine-two adds olds))
 		(combine-two (slice-to xs i) olds)
 	}
@@ -165,14 +161,14 @@
 	`其实是与splice-last对应`
 	splice-first {
 		(let (xs count ...adds) args)
-		(let olds (offset xs count))
+		(let olds (slice-from xs count))
 		(combine-two adds olds)
 	}
 	`最后一个list,count,adds`
 	splice-last {
 		(let (xs count ...adds) args)
-		(let offset (- (length xs) count))
-		(combine-two (slice-to xs offset) adds)
+		(let slice-from (- (length xs) count))
+		(combine-two (slice-to xs slice-from) adds)
 	}
 
 	sort {
