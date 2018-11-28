@@ -163,63 +163,6 @@
 		};
 		;
 						
-		var LogFun=function(){
-			return mb.Java_new(Fun,[],{
-				exec:function(args){
-	                
-                var cs=[];
-                for(var t=args;t!=null;t=t.Rest()){
-                    cs.push(p.toString(t.First(),true));
-                }
-                p.log(cs);
-            
-				},
-				toString:function(){
-					return "log";
-				},
-				ftype:function(){
-					return Fun.Type.buildIn;
-				}
-			});
-		};
-		;
-						
-		var ToStringFun=function(){
-			return mb.Java_new(Fun,[],{
-				exec:function(args){
-	                
-                var b=args.First();
-                return p.toString(b,false);
-            
-				},
-				toString:function(){
-					return "toString";
-				},
-				ftype:function(){
-					return Fun.Type.buildIn;
-				}
-			});
-		};
-		;
-						
-		var StringifyFun=function(){
-			return mb.Java_new(Fun,[],{
-				exec:function(args){
-	                
-                var b=args.First();  
-                return p.toString(b,true);
-            
-				},
-				toString:function(){
-					return "stringify";
-				},
-				ftype:function(){
-					return Fun.Type.buildIn;
-				}
-			});
-		};
-		;
-						
 		var IfFun=function(){
 			return mb.Java_new(Fun,[],{
 				exec:function(args){
@@ -278,6 +221,63 @@
 				},
 				toString:function(){
 					return "apply";
+				},
+				ftype:function(){
+					return Fun.Type.buildIn;
+				}
+			});
+		};
+		;
+						
+		var LogFun=function(){
+			return mb.Java_new(Fun,[],{
+				exec:function(args){
+	                
+                var cs=[];
+                for(var t=args;t!=null;t=t.Rest()){
+                    cs.push(p.toString(t.First(),true));
+                }
+                p.log(cs);
+            
+				},
+				toString:function(){
+					return "log";
+				},
+				ftype:function(){
+					return Fun.Type.buildIn;
+				}
+			});
+		};
+		;
+						
+		var ToStringFun=function(){
+			return mb.Java_new(Fun,[],{
+				exec:function(args){
+	                
+                var b=args.First();
+                return p.toString(b,false);
+            
+				},
+				toString:function(){
+					return "toString";
+				},
+				ftype:function(){
+					return Fun.Type.buildIn;
+				}
+			});
+		};
+		;
+						
+		var StringifyFun=function(){
+			return mb.Java_new(Fun,[],{
+				exec:function(args){
+	                
+                var b=args.First();  
+                return p.toString(b,true);
+            
+				},
+				toString:function(){
+					return "stringify";
 				},
 				ftype:function(){
 					return Fun.Type.buildIn;
@@ -658,6 +658,29 @@
 		};
 		;
 						
+		var Str_splitFun=function(){
+			return mb.Java_new(Fun,[],{
+				exec:function(args){
+	                
+                var a=args.First();
+                var split="";
+                args=args.Rest()
+                if(args!=null){
+                    split=args.First();
+                }
+                return a.split(split);
+            
+				},
+				toString:function(){
+					return "str-split";
+				},
+				ftype:function(){
+					return Fun.Type.buildIn;
+				}
+			});
+		};
+		;
+						
 		var Str_upperFun=function(){
 			return mb.Java_new(Fun,[],{
 				exec:function(args){
@@ -1012,22 +1035,17 @@
 	                
                 var f=args.First();
                 args=args.Rest();
-                var init=null;
-                if(args!=null){
-                    init=args.First();
-                }
                 var will=true;
                 while(will){
-                    var o=f.exec(lib.s.extend(init,null));
-                    will=o.First();
-                    o=o.Rest();
-                    init=o.First();
+                    args=f.exec(args);
+                    will=args.First();
+                    args=args.Rest();
                 }
-                return init;
+                return args;
             
 				},
 				toString:function(){
-					return "{(let (f init ) args loop this ) (let (will init ) (f init ) ) (if-run will {(loop f init ) } {init } ) }";
+					return "{(let (f ...init ) args loop this ) (let (will ...init ) (apply f init ) ) (if-run will {(apply loop (extend f init ) ) } {init } ) }";
 				},
 				ftype:function(){
 					return Fun.Type.user;
@@ -1234,14 +1252,14 @@
 		};
 		;
 						
-		var OffsetFun=function(){
+		var Slice_fromFun=function(){
 			return mb.Java_new(Fun,[],{
 				exec:function(args){
 	                
             var list=args.First();
             args=args.Rest();
             var i=args.First();
-            return OffsetFun.base_run(list,i);
+            return Slice_fromFun.base_run(list,i);
             
 				},
 				toString:function(){
@@ -1253,7 +1271,7 @@
 			});
 		};
 		
-            OffsetFun.base_run=function(list,i){
+            Slice_fromFun.base_run=function(list,i){
                 while(i!=0){
                     list=list.Rest();
                     i--;
@@ -1288,6 +1306,26 @@
 		};
 		;
 						
+		var OffsetFun=function(){
+			return mb.Java_new(Fun,[],{
+				exec:function(args){
+	                
+                var list=args.First();
+                args=args.Rest();
+                var i=args.First();
+                return Slice_fromFun.base_run(list,i).First()
+            
+				},
+				toString:function(){
+					return "{(first (apply slice-from args ) ) }";
+				},
+				ftype:function(){
+					return Fun.Type.user;
+				}
+			});
+		};
+		;
+						
 		var m=null;
 		m=lib.s.kvs_extend("true",true,m);
 		m=lib.s.kvs_extend("false",false,m);
@@ -1304,17 +1342,17 @@
 						
 		m=lib.s.kvs_extend("exist?",IsexistFun(),m);
 						
-		m=lib.s.kvs_extend("log",LogFun(),m);
-						
-		m=lib.s.kvs_extend("toString",ToStringFun(),m);
-						
-		m=lib.s.kvs_extend("stringify",StringifyFun(),m);
-						
 		m=lib.s.kvs_extend("if",IfFun(),m);
 						
 		m=lib.s.kvs_extend("eq",EqFun(),m);
 						
 		m=lib.s.kvs_extend("apply",ApplyFun(),m);
+						
+		m=lib.s.kvs_extend("log",LogFun(),m);
+						
+		m=lib.s.kvs_extend("toString",ToStringFun(),m);
+						
+		m=lib.s.kvs_extend("stringify",StringifyFun(),m);
 						
 		m=lib.s.kvs_extend("type",TypeFun(),m);
 						
@@ -1349,6 +1387,8 @@
 		m=lib.s.kvs_extend("str-substr",Str_substrFun(),m);
 						
 		m=lib.s.kvs_extend("str-join",Str_joinFun(),m);
+						
+		m=lib.s.kvs_extend("str-split",Str_splitFun(),m);
 						
 		m=lib.s.kvs_extend("str-upper",Str_upperFun(),m);
 						
@@ -1404,9 +1444,11 @@
 						
 		m=lib.s.kvs_extend("kvs-path-run",Kvs_path_runFun(),m);
 						
-		m=lib.s.kvs_extend("offset",OffsetFun(),m);
+		m=lib.s.kvs_extend("slice-from",Slice_fromFun(),m);
 						
 		m=lib.s.kvs_extend("slice-to",Slice_toFun(),m);
+						
+		m=lib.s.kvs_extend("offset",OffsetFun(),m);
 						
 		return m;
 	}

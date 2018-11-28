@@ -23,6 +23,7 @@
 				(load './better/reverse.lisp)
 				(load './better/reduce.lisp)
 				(load './better/kvs-path.lisp)
+				(load './better/pip.lisp)
 				(load './better/split.lisp)
 			)
 		(cls fun)

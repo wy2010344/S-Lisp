@@ -4,6 +4,9 @@
     },
     delay:true,
     success:function(){
+        var serialize_fun=function(fun){
+            return "<Function>";//obj.toString();
+        };
         return function(){
 	        var log;
 	        lib.shell({
@@ -15,15 +18,26 @@
 	                        log_f("\t");
 	                    }
 	                };
-	                return function(str,split){
-	                    return eval(str);
-	                };
+	                return eval;
 	            },
 	            toString:function(obj){
 	                if(obj==null){
 	                    return "null";
-	                }else{
-	                    return JSON.stringify(obj,"",2);
+	                }else
+                    if(typeof(obj)=="function"){
+                        return serialize_fun(obj);
+                    }else{
+	                    return JSON.stringify(
+                            obj,
+                            function(key,value){
+                                if(typeof(value)=="function"){
+                                    return serialize_fun(value);
+                                }else{
+                                    return value;
+                                }
+                            },
+                            2
+                        );
 	                }
 	            }
 	        })();  

@@ -27,10 +27,10 @@
 	reverse-join {
 		(reduce args
 			{
-				(let (init xs i) args)
+				(let (init xs) args)
 				(reduce xs
 					{
-						(let (init x i) args)
+						(let (init x) args)
 						(extend x init)
 					}
 					init
@@ -187,7 +187,7 @@
 						(let (smallers eqs largers ) 
 								(reduce xs
 									{
-										(let ((smallers eqs largers) v i) args)
+										(let ((smallers eqs largers) v) args)
 										(let c (run x v))
 										(if-run (= 0 c)
 											{

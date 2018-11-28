@@ -259,6 +259,9 @@ namespace s{
             {
                 return static_cast<IntExp*>(ae)->Int_Value();
             }else
+            if(ae->exp_type()==Exp::Exp_Bool){
+                return static_cast<BoolExp*>(ae)->Bool_Value();
+            }else
             if(ae->exp_type()==Exp::Exp_Id)
             {
                 IDExp * idexp=static_cast<IDExp*>(ae);

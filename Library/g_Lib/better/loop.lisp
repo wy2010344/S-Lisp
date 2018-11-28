@@ -11,18 +11,24 @@
             run "
                 Function * f=static_cast<Function*>(args->First());
                 args=args->Rest();
+                if(args!=NULL){
+                    args->retain();/*第一次作参数，需要retain*/
+                }
                 bool will=true;
                 while(will){
                     Node* o=static_cast<Node*>(f->exec(args));
+                    if(args!=NULL){
+                        args->release();/*每次当完参数，需要release*/
+                    }
                     will=static_cast<Bool*>(o->First())->Value();
                     args=o->Rest();
                     if(args!=NULL){
-                        args->retain();
-                        o->release();
-                        args->eval_release();
-                    }else{
-                        o->release();
+                        args->retain();/*保持在o->release时不销毁，同时作为下一次函数执行的参数也需要retain*/
                     }
+                    o->release();
+                };
+                if(args!=NULL){
+                    args->eval_release();
                 }
                 return args;
             "

@@ -31,7 +31,7 @@
 	rest [
 		cpp [
 			run "
-				return (static_cast<Node *>(args->First()))->First();
+				return (static_cast<Node *>(args->First()))->Rest();
 			"
 		]
         C# [

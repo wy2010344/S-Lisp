@@ -68,6 +68,7 @@ mb.init=(function(){
 	                getAct:function(){
 	                    return act;
 	                },
+                    original:req,
 	                session:servlet.session //不同项目不同实现
 	            };
 	            var parseJSON=function(str){

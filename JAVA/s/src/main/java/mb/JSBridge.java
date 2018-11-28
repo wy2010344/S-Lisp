@@ -33,12 +33,15 @@ public class JSBridge {
         }
         HashMap<String,Object> ini=new HashMap<String,Object>();
         ini.put("server_path",server_path);
-        ini.put("file_sp",File.separator);
         ini.put("engine_name", engine.getFactory().getEngineName());
         ini.put("me",new Helper());
     	ini.put("jsx_path",jsx_path);
         return ini;
     }
+    /**
+     * @param path 最后不需要有分割符
+     * @param from_cache
+     */
     public JSBridge(String path,boolean from_cache){
     	server_path=path;
     	first_from_cache=from_cache;
@@ -123,7 +126,7 @@ public class JSBridge {
     }
     
     static void load_from_package(Bindings scriptParams,StringBuilder msg) throws ScriptException, IOException {
-        engine.eval(Util.readTxt(server_path+File.separator+"mb"+File.separator+"lib.js","\r\n","UTF-8"),scriptParams);
+        engine.eval(Util.readTxt(server_path+"/mb/"+"lib.js","\r\n","UTF-8"),scriptParams);
         String content=engine.eval("mb.compile.save();",scriptParams).toString();
 
         msg.append("重新打包");
@@ -147,16 +150,16 @@ public class JSBridge {
     	public Character charAt(String string,int index) {
     		return string.charAt(index);
     	}
-        public void saveText(String content,String path){
+        public File fileFromPath(String path){
+            return new File(path);
+        }
+        public void saveText(String path,String content){
             try{
             	mb.Util.saveTxt(path, content, "UTF-8");
             }catch(Exception ex){
                 ex.printStackTrace();
                 System.out.println("保存"+path+"出错:"+ex.getMessage());
             }
-        }
-        public File fileFromPath(String path){
-            return new File(path);
         }
         public String readTxt(File file){
             return readTxt(file.getPath());

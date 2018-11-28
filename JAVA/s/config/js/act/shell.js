@@ -1,16 +1,16 @@
 ({
     data:{
-        s_lisp:"util/s-lisp/index.js",
+        S_Lisp:"util/S-Lisp/index.js",
         shell:"util/shell.js"
     },
     delay:true,
     success:function(){
         return function(){
-	        var s_lisp=lib.s_lisp();
+	        var S_Lisp=lib.S_Lisp();
 	        lib.shell({
 	            end:"``",
 	            shell:function(log){
-	                return s_lisp.shell(
+	                return S_Lisp.shell(
 			            function(v){
 	                        log(v);
 			            },
@@ -18,7 +18,7 @@
 	                );
 	            },
 	            toString:function(obj){
-	                return s_lisp.toString(obj,true).toString();
+	                return S_Lisp.toString(obj,true).toString();
 	            }
 	        })();
         };

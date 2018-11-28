@@ -13,6 +13,7 @@ import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.security.ProtectionDomain;
 import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
@@ -35,6 +36,9 @@ public class Util {
 		System.out.println("7:" + System.getProperty("user.dir"));										//项目目录
 		System.out.println("8:" + System.getProperty("file.encoding"));									//获取文件编码
 	}
+	public static ProtectionDomain getProtectionDomain() {
+		return Util.class.getProtectionDomain();
+	}
 	static String _resource_path=null;
 	static String _runPath_;
 	public static String run_path() {
@@ -46,6 +50,24 @@ public class Util {
 	        } catch (Exception e) {  
 	            e.printStackTrace();  
 	        }
+	        _runPath_=_runPath_.replace('\\', '/');
+	        
+			if(_runPath_.endsWith(".class")) {
+				/*出现过runPath==class路径，不是jar*/
+				String cs_name=Util.class.getName().replace('.', '/');
+				/*用class名来匹配*/
+				int cs_idx= _runPath_.indexOf(cs_name);
+				if(cs_idx<0) {
+					/*用包名来匹配*/
+					cs_idx=_runPath_.indexOf(Util.class.getPackage().getName());
+				}
+				
+				if(cs_idx<0) {
+					System.out.println("出错，无法正确匹配"+_runPath_);
+				}else {
+					_runPath_=_runPath_.substring(0,cs_idx);
+				}
+			}
 		}
 		return _runPath_;
 	}
@@ -65,6 +87,12 @@ public class Util {
 		return in;
 	}
 
+	/**
+	 * 拼凑路径
+	 * @param base_path
+	 * @param relative_path 如果不是以点开始，则返回本身
+	 * @return
+	 */
 	public static String path_join(String base_path,String relative_path) {
 		if(relative_path!=null && relative_path.length()>0 && relative_path.charAt(0)=='.') {
 			String[] bs=base_path.split("/");
@@ -98,7 +126,7 @@ public class Util {
 	}
 	/**
 	 * 不支持jar内啊
-	 * @param path
+	 * @param path 如果不是以.开始，则返回本身，否则才计算相对路径
 	 * @return
 	 */
 	public static String resource(String path){
@@ -117,8 +145,8 @@ public class Util {
 					e.printStackTrace();
 					_resource_path=url.getPath().replace("%20", " ");//只转空格
 				}
+				_resource_path=_resource_path.replace('\\', '/');
 			}
-			_resource_path=_resource_path.replace('\\', '/');
 			
 		}
 		return path_join(_resource_path,path);

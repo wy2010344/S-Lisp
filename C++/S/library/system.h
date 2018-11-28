@@ -59,7 +59,7 @@ namespace s{
         protected:
             Base * run(Node * args){
                 
-				return (static_cast<Node *>(args->First()))->First();
+				return (static_cast<Node *>(args->First()))->Rest();
 			
             }
         };
@@ -1353,18 +1353,25 @@ String* s_list;
                 
                 Function * f=static_cast<Function*>(args->First());
                 args=args->Rest();
+                if(args!=NULL){
+                    args->retain();/*第一次作参数，需要retain*/
+                }
+                /*使用do...while语句更好*/
                 bool will=true;
                 while(will){
                     Node* o=static_cast<Node*>(f->exec(args));
+                    if(args!=NULL){
+                        args->release();/*每次当完参数，需要release*/
+                    }
                     will=static_cast<Bool*>(o->First())->Value();
                     args=o->Rest();
                     if(args!=NULL){
-                        args->retain();
-                        o->release();
-                        args->eval_release();
-                    }else{
-                        o->release();
+                        args->retain();/*保持在o->release时不销毁，同时作为下一次函数执行的参数也需要retain*/
                     }
+                    o->release();
+                };
+                if(args!=NULL){
+                    args->eval_release();
                 }
                 return args;
             
@@ -1442,6 +1449,43 @@ String* s_list;
             }
         };
         ReduceFun* ReduceFun::_in_=new ReduceFun();
+        
+
+        class PipFun: public LibFunction {
+        private:
+            static PipFun * _in_;
+        public:    
+            static PipFun*instance(){
+                return _in_;
+            }
+            string toString(){
+                return "{(first (apply loop (extend {(let (x f ...xs ) args ) (if-run (empty? xs ) {(list false (f x ) ) } {(extend true (extend (f x ) xs ) ) } ) } args ) ) ) }";
+            }
+            Fun_Type ftype(){
+                return Function::fUser;
+            }
+            
+        protected:
+            Base * run(Node * args){
+                
+				Base* o=args->First();
+				args=args->Rest();
+				while(args!=NULL){
+					Function* f=static_cast<Function*>(args->First());
+					args=args->Rest();
+					Node* n_args=new Node(o,NULL);
+					n_args->retain();
+					o=f->exec(n_args);
+					n_args->release();
+					if(o!=NULL){
+						o->eval_release();
+					}
+				}
+				return o;
+			
+            }
+        };
+        PipFun* PipFun::_in_=new PipFun();
         
 
         class Slice_fromFun: public LibFunction {
@@ -1556,6 +1600,7 @@ String* s_list;
             m=kvs::extend("loop",LoopFun::instance(),m);
             m=kvs::extend("reverse",ReverseFun::instance(),m);
             m=kvs::extend("reduce",ReduceFun::instance(),m);
+            m=kvs::extend("pip",PipFun::instance(),m);
             m=kvs::extend("slice-from",Slice_fromFun::instance(),m);
             m=kvs::extend("offset",OffsetFun::instance(),m);
             return m;

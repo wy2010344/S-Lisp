@@ -1079,6 +1079,27 @@ namespace s.library
         }
 			            
 
+        class PipFun:Function{
+            private static PipFun _ini_=new PipFun();
+            public static PipFun instance(){return _ini_;}
+            public override string ToString(){return "{(first (apply loop (extend {(let (x f ...xs ) args ) (if-run (empty? xs ) {(list false (f x ) ) } {(extend true (extend (f x ) xs ) ) } ) } args ) ) ) }";}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_Better;}
+            public override object exec(Node<object> args){
+                
+				Object o=args.First();
+				args=args.Rest();
+				while(args!=null){
+					Function f=args.First() as Function;
+					args=args.Rest();
+					o=f.exec(Node<Object>.extend(o,null));
+				}
+				return o;
+			
+            }
+            
+        }
+			            
+
         class Slice_fromFun:Function{
             private static Slice_fromFun _ini_=new Slice_fromFun();
             public static Slice_fromFun instance(){return _ini_;}
@@ -1197,6 +1218,7 @@ namespace s.library
         m=Node<Object>.kvs_extend("kvs-reduce-right",Kvs_reduce_rightFun.instance(),m);
         m=Node<Object>.kvs_extend("kvs-path",Kvs_pathFun.instance(),m);
         m=Node<Object>.kvs_extend("kvs-path-run",Kvs_path_runFun.instance(),m);
+        m=Node<Object>.kvs_extend("pip",PipFun.instance(),m);
         m=Node<Object>.kvs_extend("slice-from",Slice_fromFun.instance(),m);
         m=Node<Object>.kvs_extend("slice-to",Slice_toFun.instance(),m);
         m=Node<Object>.kvs_extend("offset",OffsetFun.instance(),m);

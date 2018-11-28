@@ -16,9 +16,7 @@ namespace shell
                 S b = new S(line_split, encoding);
                 b.addDef("read", new Read(line_split, encoding));
                 b.addDef("write", new Write(encoding));
-                /*
-                (b.run(@"D:\usr\web\app\S-Lisp\C#\s\s\library\index.s-shell") as Function).exec(null);
-                 */
+                //(b.run(@"C:\Users\miki\Desktop\f.s-shell") as Function).exec(null);
                 if (args.Length == 0)
                 {
                     b.shell();
@@ -29,7 +27,18 @@ namespace shell
                     if (first_arg.EndsWith("s-shell"))
                     {
                         Console.WriteLine(first_arg);
-                        (b.run(first_arg) as Function).exec(null);
+                        Object o=b.run(first_arg);
+                        if (o != null && o is Function)
+                        {
+                            /*
+                             * 脚本如果返回Function，则执行
+                             */
+                            (o as Function).exec(null);
+                        }
+                        else
+                        {
+                            Console.WriteLine("脚本返回不是一个函数");
+                        }
                         Console.WriteLine("执行结束");
                     }
                 }

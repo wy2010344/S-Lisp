@@ -1,14 +1,14 @@
 ({
     data:{
-        s_lisp:"util/s-lisp/index.js"
+        S_Lisp:"util/S-Lisp/index.js"
     },
     success:function(){
         var path=mb.request.get("args");
         var separator=Java.type("java.io.File").separator;
         path=path.replace(/\\/g,'/');
-        var s_lisp=lib.s_lisp();
+        var S_Lisp=lib.S_Lisp();
         //var path="/D:/usr/web/app/S-Lisp/JAVA/s/target/x.lisp";
         
-        s_lisp.run(path,true);
+        S_Lisp.run(path,true);
     }
 });

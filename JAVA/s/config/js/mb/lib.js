@@ -207,11 +207,45 @@ mb.time=(function(){
 mb.exist=function(v){
 	return (v!=null && v!="")
 };
+/**
+ * 路径转化成文件
+ * @param {} path
+ * @return {}
+ */
+mb.fileFromPath=function(path){
+    return ini.get("me").fileFromPath(path);
+};
+/**
+ * 读取文件
+ * @param {} pathOrFile 可为路径或文件
+ * @return {}
+ */
+mb.readText=function(pathOrFile){
+    var txt=ini.get("me").readTxt(pathOrFile);
+    if(txt!=null){
+        txt=txt+"";//转化成内置字符串
+    }
+    return txt;
+};
+/**
+ * 保存文本文件
+ * @param {} path
+ * @param {} content
+ */
+mb.saveText=function(path,content){
+    ini.get("me").saveText(path,content);
+};
 mb.load=(function(){
-    var sp=ini.get("file_sp");
-    var base_path=ini.get("server_path")+sp;
-    var me=ini.get("me");
+    var base_path=ini.get("server_path");
     var cache={};
+    /*转成绝对的key。按理说只有绝对路径，但打包只取相对路径*/
+    var path_Key=function(path,v){
+        if(v){
+            return mb.load.calAbsolutePath(path,v);
+        }else{
+            return path;
+        }
+    };
     var load=function(path,servlet,getFun){
         var o=cache[path];
         if(!o){
@@ -222,57 +256,10 @@ mb.load=(function(){
 	                out:pkg.body.out
 	            };
 	            cache[path]=o;
-                
-                var loadPath=function(v){
-                    var url;
-                    if(v[0]=='.'){
-                        url=mb.load.calAbsolutePath(path,v);
-                    }else{
-                        url=v;
-                    }
-                    return url;
-                };
-                var loadFun=function(url,fun){
-                    if(url){
-                        /*使用结果*/
-                        return fun(loadPath(url));
-                    }else{
-                        /*延迟加载*/
-                        return function(url){
-                            return fun(loadPath(url));
-                        };
-                    }
-                };
 	            mb.Object.forEach(pkg.body.data,function(v,k){
 		           var r;
 		           if(typeof(v)=='string'){
-	                    r=load(loadPath(v),false,getFun);
-		           }else
-		           if(typeof(v)=='object'){
-		                if(typeof(v.type)=='string'){
-		                    if(v.type=="path"){
-                                r=loadFun(v.url,mb.load.path);
-		                    }else
-		                    if(v.type=="file"){
-                                r=loadFun(v.url,mb.load.file);
-		                    }else
-		                    if(v.type=="text"){
-                                r=loadFun(v.url,mb.load.text);
-		                    }else{
-		                        throw "未支持类型"+v;
-		                        r=url;
-		                    }
-		                }else{
-		                    /*本来是同步的，可以加载*/
-		                    v.type(url,function(success){
-	                            r=success;
-	                        });
-		                }
-		           }else
-		           if(typeof(v)=='function'){
-		                v(function(success){
-		                    r=success;
-		                });
+	                    r=load(path_Key(path,v),false,getFun);
 		           }else{
 		                throw "未支持类型"+v;
 		           }
@@ -296,63 +283,51 @@ mb.load=(function(){
     };
     /*计算绝对路径*/
     load.calAbsolutePath=function(base_url,url){
-        var base=base_url.substr(0,base_url.lastIndexOf('/'))+'/'+url;
-        var nodes=base.split('/');
-        var rets=[];
-        var last=null;
-        for(var i=0;i<nodes.length;i++){
-            var node=nodes[i];
-            if(node=='..'){
-                if(last=='..'){
-                    rets.push(node);
-                }else
-                if(last==null){
-                    rets.push(node);
-                    last=node;
-                }else{
-                    rets.pop();
-                    last=rets[rets.length-1];
-                }
-            }else
-            if(node=='.'){
-                //忽略
-            }else{
-                rets.push(node);
-                last=node;
-            }
+        if(url[0]=='.'){
+	        var base=base_url.substr(0,base_url.lastIndexOf('/'))+'/'+url;
+	        var nodes=base.split('/');
+	        var rets=[];
+	        var last=null;
+	        for(var i=0;i<nodes.length;i++){
+	            var node=nodes[i];
+	            if(node=='..'){
+	                if(last=='..'){
+	                    rets.push(node);
+	                }else
+	                if(last==null){
+	                    rets.push(node);
+	                    last=node;
+	                }else{
+	                    rets.pop();
+	                    last=rets[rets.length-1];
+	                }
+	            }else
+	            if(node=='.'){
+	                //忽略
+	            }else{
+	                rets.push(node);
+	                last=node;
+	            }
+	        }
+	        return rets.join('/');
+        }else{
+            return url;
         }
-        return rets.join('/');
     };
+    /*从根路径开始计算->绝对路径*/
     load.path=function(path){
-        return base_path+sp+path;
+        return base_path+"/"+path;
     };
-    /**
-     * 返回JAVA的File实例，传入js为根的任何路径。
-     */
-    load.file=function(path){
-        return me.fileFromPath(load.path(path));
-    };
-    load.text=function(path){
-        return me.readTxt(load.path(path));
+    /*相对路径->绝对路径*/
+    load.pathOf=function(path,v){
+        return load.path(path_Key(path,v));
     };
     return load;
 })();
 mb.compile=(function(){
-    //importPackage(java.io);
-    var sp=""+ini.get("file_sp");
-    var base_path=""+ini.get("server_path");
-    
+    var base_path=ini.get("server_path");
     var escapeStr=function(str){
         return "\""+str.replace(/"/g,"\\\"")+"\"";
-    };
-    /**
-     * 保存文件
-     */
-    var saveTxt=function(content,path){
-    	ini.get("me").saveText(content,path);
-    };
-    var loadTxt=function(f){
-        return ini.get("me").readTxt(f);
     };
     /**
      * 用mb.load.require写的文件，其包含的内外都不能写代码。因为用toString对函数转化后会引用无效。
@@ -368,17 +343,6 @@ mb.compile=(function(){
      * 都是delay的循环引用问题，引用时可能在未来，即区分构建时库和运行时库。
      */
     var loadRequire=(function(){
-        var regx=(function(){
-            if('/'==sp){
-                return /\//g;
-            }else
-            if('\\'==sp){
-                return /\\/g;
-            }else
-            {
-                return eval("/"+sp+"/g");
-            }
-        })();
         var circleLoad=function(parent,name,root){
             var children=parent.listFiles();
             if(children==null)return;
@@ -386,18 +350,18 @@ mb.compile=(function(){
                 var child=children[i];
                 var childName=name+child.getName();
                 if(child.isDirectory()){
-                    circleLoad(child,childName+sp,root);
+                    circleLoad(child,childName+"/",root);
                 }else
                 {
                     var suffix = childName.substring(childName.lastIndexOf(".") + 1).toLowerCase();
                     if("js"==suffix){
-                        root[childName.replace(regx,'/')]=loadTxt(child);
+                        root[childName.replace(/\\/g,'/')]=mb.readText(child);
                     }
                 }
             }
         };
         var singLoad=function(folderName,root){
-            circleLoad(mb.load.file(folderName),folderName,root);
+            circleLoad(mb.fileFromPath(mb.load.path(folderName)),folderName,root);
         };
         return function(){
             var root={};
@@ -413,6 +377,7 @@ mb.compile=(function(){
                                 var txt=[
                                     "cache["+e_key+"]=function(){",
                                     "   var lib={};",
+                                    "   var pathOf=function(url){return mb.load.pathOf("+e_key+",url);};",
                                     "   var body="+root[key]+";",
                                     "   return {lib:lib,body:body};",
                                     "};"
@@ -426,7 +391,7 @@ mb.compile=(function(){
     })();
     
     var loadMB=function(array,name){
-         array.push(loadTxt(base_path+sp+"mb"+sp+name));
+         array.push(mb.readText(base_path+"/mb/"+name));
     };
     /**
      * 编译输出成字典
@@ -443,12 +408,12 @@ mb.compile=(function(){
         ret.push("(function(){");
         
         var getLib;
-        if(ini.get("package")){
+        if(ini.get("package")==true){
             //打包成一个文件
             var rqs=loadRequire(
-                "act"+sp,
-                "util"+sp,
-                "ext"+sp);
+                "act/",
+                "util/",
+                "ext/");
                 
             ret.push(rqs);
             /*打包文件*/
@@ -463,30 +428,33 @@ mb.compile=(function(){
                 });
             };
        }else{
-           //不打包文件
+           /*不打包文件*/
            getLib=function(path,servlet){
 	           return mb.load(path,servlet,function(url){
-                    var txt=mb.load.text(url);
-                    if(txt==null){
-                        return null;
+                    var file=mb.fileFromPath(mb.load.path(url));
+                    if(file.exists() && file.isFile()){
+                        var txt=mb.readText(file);
+                        var lib={};
+                        var pathOf=function(v){
+                            return mb.load.pathOf(url,v);
+                        };
+                        var body=eval(txt);
+                        return{
+                            lib:lib,
+                            body:body
+                        };
                     }else{
-	                    var lib={};
-	                    var body=eval(txt);
-	                    return{
-	                        lib:lib,
-	                        body:body
-	                    };
+                        return null;
                     }
 	           });
 	       };
         }
-        ret.push("var getLib="+getLib.toString()+";");
+        ret.push("var getLib="+getLib.toString().trim()+";");
         
         
         /**对servlet不同的加载方案**/
-        ret.push("(");
-        ret.push((function(){
-	        getLib("ext/index.js")(mb);
+        ret.push("("+(function(){
+            getLib("ext/index.js")(mb);
 	        if(ini.get("servlet")==true){
 	            mb.init(function(path){
 	                return getLib(path,true);
@@ -496,8 +464,7 @@ mb.compile=(function(){
 	                return getLib(path);
 	            });
 	        }
-        }).toString());
-        ret.push("())");
+        }).toString().trim()+"());");
         /****/
         ret.push("}())");
         return ret.join('\r\n');
@@ -505,7 +472,7 @@ mb.compile=(function(){
     //缓存到文件
     ret.save=function(){
         var x=ret();
-        saveTxt(x,ini.get("jsx_path"));
+        mb.saveText(ini.get("jsx_path"),x);
         return x;
     };
     return ret;
