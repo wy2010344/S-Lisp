@@ -26,11 +26,11 @@ namespace s
             return ret;
         }
 
-        private static Node<Object> kvs_extend(String key, Object value, Node<Object> kvs)
+        public static Node<Object> kvs_extend(String key, Object value, Node<Object> kvs)
         {
             return Node<Object>.kvs_extend(key,value,kvs);
         }
-        Node<Object> letSmallMatch(Exp small, Object v, Node<Object> scope)
+        static Node<Object> letSmallMatch(Exp small, Object v, Node<Object> scope)
         {
             Node<Exp> ks = small.Children();
             if (v == null || v is Node<Object>)
@@ -93,6 +93,10 @@ namespace s
                     {
                         scope = letSmallMatch(key, value, scope);
                     }
+                    else
+                    {
+                        throw key.exception("不是正确的类型");
+                    }
                 }
                 return null;
             }
@@ -101,7 +105,7 @@ namespace s
                 return interpret(exp, scope);
             }
         }
-        String getPath(Node<Object> scope)
+        public static String getPath(Node<Object> scope)
         {
             String path = null;
             Node<Object> tmp = scope;
@@ -121,7 +125,7 @@ namespace s
             }
             return path;
         }
-        Node<Object> calNode(Node<Exp> list, Node<Object> scope)
+        static Node<Object> calNode(Node<Exp> list, Node<Object> scope)
         {
             Node<Object> r = null;
             for (Node<Exp> x = list; x != null; x = x.Rest())
@@ -140,7 +144,7 @@ namespace s
         /// <param name="msg"></param>
         /// <param name="e"></param>
         /// <returns></returns>
-        LocationException match_Exception(Node<Object> scope, String msg, Exp e)
+        public static LocationException match_Exception(Node<Object> scope, String msg, Exp e)
         {
             return e.exception(getPath(scope) + ":\t" + msg);
         }
@@ -152,11 +156,11 @@ namespace s
         /// <param name="scope"></param>
         /// <param name="children"></param>
         /// <returns></returns>
-        LocationException error_throw(String msg, Exp exp,Node<Object> scope,Node<Object> children)
+        public static LocationException error_throw(String msg, Exp exp,Node<Object> scope,Node<Object> children)
         {
             return exp.exception( msg + ":\r\n"+children.ToString()+"\r\n"+ exp.Children().First() + "\r\n" + exp.Children().ToString());
         }
-        Object interpret(Exp exp, Node<Object> scope)
+        static Object interpret(Exp exp, Node<Object> scope)
         {
             if (exp.Exp_type() == Exp.ExpType.Exp_Small)
             {

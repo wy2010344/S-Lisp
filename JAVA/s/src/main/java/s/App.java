@@ -7,7 +7,7 @@ import org.apache.log4j.Logger;
 public class App {
 	public static void main(final String[] args) {
 		String path=mb.Util.resource("../../config/js");
-		final mb.JSBridge bridge=new mb.JSBridge(path,true) {
+		final mb.JSBridge bridge=new mb.JSBridge(path,false) {
 			@Override
 			protected void param(HashMap<String,Object> ini){
 				ini.put("bridge", this);
@@ -22,7 +22,7 @@ public class App {
 				//执行lisp脚本文件
 				HashMap<String,String> req=new HashMap<String,String>();
 				req.put("args", args_0);
-				bridge.run_map(req, "index",log);
+				bridge.run_map(req, "run",log);
 			}else {
 				if("exec".equals(args_0))
 				{

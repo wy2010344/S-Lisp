@@ -15,41 +15,37 @@ import javax.script.ScriptException;
 import org.apache.log4j.Logger;
 
 public class JSBridge {
-    protected static ScriptEngine engine;
-    protected static CompiledScript cScript=null;
-    static boolean first_run=true;//编译事件
-    static String server_path;
-    static boolean first_from_cache;
-    static String jsx_path;
-    protected HashMap<String,Object> init(){
-        if(engine==null){
-            ScriptEngineManager manager=new ScriptEngineManager();
-            engine = manager.getEngineByName("nashorn");
-    		if(engine == null){
-    			System.out.println("未找到引擎nashron");
-    			engine=manager.getEngineByName("JavaScript");
-    		}
-            System.out.println(engine.getFactory().getEngineName()); 
-        }
-        HashMap<String,Object> ini=new HashMap<String,Object>();
-        ini.put("server_path",server_path);
-        ini.put("engine_name", engine.getFactory().getEngineName());
-        ini.put("me",new Helper());
-    	ini.put("jsx_path",jsx_path);
-        return ini;
-    }
+    final ScriptEngine engine;
+    final String server_path;
+    final boolean first_from_cache;
+    final File jsx_file;
+    
+    JSMethod method;/*编译后的方法*/
+    boolean first_run=true;//编译事件
     /**
      * @param path 最后不需要有分割符
      * @param from_cache
      */
     public JSBridge(String path,boolean from_cache){
+    	if(path==null) {
+    		path="";
+    	}
+    	path=path.replace('\\', '/');
+    	if(!path.endsWith("/")) {
+    		path=path+"/";
+    	}
+    	
     	server_path=path;
     	first_from_cache=from_cache;
-    	jsx_path=server_path+"/out.jsx";
+    	jsx_file=new File(server_path+"/out.jsx");
+    	/*engine*/
+        ScriptEngineManager manager=new ScriptEngineManager();
+		engine=manager.getEngineByName("JavaScript");
+        System.out.println(engine.getFactory().getEngineName()); 
+        /*主动、第一次生成方法*/
+        reloadMethod();
     }
     public HashMap<String,Object> run_map(HashMap<String,String> request,String act,Logger log){
-        //构造初始化
-        HashMap<String,Object> ini=init();
         if(request==null) {
         	request=new HashMap<String,String>();
         }
@@ -57,94 +53,147 @@ public class JSBridge {
         	act="";
         }
         HashMap<String,Object> response=new HashMap<String,Object>();
-        try {
-            ini.put("log", log);
-            ini.put("act", act);
-            ini.put("request",request);
-            ini.put("response",response);
-            
-            Bindings scriptParams=scriptParamsFromIni(ini);
-            if("".equals(act)) {
-            	//手动刷新，重新加载
-            	StringBuilder msg=new StringBuilder("手动:");
-            	load_from_package(scriptParams,msg);
-            	
-                response.put("code", 0);
-                response.put("description","刷新成功");
-            }else {
-            	//执行具体方法
-            	run(scriptParams);
+        if("".equals(act)) {
+        	reloadMethod();
+            response.put("code", 0);
+            response.put("description","刷新成功");
+        	return response;
+        }else {
+            HashMap<String,Object> map=new HashMap<String,Object>();
+            map.put("act", act);
+            map.put("log", log);
+            map.put("request", request);
+            map.put("response", response);
+            map.put("type", "map");
+            try {
+            	getMethod().run(map);
+            }catch(Throwable e) {
+        		String err=Util.loadAllErr(e);
+                response.put("code", -2);
+                response.put("description",err);
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+                log.error(err);
             }
-        } catch (Exception e) {
-            response.put("code", -2);
-            response.put("description",Util.loadAllErr(e));
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            log.error(Util.loadAllErr(e));
+            return response;
         }
-		return response;
     }
     protected void param(HashMap<String,Object> ini){
     	/*
     	 */
     }
-    protected Bindings scriptParamsFromIni(HashMap<String,Object> ini) {
+    Bindings scriptParamsFromIni() {
+        HashMap<String,Object> ini=new HashMap<String,Object>();
+        ini.put("server_path",server_path);
+        ini.put("engine_name", engine.getFactory().getEngineName());
+        ini.put("me",new Helper());
+    	ini.put("jsx_path",jsx_file.getPath());
         param(ini);
         Bindings scriptParams = engine.createBindings();
         scriptParams.put("ini", ini);
         return scriptParams;
     }
-    /**
-     * 执行具体方法
-     * @param scriptParams
-     * @throws FileNotFoundException
-     * @throws IOException
-     * @throws ScriptException
-     */
-    protected void run(Bindings scriptParams) throws FileNotFoundException, IOException, ScriptException {
-    	if(first_run) {
-        	//第一次
-        	first_run=false;
-        	StringBuilder msg=new StringBuilder("第一次:");
-        	File jsx=new File(jsx_path);
-        	if(jsx.exists() && first_from_cache) {
-        		load_from_jsx(jsx,msg);
-        	}else {
-        		load_from_package(scriptParams,msg);
-        	}
+    
+    protected JSMethod getMethod() throws Exception {
+    	if(method==null) {
+    		reloadMethod();
     	}
-
-        if(cScript!=null){
-            try {
-				cScript.eval(scriptParams);
-			} catch (ScriptException e) {
-				// TODO Auto-generated catch block
-	            System.out.println("执行时时出的错");
-				throw e;
-			}
-        }
+    	if(method==null) {
+    		throw new Exception("生成method失败");
+    	}else {
+    		return method;
+    	}
+    }
+    protected void reloadMethod(){
+        //构造初始化
+        Bindings bindings=scriptParamsFromIni();
+    	StringBuilder msg=new StringBuilder();
+    	String content="";
+    	if(first_run){
+    		first_run=false;
+        	msg.append("第一次:");
+        	if(jsx_file.exists() && first_from_cache) {
+        		content=load_from_jsx(msg);
+        	}else {
+        		content=load_from_package(bindings,msg);
+        	}
+    	}else {
+    		msg.append("手动：");
+    		content=load_from_package(bindings,msg);
+    	}
+    	if(!"".equals(content)) {
+    		method=load_cScript(content,bindings,msg);
+    	}else {
+    		msg.append("加载method失败");
+    	}
+        System.out.println(msg.toString());
     }
     
-    static void load_from_package(Bindings scriptParams,StringBuilder msg) throws ScriptException, IOException {
-        engine.eval(Util.readTxt(server_path+"/mb/"+"lib.js","\r\n","UTF-8"),scriptParams);
-        String content=engine.eval("mb.compile.save();",scriptParams).toString();
-
-        msg.append("重新打包");
-        load_cScript(content,msg);
+    String load_from_package(Bindings scriptParams,StringBuilder msg){
+		try {
+			String txt = Util.readTxt(server_path+"/mb/"+"lib.js","\r\n","UTF-8");
+	        try {
+				engine.eval(txt,scriptParams);
+				try {
+			        String content=engine.eval("mb.compile.save();",scriptParams).toString();
+			        msg.append("重新打包");
+			        return content;
+				}catch(ScriptException e) {
+					e.printStackTrace();
+					msg.append("执行mb.compile.save失败");
+				}
+			} catch (ScriptException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				msg.append("执行lib.js文件失败");
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			msg.append("读取lib.js文件失败");
+		}
+		return null;
     }
-    static void load_from_jsx(File jsx,StringBuilder msg) throws FileNotFoundException, IOException, ScriptException {
-    	String content=Util.readTxt(jsx, "\r\n", "UTF-8");
-    	
-        msg.append("加载jsx");
-    	load_cScript(content,msg);
+    String load_from_jsx(StringBuilder msg){
+		try {
+			String content= Util.readTxt(jsx_file, "\r\n", "UTF-8");
+	        msg.append("加载jsx");
+	        return content;
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			msg.append(jsx_file.getPath()+"文件不存在");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			msg.append("读取"+jsx_file.getPath()+"失败");
+		}
+		return null;
     }
-    static void load_cScript(String content,StringBuilder msg) throws ScriptException {
+    JSMethod load_cScript(String content,Bindings scriptParams,StringBuilder msg){
         Compilable comp = (Compilable) engine;
-        cScript = comp.compile(content);
         
-        msg.append(":");
-        msg.append(server_path);
-        System.out.println(msg.toString());
+		try {
+			CompiledScript cScript = comp.compile(content);
+			try {
+		        JSMethod method=(JSMethod)(cScript.eval(scriptParams));
+		        msg.append(":");
+		        msg.append(server_path);
+		        return method;
+			}catch (ScriptException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				msg.append("执行编译后脚本失败!");
+			}
+		} catch (ScriptException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			msg.append("编译脚本失败!");
+		}
+		return null;
+    }
+    public static interface JSMethod{
+    	void run(HashMap<String,Object> map);
     }
     public static class Helper{
     	public Character charAt(String string,int index) {

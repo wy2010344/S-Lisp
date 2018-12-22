@@ -10,8 +10,14 @@
         var System=Java.type("java.lang.System");
         var mb_Util=Java.type("mb.Util");
         var Java_String=Java.type("java.lang.String");
-        var S_Root=System.getenv().get("S_LISP")||"D:/S-Lisp";
-        S_Root=S_Root.replace(/\\/g,'/');
+        var S_Root=System.getenv().get("S_LISP");
+        if(S_Root!=null && S_Root!=""){
+            S_Root=""+S_Root;
+        }else{
+            S_Root="D:/S-Lisp";
+        }
+        S_Root=""+S_Root.replace(/\\/g,'/');
+        mb.log(typeof(S_Root),S_Root);
         if(!S_Root.endsWith("/")){
             S_Root=S_Root+"/";
         }

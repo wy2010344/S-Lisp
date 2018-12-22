@@ -78,63 +78,27 @@ mb.Function=(function(){
 mb.log=(function(){
     var Stringify=function(o){
         if(typeof(o)=='object'){
-            var ret={};
-            for(var k in o){
-                ret[k]=""+o[k];
-            }
-            return JSON.stringify(ret,"",2);
+            return JSON.stringify(o,function(key,value){
+                if(typeof(value)=='function'){
+                    return '<Function>';
+                }
+                return value;
+            },2);
         }else{
             return ""+o;
         }
     };
-    var loadder=function(prefix){
-        var toPrint;
-        var toLog;
-        var System=Java.type("java.lang.System");
-        var _print_=function(a){
-            System.out.print(a);
-        };
-        if(prefix){
-            toPrint=function(str){
-                return prefix+":\t"+str;
-            };
-            toLog=function(){
-                _print_(prefix+":");
-                _print_("\t");
-            };
-        }else{
-            toPrint=function(str){return str;};
-            toLog=function(){};
-        }
-        var log=function(){
-            toLog();
-            for(var i=0;i<arguments.length;i++){
-                _print_(arguments[i]);
-                _print_('\t');
-            }
-            _print_('\n');
-        };
-        var common=function(key){
-            return function(o){
-                var str=Stringify(o);
-                log(key,str);
-                //如果有定义输出到日志文件的
-                var sl=ini.get("log");
-                if(sl){
-                    sl[key](toPrint(str));
-                }
-            };
-        };
-        log.stringifyError=Stringify;
-        log.info=common("info");
-        log.warn=common("warn");
-        log.error=common("error");
-        log.debug=common("debug");
-        return log;
+    var System=Java.type("java.lang.System");
+    var _print_=function(a){
+        System.out.print(a);
     };
-    var log=loadder();
-    log.loadder=loadder;
-    return log;
+    return function(){
+        for(var i=0;i<arguments.length;i++){
+            _print_(Stringify(arguments[i]));
+            _print_('\t');
+        }
+        _print_('\n');
+    };
 })();
 mb.Exception=function(s){
     return new (Java.type("java.lang.Exception"))(s);
@@ -246,16 +210,16 @@ mb.load=(function(){
             return path;
         }
     };
-    var load=function(path,servlet,getFun){
-        var o=cache[path];
-        if(!o){
-            var pkg=getFun(path);
+    var load=function(path,deal,getFun){
+        var pkg=cache[path];
+        if(!pkg){
+            pkg=getFun(path);
             if(pkg){
-	            o={
-	                success:pkg.body.delay?pkg.body.success():pkg.body.success,
-	                out:pkg.body.out
-	            };
-	            cache[path]=o;
+                if(pkg.body.delay){
+                    pkg.body.success=pkg.body.success();
+                    delete pkg.body.delay;
+                }
+	            cache[path]=pkg;
 	            mb.Object.forEach(pkg.body.data,function(v,k){
 		           var r;
 		           if(typeof(v)=='string'){
@@ -267,15 +231,19 @@ mb.load=(function(){
 	            });
             }
         }
-        if(o){
-	        if(servlet){
-	            if(o.out){
-	                return o.success;
-	            }else{
-	                return null;
-	            }
+        /**
+        pkg:{
+            lib
+            success
+            out
+            ...
+        }
+         */
+        if(pkg){
+	        if(deal){
+	            return deal(pkg);
 	        }else{
-	            return o.success;
+	            return pkg.body.success;
 	        }
         }else{
             return null;
@@ -403,10 +371,6 @@ mb.compile=(function(){
 		loadMB(ret,"lib.js");
 		//兼容包
 		loadMB(ret,ini.get("engine_name")+".js");
-		//项目共性包
-		loadMB(ret,"common.js");
-        ret.push("(function(){");
-        
         var getLib;
         if(ini.get("package")==true){
             //打包成一个文件
@@ -417,8 +381,8 @@ mb.compile=(function(){
                 
             ret.push(rqs);
             /*打包文件*/
-            getLib=function(path,servlet){
-                return mb.load(path,servlet,function(url){
+            getLib=function(path,deal){
+                return mb.load(path,deal,function(url){
                     var v=cache[url];
                     if(v){
                         return v();
@@ -429,8 +393,8 @@ mb.compile=(function(){
             };
        }else{
            /*不打包文件*/
-           getLib=function(path,servlet){
-	           return mb.load(path,servlet,function(url){
+           getLib=function(path,deal){
+	           return mb.load(path,deal,function(url){
                     var file=mb.fileFromPath(mb.load.path(url));
                     if(file.exists() && file.isFile()){
                         var txt=mb.readText(file);
@@ -449,24 +413,21 @@ mb.compile=(function(){
 	           });
 	       };
         }
-        ret.push("var getLib="+getLib.toString().trim()+";");
-        
-        
-        /**对servlet不同的加载方案**/
-        ret.push("("+(function(){
-            getLib("ext/index.js")(mb);
-	        if(ini.get("servlet")==true){
-	            mb.init(function(path){
-	                return getLib(path,true);
-	            });
-	        }else{
-	            mb.init(function(path){
-	                return getLib(path);
-	            });
-	        }
-        }).toString().trim()+"());");
+        ret.push("mb.getLib="+getLib.toString().trim()+";mb.getLib(\"ext/index.js\")(mb);");
         /****/
-        ret.push("}())");
+        ret.push("("+(function(){
+            return mb.Java_new("mb.JSBridge.JSMethod",[],{
+                run:function(map){
+                    var url="act/"+map.get("type")+"/index.js";
+                    var act=mb.getLib(url);
+                    if(act!=null){
+                        act(map);
+                    }else{
+                        mb.log("未找到处理模块！"+url);
+                    }
+                }
+            });
+        }).toString().trim()+"());");
         return ret.join('\r\n');
     };
     //缓存到文件

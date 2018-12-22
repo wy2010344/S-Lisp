@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import org.apache.log4j.Logger;
 
 
+
 public class Util {
 	protected static Logger log = Logger.getLogger(Util.class.getName());
 	public static void main(String[] arg)
@@ -124,12 +125,7 @@ public class Util {
 			return base_path;
 		}
 	}
-	/**
-	 * 不支持jar内啊
-	 * @param path 如果不是以.开始，则返回本身，否则才计算相对路径
-	 * @return
-	 */
-	public static String resource(String path){
+	public static String resource(String path,Class<?> clazz){
 		if(path==null){
 			path="";
 		}
@@ -137,7 +133,7 @@ public class Util {
 			if(is_in_jar()) {
 				_resource_path=run_path();
 			}else {
-				URL url=Util.class.getClassLoader().getResource("");
+				URL url=clazz.getClassLoader().getResource("");
 				try {
 					_resource_path = URLDecoder.decode(url.getPath(), "utf-8");
 				} catch (UnsupportedEncodingException e) {
@@ -150,6 +146,14 @@ public class Util {
 			
 		}
 		return path_join(_resource_path,path);
+	}
+	/**
+	 * 不支持jar内啊
+	 * @param path 如果不是以.开始，则返回本身，否则才计算相对路径
+	 * @return
+	 */
+	public static String resource(String path){
+		return resource(path,Util.class);
 	}
 	/**
 	 * 路径

@@ -51,6 +51,11 @@
     <Compile Include="S.cs" />
     <Compile Include="Token.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="type\TFunction.cs" />
+    <Compile Include="type\TQueueRun.cs" />
+    <Compile Include="type\TS.cs" />
+    <Compile Include="type\TUnion.cs" />
+    <Compile Include="type\TUserFunction.cs" />
     <Compile Include="UserFunction.cs" />
     <Compile Include="Util.cs" />
   </ItemGroup>
