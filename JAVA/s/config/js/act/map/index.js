@@ -7,15 +7,19 @@
 	            return map.get("request").get(key);
 	        };
 	        return {
-	            get:function(key){
-	                var ret=get(key);
-	                if(ret==null){
-	                    return "";
-	                }else{
-	                    return ""+ret;
-	                }
-	            },
-	            json:function(key){
+                /*获得实体*/
+	            get:get,
+                /*获得字符串，默认空*/
+                get_str:function(key){
+                    var ret=get(key);
+                    if(ret==null){
+                        return "";
+                    }else{
+                        return ""+ret;
+                    }
+                },
+                /*获得字符串，并转为JSON*/
+	            get_json:function(key){
 	                var ret=get(key);
 	                if(ret!=null){
 	                    return JSON.parse(ret);
@@ -34,6 +38,11 @@
 	        };
 	        return {
 	            object:write,
+                /*data部分是实体*/
+                write:function(obj){
+                    write(0,"操作成功",obj);
+                },
+                /*data部分是空*/
 	            json:function(obj){
 	                write(0,"操作成功",JSON.stringify(obj));
 	            },

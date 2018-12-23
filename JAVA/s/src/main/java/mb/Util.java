@@ -28,23 +28,24 @@ public class Util {
 		/***
 		 * 使用Util.resource_path,因为有空格转%20等问题
 		 */
+		Class<?> clazz=Util.class;
 		System.out.println("1:" + Thread.currentThread().getContextClassLoader().getResource(""));		// Class包所在路径，得到的是URL对象，用url.getPath()获取绝对路径String
-		System.out.println("2:" + Util.class.getClassLoader().getResource(""));					// Class包所在路径，得到的是URL对象，用url.getPath()获取绝对路径String
+		System.out.println("2:" + clazz.getClassLoader().getResource(""));					// Class包所在路径，得到的是URL对象，用url.getPath()获取绝对路径String
 		System.out.println("3:" + ClassLoader.getSystemResource(""));									// Class包所在路径，得到的是URL对象，用url.getPath()获取绝对路径String
-		System.out.println("4:" + Util.class.getResource(""));									//ParamsConfig.class文件所在路径，用url.getPath()获取绝对路径String
-		System.out.println("5:" + Util.class.getResource("/")); 								// Class包所在路径，得到的是URL对象，用url.getPath()获取绝对路径String
+		System.out.println("4:" + clazz.getResource(""));									//ParamsConfig.class文件所在路径，用url.getPath()获取绝对路径String
+		System.out.println("5:" + clazz.getResource("/")); 								// Class包所在路径，得到的是URL对象，用url.getPath()获取绝对路径String
 		System.out.println("6:" + new File("/").getAbsolutePath());										//根路径，如D:/
 		System.out.println("7:" + System.getProperty("user.dir"));										//项目目录
 		System.out.println("8:" + System.getProperty("file.encoding"));									//获取文件编码
 	}
-	public static ProtectionDomain getProtectionDomain() {
-		return Util.class.getProtectionDomain();
+	public static ProtectionDomain getProtectionDomain(Class<?> clazz) {
+		return clazz.getProtectionDomain();
 	}
 	static String _resource_path=null;
 	static String _runPath_;
-	public static String run_path() {
+	public static String run_path(Class<?> clazz) {
 		if(_runPath_==null) {
-	        URL url = Util.class.getProtectionDomain().getCodeSource().getLocation();
+	        URL url = clazz.getProtectionDomain().getCodeSource().getLocation();
 	        _runPath_ = "";  
 	        try {  
 	            _runPath_ = URLDecoder.decode(url.getPath(), "utf-8");// 转化为utf-8编码  
@@ -55,12 +56,12 @@ public class Util {
 	        
 			if(_runPath_.endsWith(".class")) {
 				/*出现过runPath==class路径，不是jar*/
-				String cs_name=Util.class.getName().replace('.', '/');
+				String cs_name=clazz.getName().replace('.', '/');
 				/*用class名来匹配*/
 				int cs_idx= _runPath_.indexOf(cs_name);
 				if(cs_idx<0) {
 					/*用包名来匹配*/
-					cs_idx=_runPath_.indexOf(Util.class.getPackage().getName());
+					cs_idx=_runPath_.indexOf(clazz.getPackage().getName());
 				}
 				
 				if(cs_idx<0) {
@@ -72,19 +73,19 @@ public class Util {
 		}
 		return _runPath_;
 	}
-	public static boolean is_in_jar() {
-		File f=new File(run_path());
+	public static boolean is_in_jar(Class<?> clazz) {
+		File f=new File(run_path(clazz));
 		return f.isFile();
 	}
 	
-	public static InputStream resource_stream(String path) {
+	public static InputStream resource_stream(String path,Class<?> clazz) {
 		if(path==null) {
 			path="/";
 		}
 		if(!path.startsWith("/")) {
 			path="/"+path;
 		}
-		InputStream in = Util.class.getResourceAsStream(path);
+		InputStream in = clazz.getResourceAsStream(path);
 		return in;
 	}
 
@@ -130,8 +131,8 @@ public class Util {
 			path="";
 		}
 		if(_resource_path==null){
-			if(is_in_jar()) {
-				_resource_path=run_path();
+			if(is_in_jar(clazz)) {
+				_resource_path=run_path(clazz);
 			}else {
 				URL url=clazz.getClassLoader().getResource("");
 				try {
@@ -152,6 +153,7 @@ public class Util {
 	 * @param path 如果不是以.开始，则返回本身，否则才计算相对路径
 	 * @return
 	 */
+	@Deprecated
 	public static String resource(String path){
 		return resource(path,Util.class);
 	}

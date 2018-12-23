@@ -20,7 +20,7 @@ public class App {
 			String args_0=args[0];
 			if(args.length==1) {
 				//执行lisp脚本文件
-				HashMap<String,String> req=new HashMap<String,String>();
+				HashMap<String,Object> req=new HashMap<String,Object>();
 				req.put("args", args_0);
 				bridge.run_map(req, "run",log);
 			}else {
@@ -39,7 +39,7 @@ public class App {
 				if("js".equals(args_0)) {
 					//执行js文件
 					String args_1=args[1];
-					HashMap<String,String> req=new HashMap<String,String>();
+					HashMap<String,Object> req=new HashMap<String,Object>();
 					req.put("args", args_1);
 					bridge.run_map(req, "js/run", log);
 				}

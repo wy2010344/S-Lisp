@@ -45,9 +45,9 @@ public class JSBridge {
         /*主动、第一次生成方法*/
         reloadMethod();
     }
-    public HashMap<String,Object> run_map(HashMap<String,String> request,String act,Logger log){
+    public HashMap<String,Object> run_map(HashMap<String,Object> request,String act,Logger log){
         if(request==null) {
-        	request=new HashMap<String,String>();
+        	request=new HashMap<String,Object>();
         }
         if(act==null) {
         	act="";
