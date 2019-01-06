@@ -233,11 +233,7 @@
 			return mb.Java_new(Fun,[],{
 				exec:function(args){
 	                
-                var cs=[];
-                for(var t=args;t!=null;t=t.Rest()){
-                    cs.push(p.toString(t.First(),true));
-                }
-                p.log(cs);
+                p.log(args);
             
 				},
 				toString:function(){
@@ -1252,6 +1248,30 @@
 		};
 		;
 						
+		var PipFun=function(){
+			return mb.Java_new(Fun,[],{
+				exec:function(args){
+	                
+				var o=args.First();
+				args=args.Rest();
+				while(args!=null){
+					var f=args.First();
+					args=args.Rest();
+					o=f.exec(lib.s.list(o));
+				}
+				return o;
+			
+				},
+				toString:function(){
+					return "{(first (apply loop (extend {(let (x f ...xs ) args ) (if-run (empty? xs ) {(list false (f x ) ) } {(extend true (extend (f x ) xs ) ) } ) } args ) ) ) }";
+				},
+				ftype:function(){
+					return Fun.Type.user;
+				}
+			});
+		};
+		;
+						
 		var Slice_fromFun=function(){
 			return mb.Java_new(Fun,[],{
 				exec:function(args){
@@ -1443,6 +1463,8 @@
 		m=lib.s.kvs_extend("kvs-path",Kvs_pathFun(),m);
 						
 		m=lib.s.kvs_extend("kvs-path-run",Kvs_path_runFun(),m);
+						
+		m=lib.s.kvs_extend("pip",PipFun(),m);
 						
 		m=lib.s.kvs_extend("slice-from",Slice_fromFun(),m);
 						

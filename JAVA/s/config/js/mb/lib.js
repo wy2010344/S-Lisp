@@ -76,25 +76,13 @@ mb.Function=(function(){
     };
 })();
 mb.log=(function(){
-    var Stringify=function(o){
-        if(typeof(o)=='object'){
-            return JSON.stringify(o,function(key,value){
-                if(typeof(value)=='function'){
-                    return '<Function>';
-                }
-                return value;
-            },2);
-        }else{
-            return ""+o;
-        }
-    };
     var System=Java.type("java.lang.System");
     var _print_=function(a){
         System.out.print(a);
     };
     return function(){
         for(var i=0;i<arguments.length;i++){
-            _print_(Stringify(arguments[i]));
+            _print_(arguments[i]);
             _print_('\t');
         }
         _print_('\n');

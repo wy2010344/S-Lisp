@@ -59,6 +59,8 @@ public class JSBridge {
             response.put("description","刷新成功");
         	return response;
         }else {
+            response.put("code", 0);
+            response.put("description","操作成功");
             HashMap<String,Object> map=new HashMap<String,Object>();
             map.put("act", act);
             map.put("log", log);

@@ -21,10 +21,7 @@
         }
         
         return {
-            run:function(x_path,bool){
-                if(!bool){
-                    x_path=path+"/lisp/act/"+x_path;
-                }
+            run:function(x_path){
                 var o=Load.run_e(x_path,scope,line_split);
                 if(o){
                     o.exec(null);

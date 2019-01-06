@@ -71,8 +71,8 @@ public class Load implements Function{
 	 static HashMap<String,Result> files_defs=new HashMap<String,Result>();
 	 static boolean onload=false;
 	 public static Object run_e(String c_path,Node<Object> scope,char split) throws Exception {
-			if(onload) {
-				throw new Exception("加载期间不允许其它加载");
+		if(onload) {
+			throw new Exception("加载期间不允许其它加载");
 		}else{
 			onload=true;
 			//绝对路径

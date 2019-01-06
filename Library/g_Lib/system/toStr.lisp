@@ -22,11 +22,7 @@
         ]
         js [
             run "
-                var cs=[];
-                for(var t=args;t!=null;t=t.Rest()){
-                    cs.push(p.toString(t.First(),true));
-                }
-                p.log(cs);
+                p.log(args);
             "
         ]
         OC [

@@ -17,7 +17,6 @@
             S_Root="D:/S-Lisp";
         }
         S_Root=""+S_Root.replace(/\\/g,'/');
-        mb.log(typeof(S_Root),S_Root);
         if(!S_Root.endsWith("/")){
             S_Root=S_Root+"/";
         }
@@ -38,15 +37,17 @@
             }else{
                 v=v.toString();
             }
-            return v;
+            return ""+v;
         };
-        var log_factory=function(append){
+
+        /*打印S列表*/
+        var log_factory=function(log){
             return function(args){
                 for(var t=args;t!=null;t=t.Rest()){
-                    append(toString(t.First()));
-                    append("\t");
+                    log(toString(t.First(),true));
+                    log("\t");
                 }
-                append("\n");
+                log("\n");
                 return null;
             };
         };
