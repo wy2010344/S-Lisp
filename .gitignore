@@ -33,3 +33,5 @@
 /C#/s/gui/obj
 /C#/s/gui/bin
 /Python/s/*.pyc
+/JAVA/s/.idea
+/JAVA/s/target

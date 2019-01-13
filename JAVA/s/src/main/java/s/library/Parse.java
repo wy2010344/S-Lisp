@@ -1,8 +1,7 @@
 package s.library;
 
-import s.Function;
-import s.Node;
-import s.Token;
+import s.*;
+import s.exp.FunctionExp;
 
 public class Parse implements Function{
 	public Parse(Node<Object> base_scope,char line_split) {
@@ -25,13 +24,11 @@ public class Parse implements Function{
 	}
 
 	public static Object eval(String code,Node<Object> scope,char line_split) throws Exception {
-		Node<Token> tokens=Token.tokenize("{"+code+"}", line_split);
-		s.exp.FunctionExp exp=s.exp.FunctionExp.parse(new s.exp.Exp.TokenQueue(tokens));
-		return new Function.UserFunction(exp, scope).exec(null);
+		FunctionExp functionExp= Exp.run(Token.run(code));
+		return new Function.UserFunction(functionExp, scope).exec(null);
 	}
 	@Override
 	public Type ftype() {
-		// TODO Auto-generated method stub
 		return Function.Type.buildIn;
 	}
 

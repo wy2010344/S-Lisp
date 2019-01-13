@@ -123,8 +123,6 @@ public class Load implements Function{
 	}
 	@Override
 	public Type ftype() {
-		// TODO Auto-generated method stub
 		return Function.Type.buildIn;
 	}
-
 }

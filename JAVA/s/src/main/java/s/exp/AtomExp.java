@@ -1,42 +1,36 @@
 package s.exp;
-import s.LocationException;
-import s.Token;
 
-public abstract class AtomExp extends Exp{
-    protected Token token;
-	@Override
-	protected void toString(StringBuilder sb) {
-		// TODO Auto-generated method stub
-		sb.append(token.toString());
-	}
-	public static Exp parse(TokenQueue tq,boolean trans) throws LocationException {
-		if(tq.current().Type()==Token.Type.Id) {
-			if(trans) {
-				return StringExp.parse(tq);
-			}else {
-				return IdExp.parse(tq);
-			}
-		}else
-		if(tq.current().Type()==Token.Type.Quote) {
-			if(trans) {
-				return IdExp.parse(tq);
-			}else {
-				return StringExp.parse(tq);
-			}
-		}else
-		if(tq.current().Type()==Token.Type.Str) {
-			return StringExp.parse(tq);
-		}else
-		if(tq.current().Type()==Token.Type.Int) {
-			return IntExp.parse(tq);
-		}else
-		if(tq.current().Type()==Token.Type.Bool) {
-			return BoolExp.parse(tq);
-		}else{
-			throw tq.error_token();
-		}
-	}
-	public static Exp parse(TokenQueue tq) throws LocationException {
-		return parse(tq,false);
-	}
+import s.Exp;
+import s.Token;
+import s.IndexException;
+
+public abstract class AtomExp extends Exp {
+    private Token block;
+    public AtomExp(Token block) {
+        this.block=block;
+    }
+    public Token getBlock(){
+        return block;
+    }
+
+    @Override
+    public void buildString(StringBuilder sb) {
+        sb.append(block.getContent());
+    }
+
+    @Override
+    public IndexException exception(String msg) {
+        return new IndexException(
+                block.getBegin(),
+                block.getBegin()+block.getContent().length(),
+                toString()+"=>"+msg);
+    }
+
+    @Override
+    public void warn(String msg) {
+        System.out.println(
+                "("+block.getBegin()+":"+block.getBegin()+block.getContent().length()+")"+
+                        toString()+"=>"+msg
+        );
+    }
 }

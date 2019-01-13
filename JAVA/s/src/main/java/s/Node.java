@@ -1,7 +1,5 @@
 package s;
 
-import s.exp.Exp;
-
 public class Node<T> {
 	private Node(T v,Node<T> n) {
 		this.value=v;
@@ -13,6 +11,15 @@ public class Node<T> {
 		}
 	}
 	private int length;
+
+	public static Node<Object> list(Object ...ids) {
+		Node<Object> r=null;
+		for(int i=ids.length-1;i>-1;i--){
+			r=Node.extend(ids[i],r);
+		}
+		return r;
+	}
+
 	public int Length() {
 		return length;
 	}

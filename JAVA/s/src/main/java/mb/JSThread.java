@@ -1,8 +1,10 @@
-package mb.thread;
+package mb;
 
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
+ * 感觉意义已经不大了。为什么要模仿JS的同线程？而不是mb.task.all与mb.task.queue？
+ *
  * 模拟js的单线程
  * 事件循环
  *
@@ -25,10 +27,18 @@ public class JSThread {
             if (time==1){
                 write_once(v);
             }else{
-                onwritemore(time);
+                onWriteMore(time,true);
             }
         };
-        protected abstract void onwritemore(int time);
+        public void exception(Throwable t){
+            time++;
+            if (time==1){
+                exception_once(t);
+            }else{
+                onWriteMore(time,false);
+            }
+        }
+        protected abstract void onWriteMore(int time, boolean isData);
 
         /**
          * 是否已经写了
@@ -37,6 +47,7 @@ public class JSThread {
         public boolean isWrite(){
             return time!=0;
         }
+        protected abstract void exception_once(Throwable t);
         protected abstract void write_once(T v);
     }
 
@@ -80,19 +91,22 @@ public class JSThread {
     }
 
     public static abstract class Param_Async<T>{
-
         public static class MulTimeException extends Exception{
-            public MulTimeException(String msg){
+            public MulTimeException(String msg,boolean type){
                 super(msg);
+                this.type=type;
             }
+            private boolean type;
+            public boolean isData(){return type;}
         }
         /**
          * 在另一个线程里执行
          * 这个线程执行完后如果发现主线程没工作，就充当主线程。
+         * 不允许抛出异常，只能从call里写异常
          * @param executor
          * @param call
          */
-        public abstract void run(Executor executor,TAsyncCall<T> call) throws Throwable;
+        public abstract void run(Executor executor,TAsyncCall<T> call);
 
         /***
          * 主线程轮循到时执行
@@ -135,6 +149,8 @@ public class JSThread {
 
         /**
          * 执行异步的处理
+         * 异步，本身自己的任务，可能委托给另一个线程，委托太多，都是异步，无法捕获异常
+         * 所以不允许抛出异常，只能写异常。
          * @param t
          * @param <T>
          */
@@ -152,23 +168,16 @@ public class JSThread {
                                 }
                             });
                         }
-
                         @Override
-                        protected void onwritemore(int time) {
-                            t.exception_after(new Param_Async.MulTimeException("写了第"+time+"次"));
+                        protected void exception_once(Throwable cause) {
+                            t.exception(cause);
+                        }
+                        @Override
+                        protected void onWriteMore(int time, boolean isData) {
+                            t.exception_after(new Param_Async.MulTimeException("写了第"+time+"次",isData));
                         }
                     };
-                    try {
-                        t.run(Executor.this, call);
-                    }catch (Throwable throwable){
-                        if (call.isWrite()){
-                            /*在成功之后的异常*/
-                            t.exception_after(throwable);
-                        }else{
-                            /*在成功之前的异常*/
-                            t.exception(throwable);
-                        }
-                    }
+                    t.run(Executor.this, call);
                 }
             },"JSThread-"+(i++)).start();/*立即执行*/
         }

@@ -1,8 +1,9 @@
 package s;
 
-import java.util.HashMap;
+import mb.JSBridge;
+import mb.Logger;
 
-import org.apache.log4j.Logger;
+import java.util.HashMap;
 
 public class App {
 	public static void main(final String[] args) {
@@ -18,8 +19,8 @@ public class App {
 				ini.put("package", true);
 			}
 		};
-		Logger log=Logger.getLogger("js");
-		
+		Logger log=Logger.DefaultLogger.getLogger("js");
+
 		HashMap<String,Object> res=run(bridge,args,log);//run_lisp_file(bridge,"../a.lisp",log);
 		System.out.println("退出成功");
 		if(res!=null) {
@@ -27,12 +28,12 @@ public class App {
 		}
 	}
 	
-	static HashMap<String,Object> run_lisp_file(mb.JSBridge bridge,String file,Logger log){
+	static HashMap<String,Object> run_lisp_file(mb.JSBridge bridge, String file, Logger log){
 		HashMap<String,Object> req=new HashMap<String,Object>();
 		req.put("args", mb.Util.resource(file,App.class));
 		return bridge.run_map(req, "run",log);
 	}
-	static HashMap<String,Object> run(mb.JSBridge bridge,String[] args,Logger log) {
+	static HashMap<String,Object> run(mb.JSBridge bridge, String[] args, Logger log) {
 		if(args.length==0) {
 			//S-Lisp交互
 			return bridge.run_map(null, "shell",log);

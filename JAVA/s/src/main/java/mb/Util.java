@@ -1,27 +1,15 @@
 package mb;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
 
-import org.apache.log4j.Logger;
-
 
 
 public class Util {
-	protected static Logger log = Logger.getLogger(Util.class.getName());
+	protected static Logger log = Logger.DefaultLogger.getLogger(Util.class.getName());
 	public static void main(String[] arg)
 	{	
 		//http://ydlmlh.iteye.com/blog/1262068

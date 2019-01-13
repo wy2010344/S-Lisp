@@ -11,9 +11,6 @@ import javax.script.CompiledScript;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-
-import org.apache.log4j.Logger;
-
 public class JSBridge {
     final ScriptEngine engine;
     final String server_path;
@@ -197,6 +194,10 @@ public class JSBridge {
     public static interface JSMethod{
     	void run(HashMap<String,Object> map);
     }
+    /*可重写*/
+	public Logger getLogger(String name) {
+		return Logger.DefaultLogger.getLogger(name);
+	}
     public static class Helper{
     	public Character charAt(String string,int index) {
     		return string.charAt(index);
@@ -225,9 +226,6 @@ public class JSBridge {
                 System.out.println("加载"+path+"出错:"+e1.getMessage());
                 return null;
             }
-        }
-        public Logger getLogger(String name) {
-        	return Logger.getLogger(name);
         }
     }
 }

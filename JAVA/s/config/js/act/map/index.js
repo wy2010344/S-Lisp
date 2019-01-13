@@ -78,6 +78,7 @@
 	            if(log){
 	                log.error(act+"出错"+e);
 	            }
+	            e.printStackTrace();
 	            response.error(e,404);
 	        }
 	    }
