@@ -3,10 +3,7 @@ package s.exp;
 import s.Exp;
 import s.Node;
 import s.Token;
-import s.IndexException;
-
-import java.util.ArrayList;
-import java.util.List;
+import mb.RangePathsException;
 
 public abstract class BracketExp extends Exp {
     Token left;
@@ -53,8 +50,8 @@ public abstract class BracketExp extends Exp {
     }
 
     @Override
-    public IndexException exception(String msg) {
-        return new IndexException(
+    public RangePathsException exception(String msg) {
+        return new RangePathsException(
                 left.getBegin(),
                 right.getBegin()+right.getContent().length(),
                 "("+left.getBegin()+":"+right.getBegin()+")"+toString()+"(=>"+msg

@@ -248,33 +248,61 @@ public class Util {
 		}
 		return x;
 	}
-	public static String string_from_trans(String s,Character end,Character[] kvs,int trans_time) throws Exception {
-		int i=0,size=s.length();
-		StringBuilder sb=new StringBuilder();
-		while(i<size) {
-			Character c=s.charAt(i);
-			if(c=='\\') {
-				i++;
-				c=s.charAt(i);
-				if(c=='\\') {
-					sb.append(c);
-				}else
-				if(c==end) {
-					sb.append(end);
-				}else {
-		    		Character x=mb.Util.kvs_find1st(kvs,c);
-		    		if(x!=null) {
-		    			sb.append(x);
-		    		}else {
-		    			throw new Exception("非法转义字符"+c+"在字符串:"+s);
-		    		}
+	/**
+	 * -不算
+	 * @param s
+	 * @return
+	 */
+	public static boolean isInt(String s) {
+		boolean ret = true;
+		int index = 0;
+		if (s.charAt(0) == '-') {
+			index = 1;
+		}
+		if (index==s.length()){
+			return false;
+		}else {
+			while (index < s.length()) {
+				if (!Character.isDigit(s.charAt(index))) {
+					ret = false;
 				}
-			}else {
-				sb.append(c);
+				index++;
+			}
+		}
+		return ret;
+	}
+	public static int indexOf(char[] warns,char c){
+		int index=-1;
+		int i=0;
+		while (i<warns.length && index==-1){
+			if (warns[i]==c){
+				index=i;
 			}
 			i++;
 		}
-		return sb.toString();
+		return index;
+	}
+	public static int parseUntil(final String in,int flag,char end) throws RangeException {
+		int start=flag;
+		boolean nobreak=true;
+		//int trans_time=0;
+		while (flag<in.length() && nobreak){
+			char c=in.charAt(flag);
+			if (c==end){
+				nobreak=false;
+			}else{
+				if (c=='\\'){
+					flag++;
+					//trans_time++;
+				}
+				flag++;
+			}
+		}
+		if (flag<in.length()){
+			return flag;
+		}else{
+			throw new RangeException(start,flag-1,"未找到结束符"+end);
+		}
 	}
     public static String string_to_trans(String v,Character start,Character end,Character[] trans) {
     	StringBuilder sb=new StringBuilder();

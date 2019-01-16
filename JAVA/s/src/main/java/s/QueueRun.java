@@ -1,4 +1,5 @@
 package s;
+import mb.RangePathsException;
 import s.exp.*;
 
 public class QueueRun {
@@ -15,7 +16,7 @@ public class QueueRun {
 		}
 		return r;
 	}
-	Object run(Exp exp) throws IndexException {
+	Object run(Exp exp) throws RangePathsException {
 		if (exp instanceof LetExp){
 			scope=runLet((LetExp) exp,scope);
 			return null;
@@ -23,7 +24,7 @@ public class QueueRun {
 			return interprate(exp,scope);
 		}
 	}
-	private static Node<Object> runLet(LetExp letExp,Node<Object> scope) throws IndexException {
+	private static Node<Object> runLet(LetExp letExp,Node<Object> scope) throws RangePathsException {
 		Node<Exp> cs=letExp.getChildren();
 		while (cs!=null){
 			Exp key=cs.First();
@@ -44,7 +45,7 @@ public class QueueRun {
 	private static Node<Object> kvs_extend(String key,Object value, Node<Object> scope) {
 		return Node.kvs_extend(key, value, scope);
 	}
-	private static Node<Object> letSmallMatch(Exp small,Object value,Node<Object> scope) throws IndexException {
+	private static Node<Object> letSmallMatch(Exp small,Object value,Node<Object> scope) throws RangePathsException {
 		if(value==null || value instanceof Node) {
 			Node<Object> vs=(Node<Object>)value;
 			Node<Exp> ks=((LetBracketExp)small).getChildren();
@@ -95,7 +96,7 @@ public class QueueRun {
 		return path;
 	}
 
-	private static Node<Object> calNode(BracketExp exp, Node<Object> scope) throws IndexException {
+	private static Node<Object> calNode(BracketExp exp, Node<Object> scope) throws RangePathsException {
 		Node<Object> r=null;
 		Node<Exp> tmp=exp.getR_children();
 		while (tmp!=null){
@@ -104,14 +105,14 @@ public class QueueRun {
 		}
 		return r;
 	}
-	private static IndexException error_throw(String s, Exp exp, Node<Object> scope, Node<Object> children) {
+	private static RangePathsException error_throw(String s, Exp exp, Node<Object> scope, Node<Object> children) {
 		return exp.exception(getPath(scope)+"\r\n"+children.toString()+"\r\n"+exp.toString());
 	}
 
-	private static IndexException match_Exception(Node<Object> scope, String msg, Exp exp) {
+	private static RangePathsException match_Exception(Node<Object> scope, String msg, Exp exp) {
 		return exp.exception(getPath(scope)+":\t"+msg);
 	}
-	private static Object interprate(Exp exp, Node<Object> scope) throws IndexException {
+	private static Object interprate(Exp exp, Node<Object> scope) throws RangePathsException {
 		if (exp instanceof CallExp){
 			Node<Object> children=calNode((BracketExp)exp,scope);
 			Object first=children.First();
@@ -120,8 +121,14 @@ public class QueueRun {
 			}else if (first instanceof Function){
 				try {
 					return ((Function) children.First()).exec(children.Rest());
-				}catch (IndexException lex){
-					lex.addStack(getPath(scope),(CallExp)exp);
+				}catch (RangePathsException lex){
+					CallExp ce= (CallExp) exp;
+					lex.addStack(
+							getPath(scope),
+							ce.getLeft().getBegin(),
+							ce.getRight().getBegin()+ce.getRight().getContent().length(),
+							ce.toString()
+					);
 					throw lex;
 				}catch (Throwable ex){
 					throw error_throw("函数执行内部错误"+ex.getMessage(),exp,scope,children);

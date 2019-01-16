@@ -1,5 +1,6 @@
 package s;
 
+import mb.RangePathsException;
 import s.exp.*;
 
 import java.util.List;
@@ -13,14 +14,14 @@ public abstract class Exp {
         buildString(sb);
         return sb.toString();
     }
-    public abstract IndexException exception(String s);
+    public abstract RangePathsException exception(String s);
     public abstract void warn(String msg);
 
-    private static Node<Exp> parseList(Node<Exp> r_children,List<Token> blocks,Token left) throws IndexException {
+    private static Node<Exp> parseList(Node<Exp> r_children,List<Token> blocks,Token left) throws RangePathsException {
         ListExp listExp=parseListBody(left,blocks);
         return Node.extend(listExp,r_children);
     }
-    private static ListExp parseListBody(Token left, List<Token> blocks) throws IndexException {
+    private static ListExp parseListBody(Token left, List<Token> blocks) throws RangePathsException {
         ListExp exp=null;
         Node<Exp> r_children=null;
         while (blocks.size()!=0 && exp==null) {
@@ -64,11 +65,11 @@ public abstract class Exp {
         }
         return exp;
     }
-    protected static Node<Exp> parseCall(Node<Exp> r_children, List<Token> blocks, Token block) throws IndexException {
+    protected static Node<Exp> parseCall(Node<Exp> r_children, List<Token> blocks, Token block) throws RangePathsException {
         CallExp callExp=parseCallBody(block,blocks);
         return Node.extend(callExp,r_children);
     }
-    private static CallExp parseCallBody(Token left, List<Token> blocks) throws IndexException {
+    private static CallExp parseCallBody(Token left, List<Token> blocks) throws RangePathsException {
         CallExp exp=null;
         Node<Exp> r_children=null;
         while (blocks.size()!=0 && exp==null) {
@@ -121,7 +122,7 @@ public abstract class Exp {
         }
         return exp;
     }
-    private static LetExp parseLetBody(Token left,List<Token> blocks) throws IndexException {
+    private static LetExp parseLetBody(Token left,List<Token> blocks) throws RangePathsException {
         LetExp exp=null;
         Node<Exp> r_children=null;
         while (blocks.size()!=0 && exp==null){
@@ -189,11 +190,11 @@ public abstract class Exp {
         }
         return exp;
     }
-    private static Node<Exp> parseFunction(Node<Exp> r_children,List<Token> blocks,Token left) throws IndexException {
+    private static Node<Exp> parseFunction(Node<Exp> r_children,List<Token> blocks,Token left) throws RangePathsException {
         FunctionExp exp=parseFunctionBody(left,blocks,false);
         return Node.extend(exp,r_children);
     }
-    private static FunctionExp parseFunctionBody(Token left,List<Token> blocks,boolean allowNoEnd) throws IndexException {
+    private static FunctionExp parseFunctionBody(Token left,List<Token> blocks,boolean allowNoEnd) throws RangePathsException {
         FunctionExp exp=null;
         Node<Exp> r_children=null;
         while (blocks.size()!=0 && exp==null){
@@ -261,11 +262,11 @@ public abstract class Exp {
             }
         }
     }
-    private static  Node<Exp> parseLetBracket(Node<Exp> r_children,List<Token> blocks,Token left) throws IndexException {
+    private static  Node<Exp> parseLetBracket(Node<Exp> r_children,List<Token> blocks,Token left) throws RangePathsException {
         LetBracketExp exp=parseLetBracketBody(left,blocks);
         return Node.extend(exp,r_children);
     }
-    public static LetBracketExp parseLetBracketBody(Token left,List<Token> blocks) throws IndexException {
+    public static LetBracketExp parseLetBracketBody(Token left,List<Token> blocks) throws RangePathsException {
         LetBracketExp exp=null;
         Node<Exp> r_children=null;
         while (blocks.size()!=0 && exp==null) {
@@ -304,7 +305,7 @@ public abstract class Exp {
         }
         return exp;
     }
-    public static FunctionExp run(List<Token> blocks) throws IndexException {
+    public static FunctionExp run(List<Token> blocks) throws RangePathsException {
         return parseFunctionBody(new Token(Token.TokenType.LLBracketBlock,0,"{"),blocks,true);
     }
     private static  void check_function(Node<Exp> r_children) {
@@ -337,7 +338,7 @@ public abstract class Exp {
     private static Node<Exp> parseFalse(Node<Exp> r_children, Token block) {
         return Node.extend(new BooleanExp(block,false),r_children);
     }
-    private static Node<Object> getIds(Token block, String id_path) throws IndexException {
+    private static Node<Object> getIds(Token block, String id_path) throws RangePathsException {
         if (id_path.charAt(0)=='.'||id_path.charAt(id_path.length()-1)=='.'||id_path.indexOf("..")!=-1){
             throw block.exception("不是合法的id类型");
         }else {
@@ -345,7 +346,7 @@ public abstract class Exp {
             return Node.list(ids);
         }
     }
-    private static Node<Exp> parseId(Node<Exp> r_children, Token block, boolean asStr) throws IndexException {
+    private static Node<Exp> parseId(Node<Exp> r_children, Token block, boolean asStr) throws RangePathsException {
         String id_path=block.getContent();
         if (asStr) {
             return Node.extend(new StringExp(block,id_path),r_children);
@@ -354,10 +355,10 @@ public abstract class Exp {
             return Node.extend(new IdExp(block, ids),r_children);
         }
     }
-    private static Node<Exp> parseId(Node<Exp> r_children, Token block) throws IndexException {
+    private static Node<Exp> parseId(Node<Exp> r_children, Token block) throws RangePathsException {
         return parseId(r_children,block,false);
     }
-    private static Node<Exp> parseTrans(Node<Exp> r_children, Token block, boolean asStr) throws IndexException {
+    private static Node<Exp> parseTrans(Node<Exp> r_children, Token block, boolean asStr) throws RangePathsException {
         String value=block.getContent().substring(1);
         if (asStr){
             return Node.extend(new StringExp(block,value),r_children);
@@ -366,7 +367,7 @@ public abstract class Exp {
             return Node.extend(new IdExp(block,ids),r_children);
         }
     }
-    private static Node<Exp> parseTrans(Node<Exp> r_children, Token block) throws IndexException {
+    private static Node<Exp> parseTrans(Node<Exp> r_children, Token block) throws RangePathsException {
         return parseTrans(r_children,block,false);
     }
 }

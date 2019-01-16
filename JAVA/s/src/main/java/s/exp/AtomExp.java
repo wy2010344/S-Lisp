@@ -2,7 +2,7 @@ package s.exp;
 
 import s.Exp;
 import s.Token;
-import s.IndexException;
+import mb.RangePathsException;
 
 public abstract class AtomExp extends Exp {
     private Token block;
@@ -19,8 +19,8 @@ public abstract class AtomExp extends Exp {
     }
 
     @Override
-    public IndexException exception(String msg) {
-        return new IndexException(
+    public RangePathsException exception(String msg) {
+        return new RangePathsException(
                 block.getBegin(),
                 block.getBegin()+block.getContent().length(),
                 toString()+"=>"+msg);

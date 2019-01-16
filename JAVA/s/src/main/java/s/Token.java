@@ -1,5 +1,8 @@
 package s;
 
+import mb.RangeException;
+import mb.RangePathsException;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,8 +41,8 @@ public class Token {
         SRBracketBlock
     }
 
-    public IndexException exception(String msg){
-        return new IndexException(getBegin(),getBegin()+content.length(),getBlockType()+":"+getContent()+"=>"+msg);
+    public RangePathsException exception(String msg){
+        return new RangePathsException(getBegin(),getBegin()+content.length(),getBlockType()+":"+getContent()+"=>"+msg);
     }
 
     @Override
@@ -48,63 +51,6 @@ public class Token {
     }
 
     /*****************************************************************************************************************************************/
-    private static int parseUntil(final String in,int flag,char end) throws IndexException {
-        int start=flag;
-        boolean nobreak=true;
-        //int trans_time=0;
-        while (flag<in.length() && nobreak){
-            char c=in.charAt(flag);
-            if (c==end){
-                nobreak=false;
-            }else{
-                if (c=='\\'){
-                    flag++;
-                    //trans_time++;
-                }
-                flag++;
-            }
-        }
-        if (flag<in.length()){
-            return flag;
-        }else{
-            throw new IndexException(start,flag-1,"未找到结束符"+end);
-        }
-    }
-    public static int indexOf(char[] warns,char c){
-        int index=-1;
-        int i=0;
-        while (i<warns.length && index==-1){
-            if (warns[i]==c){
-                index=i;
-            }
-            i++;
-        }
-        return index;
-    }
-
-    /**
-     * -不算
-     * @param s
-     * @return
-     */
-    public static boolean isInt(String s) {
-        boolean ret = true;
-        int index = 0;
-        if (s.charAt(0) == '-') {
-            index = 1;
-        }
-        if (index==s.length()){
-            return false;
-        }else {
-            while (index < s.length()) {
-                if (!Character.isDigit(s.charAt(index))) {
-                    ret = false;
-                }
-                index++;
-            }
-        }
-        return ret;
-    }
 
     public static boolean isFloat(String s) {
         boolean ret = true;
@@ -129,11 +75,15 @@ public class Token {
         return ret;
     }
     public static boolean isEnd(char cv){
-       return Character.isWhitespace(cv) || cv=='"' || cv=='`' || indexOf(brackets_in,cv)>-1 || indexOf(brackets_out,cv)>-1;
+       return Character.isWhitespace(cv) ||
+               cv=='"' ||
+               cv=='`' ||
+               mb.Util.indexOf(brackets_in,cv)>-1 ||
+               mb.Util.indexOf(brackets_out,cv)>-1;
     }
     public static final char[] brackets_in={'{','[','('};
     public static final char[] brackets_out={')',']','}'};
-    public static List<Token> run(final String in) throws IndexException {
+    public static List<Token> run(final String in) throws RangePathsException {
         final List<Token> blocks=new ArrayList<Token>();
         int flag=0;
         while (flag<in.length()){
@@ -142,18 +92,26 @@ public class Token {
                 flag++;
             }else if (c=='"'){
                 /*字符串块*/
-                int index=flag;
-                flag++;//跳出第一个"
-                String string=in.substring(index,parseUntil(in,flag,'"')+1);//包含双引号
-                flag=flag+string.length()-1;
-                blocks.add(new Token(TokenType.StringBlock,index,string));
+                try {
+                    int index = flag;
+                    flag++;//跳出第一个"
+                    String string = in.substring(index, mb.Util.parseUntil(in, flag, '"') + 1);//包含双引号
+                    flag = flag + string.length() - 1;
+                    blocks.add(new Token(TokenType.StringBlock, index, string));
+                }catch (RangeException r){
+                    throw new RangePathsException(r);
+                }
             }else if(c=='`'){
                 /*注释块*/
-                int index=flag;
-                flag++;//跳出第一个"
-                String string=in.substring(index,parseUntil(in,flag,'`')+1);//包含双``
-                flag=flag+string.length()-1;
-                //blocks.add(new Block(BlockType.QuoteBlock,index,string));
+                try {
+                    int index = flag;
+                    flag++;//跳出第一个"
+                    String string = in.substring(index, mb.Util.parseUntil(in, flag, '`') + 1);//包含双``
+                    flag = flag + string.length() - 1;
+                    //blocks.add(new Block(BlockType.QuoteBlock,index,string));
+                }catch (RangeException r){
+                    throw new RangePathsException(r);
+                }
             }else if (c=='{'){
                 blocks.add(new Token(TokenType.LLBracketBlock,flag,"{"));
                 flag++;
@@ -193,7 +151,7 @@ public class Token {
                         type= TokenType.TrueBlock;
                     }else if("false".equals(string)){
                         type= TokenType.FalseBlock;
-                    }else if(isInt(string)){
+                    }else if(mb.Util.isInt(string)){
                         type= TokenType.IntBlock;
                     }
                 }
