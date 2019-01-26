@@ -6,6 +6,7 @@
 		`
 		Value 
 		Watcher 
+		key:children路径
 		appendChild 
 		removeChild
 		before 可选
@@ -47,9 +48,9 @@
 	{
 		(let 
 			(pel x o) args
-			children (kvs-find1st o p.key)
+			children (kvs-find1st o.json p.key)
 		)
-		(if-run (str-eq 'kvs (kvs-find1st o type-key))
+		(if-run (str-eq 'kvs (kvs-find1st o.json type-key))
 			{
 				(let
 					`是否初始化`
@@ -105,9 +106,9 @@
 							]
 						)
 				)
-				(list 
-					`inits`
-					(extend 
+				[
+					k 'o.k 
+					inits (extend 
 						{
 							(forEach (c-inits)
 								{
@@ -117,27 +118,36 @@
 							(c-inits [])
 							(isInit true)
 						} 
-						x.inits
+						o.inits
 					) 
-					`destroys`
-					(extend 
+					destroys (extend 
 						{
 							(watch.disable)
 							(bc-destroy)
 						} 
-						x.destroys
+						o.destroys
 					)
-				)
+				]
 			}
 			{
 				(reduce children
 					{
-						(let ((inits destroys) child) args)
-						(let (ce inits destroys) (x.Parse x child))
-						(p.appendChild pel ce)
-						(list inits destroys)
+						(let 
+							(init child) args
+							obj (x.Parse x (kvs-extend 'json child init))
+						)
+						(p.appendChild pel obj.element)
+						[
+							k 'obj.k
+							inits 'obj.inits
+							destroys 'obj.destroys
+						]
 					}
-					(list x.inits x.destroys)
+					[
+						k 'o.k 
+						inits 'o.inits 
+						destroys o.destroys
+					]
 				)
 			}
 		)

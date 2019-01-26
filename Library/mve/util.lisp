@@ -207,7 +207,7 @@
 				)
 			)
 			(let 
-				(getElement element-init element-destroy) 
+				(getElement c_k element-init element-destroy) 
 				(Parse 
 					user-result.element
 					`Watch 给内部使用的`
@@ -220,10 +220,11 @@
 						)
 						w
 					}
-					k
 					mve
+					k
 				)
 			)
+			(k c_k)
 			(let 
 				user-init (default user-result.init empty-fun)
 				user-destroy (default user-result.destroy empty-fun)
