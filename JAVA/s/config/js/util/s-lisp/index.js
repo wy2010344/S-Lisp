@@ -21,10 +21,10 @@
         }
         
         return {
-            run:function(x_path){
+            run:function(x_path,args){
                 var o=Load.run_e(x_path,scope,line_split);
                 if(o){
-                    o.exec(null);
+                    o.exec(args);
                 }else{
                     mb.log(x_path);
                 }

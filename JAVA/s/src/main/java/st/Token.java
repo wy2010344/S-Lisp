@@ -33,9 +33,13 @@ public class Token {
         ARBracketToken,//>
 
         PointToken,//.
+        EqualToken,//=
         逗号,
         冒号,
         分号
+    }
+    public RangePathsException error(String msg){
+        return new RangePathsException(index,index+value.length(),type+":"+value+"=>"+msg);
     }
     static boolean isEnd(char c) {
         return Character.isWhitespace(c) ||

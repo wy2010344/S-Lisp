@@ -6,7 +6,7 @@ import mb.Logger;
 import java.util.HashMap;
 
 public class App {
-	public static void main(final String[] args) {
+	public static void main(String[] args) {
 		for(int i=0;i<args.length;i++) {
 			System.out.println(i);
 			System.out.println(args[i]);
@@ -28,9 +28,13 @@ public class App {
 		}
 	}
 	
-	static HashMap<String,Object> run_lisp_file(mb.JSBridge bridge, String file, Logger log){
+	static HashMap<String,Object> run_lisp_file(mb.JSBridge bridge, String file, Logger log,String[] args){
 		HashMap<String,Object> req=new HashMap<String,Object>();
-		req.put("args", mb.Util.resource(file,App.class));
+		if (file.charAt(0)=='.') {
+			file=mb.Util.resource(file, App.class);
+		}
+		req.put("shell", file);
+		req.put("args",Node.list(args));
 		return bridge.run_map(req, "run",log);
 	}
 	static HashMap<String,Object> run(mb.JSBridge bridge, String[] args, Logger log) {
@@ -42,7 +46,7 @@ public class App {
 			String args_0=args[0];
 			if(args.length==1) {
 				//执行lisp脚本文件
-				return run_lisp_file(bridge,args_0,log);
+				return run_lisp_file(bridge,args_0,log,args);
 			}else {
 				if("exec".equals(args_0))
 				{
@@ -62,6 +66,8 @@ public class App {
 					HashMap<String,Object> req=new HashMap<String,Object>();
 					req.put("args",mb.Util.resource(args_1,App.class));
 					return bridge.run_map(req, "js/run", log);
+				}else {
+					return run_lisp_file(bridge,args_0,log,args);
 				}
 			}
 		}

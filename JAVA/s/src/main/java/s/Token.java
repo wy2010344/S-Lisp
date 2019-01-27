@@ -142,6 +142,9 @@ public class Token {
                         flag++;
                     }
                 }
+                if (end<0){
+                    end=flag;
+                }
                 String string=in.substring(begin,end);
                 TokenType type= TokenType.IdBlock;
                 if (string.length()>1 && string.charAt(0)=='\''){
