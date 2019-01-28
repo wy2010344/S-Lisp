@@ -69,6 +69,7 @@
 	                action(request,response);
 	            }catch(ex){
 	                e=ex;
+	                e.printStackTrace();
 	            }
 	        }else{
 	            e="未找到指定页面"+path;
@@ -78,7 +79,6 @@
 	            if(log){
 	                log.error(act+"出错"+e);
 	            }
-	            e.printStackTrace();
 	            response.error(e,404);
 	        }
 	    }

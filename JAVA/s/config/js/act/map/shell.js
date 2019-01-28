@@ -1,6 +1,6 @@
 ({
     data:{
-        S_Lisp:"util/S-Lisp/index.js",
+        S_Lisp:"util/back-s-lisp/index.js",
         shell:"util/shell.js"
     },
     success:function(){

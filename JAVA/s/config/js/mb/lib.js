@@ -70,8 +70,19 @@ mb.Function=(function(){
         };
     };
     as_null.one=as_null();
+    var list=function(){
+        return function(){
+            var r=[];
+            for(var i=0;i<arguments.length;i++){
+                r.push(arguments[i]);
+            }
+            return r;
+        };
+    };
+    list.one=list();
     return {
         quote:quote,
+        list:list,
         as_null:as_null
     };
 })();
@@ -109,7 +120,20 @@ mb.Object={
 			o[key]=func(obj[key],key);
 		}
 		return o;
-	}
+	},
+    toArray:function(obj,func){
+        var r=[];
+        for(var k in obj){
+            r.push(func(obj[k],k,obj));
+        }
+        return r;
+    },
+    reduce:function(obj,func,init){
+        for(var k in obj){
+            init=func(init,obj[k],k,obj);
+        }
+        return init;
+    }
 };
 mb.Array={
     toSet:function(arr){
@@ -133,6 +157,12 @@ mb.Array={
             ret[i]=func(array[i],i);
         }
         return ret;
+    },
+    reduce:function(array,func,init){
+        for(var i=0;i<array.length;i++){
+            init=func(init,array[i],i,array);
+        }
+        return init;
     }
 };
 mb.time=(function(){
