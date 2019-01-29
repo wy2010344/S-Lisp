@@ -108,6 +108,15 @@ mb.charAt=(function(){
 	    return me.charAt(s,i);
 	}
 })();
+mb.cache=function(v){
+    return function(){
+        if(arguments.length>0){
+            v=arguments[0];
+        }else{
+            return v;
+        }
+    };
+};
 mb.Object={
 	forEach:function(obj,func){
 		for(var key in obj){
