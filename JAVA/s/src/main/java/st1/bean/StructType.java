@@ -8,4 +8,9 @@ public class StructType extends Type{
     public Type get(String value) {
         return map.get(value);
     }
+
+    @Override
+    public boolean equals(Type type) {
+        return false;
+    }
 }

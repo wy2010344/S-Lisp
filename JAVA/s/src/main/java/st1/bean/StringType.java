@@ -6,4 +6,9 @@ public class StringType extends Type {
     public static StringType getInstance() {
         return instance;
     }
+
+    @Override
+    public boolean equals(Type type) {
+        return false;
+    }
 }

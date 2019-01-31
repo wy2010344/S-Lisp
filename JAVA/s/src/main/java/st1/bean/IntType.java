@@ -8,4 +8,9 @@ public class IntType extends Type {
     public static IntType getInstance() {
         return instance;
     }
+
+    @Override
+    public boolean equals(Type type) {
+        return false;
+    }
 }

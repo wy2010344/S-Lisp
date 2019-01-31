@@ -131,6 +131,9 @@ public class Token {
                                 flag++;
                             }
                         }
+                        if (end<0) {
+                            end = flag;
+                        }
                         String string=in.substring(begin,end);
                         TokenType type= TokenType.IdToken;
                         if(mb.Util.isInt(string)){
