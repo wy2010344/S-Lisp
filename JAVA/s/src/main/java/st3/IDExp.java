@@ -3,9 +3,11 @@ package st3;
 import mb.RangePathsException;
 
 public class IDExp extends Exp {
-    public final Token token;
+    private final Token token;
+    public final String value;
     public IDExp(Token token){
         this.token=token;
+        this.value=token.value;
     }
 
     @Override
@@ -15,7 +17,7 @@ public class IDExp extends Exp {
 
     @Override
     protected void toString(StringBuilder sb) {
-        sb.append("(Exp ").append(token.value).append(")");
+        sb.append(token.value);
     }
     @Override
     public String toString() {

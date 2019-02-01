@@ -1,8 +1,6 @@
 package st3;
 
 import mb.RangePathsException;
-import s.Node;
-import st3.*;
 
 /**
  * let表达式
@@ -14,23 +12,23 @@ import st3.*;
 public class LetMarco extends WriteMacro {
 
     @Override
-    public MacroReturn exec(Node<Object> scope, BracketExp bracketExp) throws RangePathsException {
-        Node<Exp> args=bracketExp.children.Rest();
+    public ScopeNode exec(ScopeNode scope, BracketExp bracketExp) throws RangePathsException {
+        Node<Exp> args=bracketExp.children.rest;
         if(args==null){
             throw bracketExp.exception("不允许空的定义表达式");
-        }else if (args.Length()%2!=0) {
+        }else if (args.length%2!=0) {
             throw bracketExp.exception("定义表达式的参数非偶数个");
         }else{
             while (args!=null){
-                Exp key_exp=args.First();
-                args=args.Rest();
-                Exp value_exp=args.First();
-                args=args.Rest();
+                Exp key_exp=args.first;
+                args=args.rest;
+                Exp value_exp=args.first;
+                args=args.rest;
                 Object value= ReadMacro.run_read_exp(scope,value_exp);
                 scope=bind(scope,key_exp,value);
             }
         }
-        return new MacroReturn(scope,null);
+        return scope;
     }
 
     /**
@@ -38,21 +36,21 @@ public class LetMarco extends WriteMacro {
      * @param scope 作用域
      * @param key_exp
      * @param value
-     * @return 作用域
+     * @return
      * @throws RangePathsException
      */
-    public static Node<Object> bind(Node<Object> scope,Exp key_exp, Object value) throws RangePathsException {
+    public static ScopeNode bind(ScopeNode scope,Exp key_exp, Object value) throws RangePathsException {
         if (key_exp instanceof BracketExp){
             if (value==null || (value instanceof Node)){
                 Node<Object> vs= (Node<Object>) value;
                 Node<Exp> children=((BracketExp) key_exp).children;
                 Node<Exp> tmp=children;
                 while (tmp!=null){
-                    Exp c=tmp.First();
-                    tmp=tmp.Rest();
+                    Exp c=tmp.first;
+                    tmp=tmp.rest;
                     Object v=null;
                     if (vs!=null){
-                        v=vs.First();
+                        v=vs.first;
                     }
                     if (tmp!=null){
                         //c不是最后一个
@@ -60,10 +58,10 @@ public class LetMarco extends WriteMacro {
                     }else{
                         //c是最后一个
                         if (c instanceof IDExp) {
-                            String key = ((IDExp) c).token.value;
+                            String key = ((IDExp) c).value;
                             if (key.length() > 3 && key.startsWith("...")) {
                                 //满足剩余匹配
-                                scope = Node.kvs_extend(key.substring(3), vs, scope);
+                                scope = ScopeNode.extend(key.substring(3), vs, scope);
                             } else {
                                 scope = bind(scope, c, v);
                             }
@@ -72,7 +70,7 @@ public class LetMarco extends WriteMacro {
                         }
                     }
                     if (vs!=null){
-                        vs=vs.Rest();
+                        vs=vs.rest;
                     }
                 }
             }else{
@@ -80,7 +78,11 @@ public class LetMarco extends WriteMacro {
             }
             return scope;
         }else{
-            return Node.kvs_extend(((IDExp)key_exp).token.value,value,scope);
+            if (key_exp instanceof IDExp) {
+                return ScopeNode.extend(((IDExp) key_exp).value, value, scope);
+            }else{
+                throw key_exp.exception("不是合法的供绑定类型");
+            }
         }
     }
 }

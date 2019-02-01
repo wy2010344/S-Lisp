@@ -1,7 +1,6 @@
 package st3;
 
 import mb.RangePathsException;
-import s.Node;
 
 public class BracketExp extends Exp {
     public final Token left;
@@ -15,7 +14,7 @@ public class BracketExp extends Exp {
         this.left=left;
         this.children=children;
         if (children!=null) {
-            this.r_rest = Node.reverse(children.Rest());
+            this.r_rest = Node.reverse(children.rest);
         }else{
             this.r_rest=null;
         }
@@ -28,8 +27,8 @@ public class BracketExp extends Exp {
 
     public void toString(StringBuilder sb){
         sb.append("(");
-        for (Node<Exp> tmp=children;tmp!=null;tmp=tmp.Rest()){
-            tmp.First().toString(sb);
+        for (Node<Exp> tmp=children;tmp!=null;tmp=tmp.rest){
+            tmp.first.toString(sb);
             sb.append(" ");
         }
         sb.append(")");

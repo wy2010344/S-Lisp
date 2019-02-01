@@ -1,18 +1,15 @@
 package st3.macro.util;
 
 import mb.RangePathsException;
-import s.Node;
-import st3.BracketExp;
-import st3.Exp;
-import st3.ReadMacro;
+import st3.*;
 
 public abstract class DoMacro extends ReadMacro {
     @Override
-    public Object exec(Node<Object> scope, BracketExp bracketExp) throws RangePathsException {
+    public Object exec(ScopeNode scope, BracketExp bracketExp) throws RangePathsException {
         try {
             return run(
                 scope,
-                bracketExp.children.Rest()
+                bracketExp.children.rest
             );
         }catch (RangePathsException e){
             throw e;
@@ -20,5 +17,5 @@ public abstract class DoMacro extends ReadMacro {
             throw bracketExp.exception(e.getMessage());
         }
     }
-    protected abstract Object run(Node<Object> scope, Node<Exp> rest) throws Throwable;
+    protected abstract Object run(ScopeNode scope, Node<Exp> rest) throws Throwable;
 }

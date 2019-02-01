@@ -1,7 +1,6 @@
 package st3;
 
 import mb.RangePathsException;
-import s.Node;
 
 /**
  * 只读作用域的宏
@@ -14,7 +13,7 @@ public abstract class ReadMacro {
      * @return
      * @throws RangePathsException
      */
-    public abstract Object exec(Node<Object> scope,BracketExp bracketExp) throws RangePathsException;
+    public abstract Object exec(ScopeNode scope,BracketExp bracketExp) throws RangePathsException;
     /**
      * 读表达式
      * @param exp
@@ -22,10 +21,10 @@ public abstract class ReadMacro {
      * @return
      * @throws RangePathsException
      */
-    public static Object run_read_exp(Node<Object> scope,Exp exp) throws RangePathsException {
+    public static Object run_read_exp(ScopeNode scope,Exp exp) throws RangePathsException {
         if (exp instanceof BracketExp){
             BracketExp bracketExp= (BracketExp) exp;
-            Exp first_exp=bracketExp.children.First();
+            Exp first_exp=bracketExp.children.first;
             Object first= run_read_exp(scope,first_exp);
             if (first instanceof ReadMacro){
                 /*
@@ -36,10 +35,27 @@ public abstract class ReadMacro {
                 throw first_exp.exception("不是正确只读可执行的宏表达式");
             }
         }else{
-            return run_id(scope,(IDExp) exp);
+            return run_atom(scope, exp);
         }
     }
-    public static Object run_id(Node<Object> scope,IDExp exp){
-        return Node.kvs_find1st(scope,exp.token.value);
+
+    /**
+     * 找ID，未找到按null处理
+     * @param scope
+     * @param exp
+     * @return
+     */
+    public static Object run_atom(ScopeNode scope, Exp exp) throws RangePathsException {
+        if (exp instanceof StringExp){
+            return ((StringExp) exp).value;
+        }else if(exp instanceof IDExp) {
+            try {
+                return ScopeNode.find_1st(scope, ((IDExp) exp).value);
+            } catch (Exception e) {
+                throw exp.exception(e.getMessage());
+            }
+        }else{
+            throw exp.exception("尚未支持的exp");
+        }
     }
 }

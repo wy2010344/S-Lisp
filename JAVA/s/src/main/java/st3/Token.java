@@ -2,10 +2,6 @@ package st3;
 
 import mb.RangeException;
 import mb.RangePathsException;
-import s.Node;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class Token {
     public final TokenType type;
@@ -19,7 +15,8 @@ public class Token {
     enum TokenType{
         SBracketLeftToken,
         SBracketRightToken,
-        IDToken
+        IDToken,
+        StringToken
     }
     public Token(TokenType type,int begin,String value){
         this.type=type;
@@ -46,7 +43,7 @@ public class Token {
                         flag++;
                         String string=in.substring(index,mb.Util.parseUntil(in,flag,'"')+1);
                         flag=flag+string.length()-1;
-                        tokens=Node.extend(new Token(TokenType.IDToken,index,string),tokens);
+                        tokens=Node.extend(new Token(TokenType.StringToken,index,string),tokens);
                     }catch (RangeException e){
                         throw new RangePathsException(e);
                     }

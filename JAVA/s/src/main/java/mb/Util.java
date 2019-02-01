@@ -79,7 +79,7 @@ public class Util {
 
 	/**
 	 * 拼凑路径
-	 * @param base_path
+	 * @param base_path 文件夹需要以/结束！
 	 * @param relative_path 如果不是以点开始，则返回本身
 	 * @return
 	 */
@@ -91,6 +91,7 @@ public class Util {
 			for(String b:bs) {
 				strs.add(b);
 			}
+			strs.remove(strs.size()-1);//移除最后一个
 			for(String r:rs) {
 				if(r.equals("..")) {
 					strs.remove(strs.size()-1);

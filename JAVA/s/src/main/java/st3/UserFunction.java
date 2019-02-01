@@ -1,9 +1,7 @@
 package st3;
 
-import s.Node;
-
 public class UserFunction extends Function {
-    private final Node<Object> parentScope;
+    private final ScopeNode parentScope;
     private final Node<Exp> exps;
     private final BracketExp argnames;
     private final IDExp thisname;
@@ -16,7 +14,7 @@ public class UserFunction extends Function {
      * @param exps
      */
     public UserFunction(
-            Node<Object> parentScope,
+            ScopeNode parentScope,
             BracketExp argnames,
             IDExp thisname,
             Node<Exp> exps
@@ -28,13 +26,13 @@ public class UserFunction extends Function {
     }
     @Override
     public Object run(Node<Object> args) throws Throwable {
-        Node<Object> scope=parentScope;
+        ScopeNode scope=parentScope;
         if (argnames!=null) {
             scope = LetMarco.bind(scope, argnames, args);
         }
         if (thisname!=null){
-            scope=Node.kvs_extend(thisname.token.value,this,scope);
+            scope=ScopeNode.extend(thisname.value,this,scope);
         }
-        return UserReadMacro.run(exps,scope);
+        return UserReadMacro.run(scope,exps);
     }
 }

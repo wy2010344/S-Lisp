@@ -1,13 +1,13 @@
 package st3.macro;
 
 import mb.RangePathsException;
-import s.Node;
 import st3.*;
+import st3.macro.util.DoMacro;
 
 /**
  * (lambda () () () ())
  */
-public class Lambda extends ReadMacro {
+public class Lambda extends DoMacro {
     private final boolean with_this;
     private final boolean with_args;
     public Lambda(boolean with_args,boolean with_this){
@@ -16,8 +16,7 @@ public class Lambda extends ReadMacro {
     }
 
     @Override
-    public Object exec(Node<Object> scope, BracketExp bracketExp) throws RangePathsException {
-        Node<Exp> args=bracketExp.children.Rest();
+    protected Object run(ScopeNode scope, Node<Exp> rest) throws Throwable {
         int length=1;
         if (with_args){
             length++;
@@ -25,21 +24,21 @@ public class Lambda extends ReadMacro {
         if (with_this){
             length++;
         }
-        if (args==null || args.Length()<length){
-            throw bracketExp.exception("至少需要"+length+"个参数");
+        if (rest==null || rest.length<length){
+            throw new Exception("至少需要"+length+"个参数");
         }else{
             Exp params=null;
             if (with_args){
-                params=args.First();
-                args=args.Rest();
+                params=rest.first;
+                rest=rest.rest;
                 if (!(params instanceof BracketExp)){
                     throw params.exception("参数绑定是列表");
                 }
             }
             Exp this_name=null;
             if (with_this){
-                this_name=args.First();
-                args=args.Rest();
+                this_name=rest.first;
+                rest=rest.rest;
                 if (!(this_name instanceof IDExp)){
                     throw params.exception("this_name绑定不是D类型");
                 }
@@ -49,8 +48,9 @@ public class Lambda extends ReadMacro {
                 scope,
                 (BracketExp)params,
                 (IDExp)this_name,
-                args
+                rest
             );
         }
     }
+
 }

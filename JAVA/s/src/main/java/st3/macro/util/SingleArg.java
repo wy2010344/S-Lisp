@@ -1,19 +1,18 @@
 package st3.macro.util;
 
 import mb.RangePathsException;
-import s.Node;
-import st3.BracketExp;
 import st3.Exp;
-import st3.ReadMacro;
+import st3.Node;
+import st3.ScopeNode;
 
 public abstract class SingleArg extends DoMacro {
     @Override
-    protected Object run(Node<Object> scope, Node<Exp> rest) throws Throwable {
-        if (rest==null || rest.Length()!=1){
+    protected Object run(ScopeNode scope, Node<Exp> rest) throws Throwable {
+        if (rest==null || rest.length!=1){
             throw new Exception("参数必须为1");
         }else{
-            return run(scope,rest.First());
+            return run(scope,rest.first);
         }
     }
-    protected abstract Object run(Node<Object> scope,Exp exp) throws RangePathsException;
+    protected abstract Object run(ScopeNode scope,Exp exp) throws RangePathsException;
 }

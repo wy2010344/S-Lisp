@@ -1,9 +1,6 @@
 package st3;
 
 import mb.RangePathsException;
-import s.Node;
-
-import java.util.List;
 
 public abstract class Exp {
     public abstract RangePathsException exception(String msg);
@@ -23,21 +20,27 @@ public abstract class Exp {
      */
     public static Node<Exp> parse(Node<Token> tokens) throws RangePathsException {
         int flag=0;
-        Token rootLeft=new Token(Token.TokenType.SBracketLeftToken,0,"(");
-        Node<Cache> caches=Node.extend(new Cache(rootLeft),null);
+        Token rootRight=new Token(Token.TokenType.SBracketLeftToken,0,")");
+        Node<Cache> caches=Node.extend(new Cache(rootRight),null);
         while (tokens!=null){
-            Token token=tokens.First();
-            tokens=tokens.Rest();
+            Token token=tokens.first;
+            tokens=tokens.rest;
             switch (token.type){
                 case IDToken://id包括字符串，不区分字符串
-                    caches.First().children=Node.extend(
+                    caches.first.children=Node.extend(
                             new IDExp(token),
-                            caches.First().children
+                            caches.first.children
+                    );
+                    break;
+                case StringToken:
+                    caches.first.children=Node.extend(
+                            new StringExp(token),
+                            caches.first.children
                     );
                     break;
                 case SBracketLeftToken://"("
-                    Cache cache = caches.First();
-                    caches=caches.Rest();
+                    Cache cache = caches.first;
+                    caches=caches.rest;
                     BracketExp bracketExp=new BracketExp(
                             token,
                             cache.children,
@@ -46,7 +49,10 @@ public abstract class Exp {
                     if (caches==null){
                         throw bracketExp.exception("过早结束文段");
                     }
-                    caches.First().children=Node.extend(bracketExp,caches.First().children);
+                    caches.first.children=Node.extend(
+                            bracketExp,
+                            caches.first.children
+                    );
                     break;
                 case SBracketRightToken://")"
                     caches=Node.extend(new Cache(token),caches);
@@ -54,11 +60,11 @@ public abstract class Exp {
             }
         }
         if (caches==null){
-            throw rootLeft.exception("过多地结束");
+            throw rootRight.exception("过多地结束");
         }
-        if (caches.Length()>1){
-            throw caches.First().right.exception("未对应匹配");
+        if (caches.length>1){
+            throw caches.first.right.exception("未对应匹配");
         }
-        return caches.First().children;
+        return caches.first.children;
     }
 }

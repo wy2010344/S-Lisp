@@ -1,8 +1,8 @@
 package st3.macro;
 
 import mb.RangePathsException;
-import s.Node;
 import st3.*;
+import st3.macro.util.DoMacro;
 
 /**
  * (marcodef (args (a b c d e) this)
@@ -12,15 +12,14 @@ import st3.*;
  * )
  *
  */
-public class MacroDef extends ReadMacro {
+public class MacroDef extends DoMacro {
 
     @Override
-    public Object exec(Node<Object> scope, BracketExp bracketExp) throws RangePathsException {
-        Node<Exp> args=bracketExp.children.Rest();
-        if (args==null || args.Length()<1){
-            throw bracketExp.exception("需要至少两个参数，一个是参数绑定，一个是定义体");
+    protected Object run(ScopeNode scope, Node<Exp> rest) throws Throwable {
+        if (rest==null || rest.length<1){
+            throw new Exception("需要至少两个参数，一个是参数绑定，一个是定义体");
         }else {
-            Exp arg_name_exp = args.First();
+            Exp arg_name_exp = rest.first;
             if (arg_name_exp==null || arg_name_exp instanceof BracketExp){
                 IDExp name_of_scope=null;
                 Exp name_of_args=null;
@@ -28,21 +27,21 @@ public class MacroDef extends ReadMacro {
                 if (arg_name_exp!=null){
                     Node<Exp> arg_names= ((BracketExp) arg_name_exp).children;
                     if (arg_names!=null){
-                        if (arg_names.Length()>4){
+                        if (arg_names.length>4){
                             throw arg_name_exp.exception("需要最多3个参数，function,args,this");
                         }else{
-                            Exp tmp=arg_names.First();
-                            arg_names=arg_names.Rest();
+                            Exp tmp=arg_names.first;
+                            arg_names=arg_names.rest;
                             if (tmp instanceof IDExp){
                                 name_of_scope= (IDExp) tmp;
                             }else{
                                 throw tmp.exception("scope必须是id类型");
                             }
                             if (arg_names!=null){
-                                name_of_args=arg_names.First();
-                                arg_names=arg_names.Rest();
+                                name_of_args=arg_names.first;
+                                arg_names=arg_names.rest;
                                 if (arg_names!=null){
-                                    tmp=arg_names.First();
+                                    tmp=arg_names.first;
                                     if (tmp instanceof IDExp){
                                         name_of_this= (IDExp) tmp;
                                     }else{
@@ -54,12 +53,11 @@ public class MacroDef extends ReadMacro {
                     }
                 }
                 return new UserReadMacro(
-                        bracketExp.children.First(),
                         scope,
                         name_of_scope,
                         name_of_args,
                         name_of_this,
-                        args.Rest()
+                        rest.rest
                 );
             }else{
                 throw arg_name_exp.exception("参数绑定必须是列表类型");
