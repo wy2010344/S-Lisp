@@ -8,7 +8,7 @@ public class Exp {
     public final ExpType type;
 
     /*单原子*/
-    private final Token token;
+    public final Token token;
     public final String value;
     /*字符串*/
     public final String originalValue;
@@ -36,11 +36,13 @@ public class Exp {
         this.left=null;
         this.right=null;
         this.children=null;
+        this.r_rest=null;
     }
     /*列表*/
-    private final Token left;
+    public final Token left;
     public final Node<Exp> children;
-    private final Token right;
+    public final Node<Exp> r_rest;
+    public final Token right;
     public Exp(Token left, Node<Exp> children, Token right){
         this.token=null;
         this.value="";
@@ -48,6 +50,7 @@ public class Exp {
         type=ExpType.BracketExp;
         this.left=left;
         this.children=children;
+        this.r_rest=Node.reverse(children.rest);
         this.right=right;
         this.originalValue="";
         this.quoteValueOneLine="";
@@ -95,8 +98,12 @@ public class Exp {
         }
     }
     public static Node<Exp> parse(Node<Token> tokens) throws RangePathsException {
-        int flag=0;
-        Token rootRight=new Token(Token.TokenType.SBracketRightToken,0,")");
+        int begin = 0;
+        if (tokens != null) {
+            Token first = tokens.first;
+            begin = first.begin + first.value.length();
+        }
+        Token rootRight=new Token(Token.TokenType.SBracketRightToken,begin,")");
         Node<Cache> caches=Node.extend(new Cache(rootRight),null);
         while (tokens!=null){
             Token token=tokens.first;
@@ -118,7 +125,7 @@ public class Exp {
                             cache.right
                     );
                     if (caches==null){
-                        throw bracketExp.exception("过早结束文段");
+                        throw bracketExp.exception("括号缺失");
                     }
                     caches.first.children=Node.extend(
                             bracketExp,

@@ -2,7 +2,6 @@ package meta.macro;
 
 import mb.RangePathsException;
 import meta.*;
-import meta.macro.util.SingleArg;
 
 import java.io.IOException;
 import java.util.Map;
@@ -11,7 +10,7 @@ import java.util.TreeMap;
 /**
  * 只支持ID作参数？不支持动态计算路径？
  */
-public class Load extends SingleArg {
+public class Load extends LibReadMarco {
     private final ScopeNode scope;
     private final String path;
     public Load(String path, ScopeNode scope){
@@ -21,37 +20,42 @@ public class Load extends SingleArg {
     private Map<String,Object> caches=new TreeMap<String,Object>();
     private boolean onload=false;
     @Override
-    protected Object run(ScopeNode scope, Exp exp) throws RangePathsException {
-        if (onload){
-            throw exp.exception("正在加载，不允许同时加载");
+    protected Object run(ScopeNode scope, Node<Exp> rest) throws Throwable {
+        if (rest==null || rest.length==1){
+            throw new Exception("参数必须为1个");
         }else {
-            onload=true;
-            Object o=null;
-            if (exp instanceof BracketExp){
-                throw exp.exception("必须为id或字符串类型");
-            }else {
-                String re_path=null;
-                if (exp instanceof IDExp) {
-                    re_path= ((IDExp) exp).value;
-                } else if (exp instanceof StringExp) {
-                    re_path=((StringExp)exp).value;
-                }
-                String allPath=mb.Util.path_join(path,re_path);
-                if (caches.containsKey(allPath)){
-                    o=caches.get(allPath);
-                }else{
-                    try {
-                        o = run(scope, allPath);
-                    }catch (RangePathsException e){
-                        throw e;
-                    }catch (Exception e){
-                        throw exp.exception(e.getMessage());
+            Exp exp = rest.first;
+            if (onload) {
+                throw exp.exception("正在加载，不允许同时加载");
+            } else {
+                onload = true;
+                Object o = null;
+                if (exp instanceof BracketExp) {
+                    throw exp.exception("必须为id或字符串类型");
+                } else {
+                    String re_path = null;
+                    if (exp instanceof IDExp) {
+                        re_path = ((IDExp) exp).value;
+                    } else if (exp instanceof StringExp) {
+                        re_path = ((StringExp) exp).value;
                     }
-                    caches.put(allPath,o);
+                    String allPath = mb.Util.path_join(path, re_path);
+                    if (caches.containsKey(allPath)) {
+                        o = caches.get(allPath);
+                    } else {
+                        try {
+                            o = run(scope, allPath);
+                        } catch (RangePathsException e) {
+                            throw e;
+                        } catch (Exception e) {
+                            throw exp.exception(e.getMessage());
+                        }
+                        caches.put(allPath, o);
+                    }
                 }
+                onload = false;
+                return o;
             }
-            onload=false;
-            return o;
         }
     }
     public static Object run(ScopeNode scope,String path) throws IOException, RangePathsException {

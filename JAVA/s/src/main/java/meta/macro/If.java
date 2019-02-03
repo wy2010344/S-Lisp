@@ -1,15 +1,15 @@
 package meta.macro;
 
 import meta.Exp;
+import meta.LibReadMarco;
 import meta.Node;
 import meta.ScopeNode;
-import meta.macro.util.DoMacro;
 
 /**
  * 分支执行，体不是lambda
  * 通过宏执行懒执行
  */
-public class If extends DoMacro {
+public class If extends LibReadMarco {
     @Override
     protected Object run(ScopeNode scope, Node<Exp> rest) throws Throwable {
         if (rest==null||rest.length<2||rest.length>3){

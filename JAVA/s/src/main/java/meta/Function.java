@@ -7,7 +7,7 @@ import mb.RangePathsException;
  */
 public abstract class Function extends ReadMacro {
     @Override
-    public Object exec(ScopeNode scope, BracketExp bracketExp) throws RangePathsException {
+    public final Object exec(ScopeNode scope, BracketExp bracketExp) throws RangePathsException {
         Node<Object> rs=null;
         Node<Exp> tmp=bracketExp.r_rest;
         while (tmp!=null){

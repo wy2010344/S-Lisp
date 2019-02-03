@@ -1,10 +1,10 @@
 package meta2.s2java;
 
 import mb.RangePathsException;
+import meta2.ExpType;
 import meta.Node;
 import meta.Token;
 import meta2.Exp;
-import meta2.ExpType;
 
 import java.io.File;
 import java.io.IOException;
@@ -103,8 +103,8 @@ public class S2Java {
             if (file.isDirectory()){
                 circle(root,target,root_pkg,file);
             }else{
-                String endsuffix=".s2java";
-                if (file.getName().endsWith(endsuffix)){
+                String suffix=".s2java";
+                if (file.getName().endsWith(suffix)){
                     try {
                         String txt=mb.Util.readTxt(file,"\n","UTF-8");
                         Node<Token> tokens=Token.run(txt);
@@ -116,8 +116,8 @@ public class S2Java {
                             List<String> list=new ArrayList<String>();
                             String file_path=file.getAbsolutePath();
                             String fileName=file.getName();
-                            String className=fileName.substring(0,fileName.length()-endsuffix.length());//类名
-                            String relative_name=file_path.substring(root.length(),file_path.length()-endsuffix.length());//根路径到类全名
+                            String className=fileName.substring(0,fileName.length()-suffix.length());//类名
+                            String relative_name=file_path.substring(root.length(),file_path.length()-suffix.length());//根路径到类全名
                             String pkgName="";
                             if(relative_name.equals(className)){
                                 pkgName=root_pkg;

@@ -43,7 +43,7 @@ public class LetMarco extends WriteMacro {
         if (key_exp instanceof BracketExp){
             if (value==null || (value instanceof Node)){
                 Node<Object> vs= (Node<Object>) value;
-                Node<Exp> children=((BracketExp) key_exp).children;
+                Node<Exp> children=key_exp.asBracketExp().children;
                 Node<Exp> tmp=children;
                 while (tmp!=null){
                     Exp c=tmp.first;
@@ -57,8 +57,8 @@ public class LetMarco extends WriteMacro {
                         scope=bind(scope,c,v);
                     }else{
                         //c是最后一个
-                        if (c instanceof IDExp) {
-                            String key = ((IDExp) c).value;
+                        if (c.isIDExp()) {
+                            String key =c.asIDExp().value;
                             if (key.length() > 3 && key.startsWith("...")) {
                                 //满足剩余匹配
                                 scope = ScopeNode.extend(key.substring(3), vs, scope);
@@ -78,8 +78,8 @@ public class LetMarco extends WriteMacro {
             }
             return scope;
         }else{
-            if (key_exp instanceof IDExp) {
-                return ScopeNode.extend(((IDExp) key_exp).value, value, scope);
+            if (key_exp.isIDExp()) {
+                return ScopeNode.extend(key_exp.asIDExp().value, value, scope);
             }else{
                 throw key_exp.exception("不是合法的供绑定类型");
             }

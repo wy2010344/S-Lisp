@@ -12,7 +12,6 @@ public class ScopeNode {
     public static ScopeNode extend(String key,Object value,ScopeNode rest){
         return new ScopeNode(key,value,rest);
     }
-
     /**
      * 返回(boolean,value)
      * @param kvs

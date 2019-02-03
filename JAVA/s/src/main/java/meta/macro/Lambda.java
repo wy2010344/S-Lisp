@@ -1,18 +1,18 @@
 package meta.macro;
 
 import meta.*;
-import meta.macro.util.DoMacro;
 
 /**
  * (lambda () () () ())
  */
-public class Lambda extends DoMacro {
+public class Lambda extends LibReadMarco {
     private final boolean with_this;
     private final boolean with_args;
     public Lambda(boolean with_args,boolean with_this){
         this.with_args=with_args;
         this.with_this=with_this;
     }
+
 
     @Override
     protected Object run(ScopeNode scope, Node<Exp> rest) throws Throwable {

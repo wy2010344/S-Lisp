@@ -15,12 +15,34 @@ public abstract class Exp {
         }
     }
 
+    public boolean isBracketExp(){
+        return this instanceof BracketExp;
+    }
+    public boolean isIDExp(){
+        return this instanceof IDExp;
+    }
+    public boolean isStringExp(){
+        return this instanceof StringExp;
+    }
+    public BracketExp asBracketExp(){
+        return (BracketExp)this;
+    }
+    public IDExp asIDExp(){
+        return (IDExp)this;
+    }
+    public StringExp asStringExp(){
+        return (StringExp)this;
+    }
     /*
      逆向解析
      */
     public static Node<Exp> parse(Node<Token> tokens) throws RangePathsException {
-        int flag=0;
-        Token rootRight=new Token(Token.TokenType.SBracketRightToken,0,")");
+        int begin = 0;
+        if (tokens != null) {
+            Token first = tokens.first;
+            begin = first.begin + first.value.length();
+        }
+        Token rootRight=new Token(Token.TokenType.SBracketRightToken,begin,")");
         Node<Cache> caches=Node.extend(new Cache(rootRight),null);
         while (tokens!=null){
             Token token=tokens.first;
@@ -47,7 +69,7 @@ public abstract class Exp {
                             cache.right
                     );
                     if (caches==null){
-                        throw bracketExp.exception("过早结束文段");
+                        throw bracketExp.exception("括号缺失");
                     }
                     caches.first.children=Node.extend(
                             bracketExp,

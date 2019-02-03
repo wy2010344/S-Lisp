@@ -2,6 +2,7 @@ package meta2.s2java;
 
 /*
 未来应该增加联合类型
+其实静态类型应该区分开
 */
 public enum ClsFieldType {
     ID,/*未初始化字段*/

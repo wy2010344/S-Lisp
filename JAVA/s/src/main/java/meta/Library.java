@@ -1,9 +1,6 @@
 package meta;
 
-import meta.macro.If;
-import meta.macro.Lambda;
-import meta.macro.MacroDef;
-import meta.macro.StringToken;
+import meta.macro.*;
 
 public class Library {
     public static ScopeNode buildScope(){
@@ -17,6 +14,8 @@ public class Library {
         scope=ScopeNode.extend("fn-x",new Lambda(false,true),scope);
         scope=ScopeNode.extend("if",new If(),scope);
         scope=ScopeNode.extend("string-token",new StringToken(),scope);
+        scope=ScopeNode.extend("kvs",new Kvs(),scope);
+        scope=ScopeNode.extend("kvs-path",new KvsPath(),scope);
         /*函数*/
         scope=ScopeNode.extend("exp-toString",new ExpToString(),scope);
         scope=ScopeNode.extend("exp-isBracket",new ExpIsBracket(),scope);

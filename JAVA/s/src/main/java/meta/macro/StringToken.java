@@ -1,21 +1,20 @@
 package meta.macro;
 
 import meta.*;
-import meta.macro.util.DoMacro;
 
 /**
  * 宏，将所有参数依空格相连
  */
-public class StringToken extends DoMacro {
+public class StringToken extends LibReadMarco {
     @Override
     protected Object run(ScopeNode scope, Node<Exp> rest) throws Throwable {
         if (rest==null){
             return "";
         }else if (rest.length==1){
             if (rest.first instanceof IDExp){
-                return ((IDExp) rest.first).value;
+                return rest.first.asIDExp().value;
             }else if(rest.first instanceof StringExp){
-                return ((StringExp)rest.first).value;
+                return rest.first.asStringExp().value;
             }else{
                 //括号表达式
                 StringBuilder sb=new StringBuilder();
@@ -36,7 +35,7 @@ public class StringToken extends DoMacro {
 
     public static void join(Exp exp, StringBuilder sb){
         if (exp instanceof IDExp){
-            sb.append(((IDExp) exp).value);
+            sb.append(exp.asIDExp().value);
         }else{
             join_bracket((BracketExp)exp,sb);
         }

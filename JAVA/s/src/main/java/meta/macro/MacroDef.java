@@ -1,7 +1,6 @@
 package meta.macro;
 
 import meta.*;
-import meta.macro.util.DoMacro;
 
 /**
  * (marcodef (args (a b c d e) this)
@@ -11,7 +10,7 @@ import meta.macro.util.DoMacro;
  * )
  *
  */
-public class MacroDef extends DoMacro {
+public class MacroDef extends LibReadMarco {
 
     @Override
     protected Object run(ScopeNode scope, Node<Exp> rest) throws Throwable {
@@ -19,20 +18,20 @@ public class MacroDef extends DoMacro {
             throw new Exception("需要至少两个参数，一个是参数绑定，一个是定义体");
         }else {
             Exp arg_name_exp = rest.first;
-            if (arg_name_exp==null || arg_name_exp instanceof BracketExp){
+            if (arg_name_exp==null || arg_name_exp.isBracketExp()){
                 IDExp name_of_scope=null;
                 Exp name_of_args=null;
                 IDExp name_of_this=null;
                 if (arg_name_exp!=null){
-                    Node<Exp> arg_names= ((BracketExp) arg_name_exp).children;
+                    Node<Exp> arg_names= arg_name_exp.asBracketExp().children;
                     if (arg_names!=null){
                         if (arg_names.length>4){
                             throw arg_name_exp.exception("需要最多3个参数，function,args,this");
                         }else{
                             Exp tmp=arg_names.first;
                             arg_names=arg_names.rest;
-                            if (tmp instanceof IDExp){
-                                name_of_scope= (IDExp) tmp;
+                            if (tmp.isIDExp()){
+                                name_of_scope=tmp.asIDExp();
                             }else{
                                 throw tmp.exception("scope必须是id类型");
                             }
@@ -41,8 +40,8 @@ public class MacroDef extends DoMacro {
                                 arg_names=arg_names.rest;
                                 if (arg_names!=null){
                                     tmp=arg_names.first;
-                                    if (tmp instanceof IDExp){
-                                        name_of_this= (IDExp) tmp;
+                                    if (tmp.isIDExp()){
+                                        name_of_this= tmp.asIDExp();
                                     }else{
                                         throw name_of_this.exception("this必须是id类型");
                                     }
