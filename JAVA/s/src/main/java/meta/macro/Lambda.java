@@ -16,14 +16,14 @@ public class Lambda extends LibReadMarco {
 
     @Override
     protected Object run(ScopeNode scope, Node<Exp> rest) throws Throwable {
-        int length=1;
+        int length=0;
         if (with_args){
             length++;
         }
         if (with_this){
             length++;
         }
-        if (rest==null || rest.length<length){
+        if (0<length && rest.length<length){
             throw new Exception("至少需要"+length+"个参数");
         }else{
             Exp params=null;

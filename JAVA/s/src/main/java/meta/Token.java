@@ -9,7 +9,7 @@ public class Token {
     public final String value;
 
     public RangePathsException exception(String msg) {
-        return new RangePathsException(begin,begin+value.length(),msg);
+        return new RangePathsException(begin,begin+value.length(),value+":"+msg);
     }
 
     public enum TokenType{

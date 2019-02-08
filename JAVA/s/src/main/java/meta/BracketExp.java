@@ -8,21 +8,17 @@ public class BracketExp extends Exp {
     public final Node<Exp> children;
 
     /*后续参数的倒置*/
-    public final Node<Exp> r_rest;
+    public final Node<Exp> r_children;
 
     public BracketExp(Token left,Node<Exp> children, Token right){
         this.left=left;
         this.children=children;
-        if (children!=null) {
-            this.r_rest = Node.reverse(children.rest);
-        }else{
-            this.r_rest=null;
-        }
+        this.r_children=Node.reverse(children);
         this.right=right;
     }
     @Override
     public RangePathsException exception(String msg) {
-        return new RangePathsException(left.begin,right.begin+right.value.length(),msg);
+        return new RangePathsException(left.begin,right.begin+right.value.length(),toString()+":"+msg);
     }
 
     public void toString(StringBuilder sb){

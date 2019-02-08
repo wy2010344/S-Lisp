@@ -13,9 +13,8 @@ public class Library {
         scope=ScopeNode.extend("fn-n-x",new Lambda(true,true),scope);
         scope=ScopeNode.extend("fn-x",new Lambda(false,true),scope);
         scope=ScopeNode.extend("if",new If(),scope);
+        scope=ScopeNode.extend("if-run",new IfRun(),scope);
         scope=ScopeNode.extend("string-token",new StringToken(),scope);
-        scope=ScopeNode.extend("kvs",new Kvs(),scope);
-        scope=ScopeNode.extend("kvs-path",new KvsPath(),scope);
         /*函数*/
         scope=ScopeNode.extend("exp-toString",new ExpToString(),scope);
         scope=ScopeNode.extend("exp-isBracket",new ExpIsBracket(),scope);
@@ -25,8 +24,10 @@ public class Library {
         scope=ScopeNode.extend("apply",new Apply(),scope);
         scope=ScopeNode.extend("list",new List(),scope);
         scope=ScopeNode.extend("quote",new Quote(),scope);
+        scope=ScopeNode.extend("default",new Default(),scope);
         scope=ScopeNode.extend("log",new Log(),scope);
-        scope=ScopeNode.extend("string-join",new StringJoin(),scope);
+        scope=ScopeNode.extend("str-join",new StringJoin(),scope);
+        scope=ScopeNode.extend("str-eq",new StringEq(),scope);
         scope=ScopeNode.extend("read",new Read(),scope);
         scope=ScopeNode.extend("write",new Write(),scope);
         return scope;
@@ -178,6 +179,9 @@ class Quote extends Function {
     }
 }
 
+/**
+ * 字符串连接
+ */
 class StringJoin extends Function {
     @Override
     public Object run(Node<Object> args) throws Exception {
@@ -247,5 +251,54 @@ class Write extends Function {
                 throw new Exception("路径不是字符串类型");
             }
         }
+    }
+}
+
+class Default extends Function{
+    @Override
+    public Object run(Node<Object> args) throws Throwable {
+        if (args==null || args.length!=2){
+            throw new Exception("需要2个参数");
+        }else{
+            if(args.first==null){
+                return args.rest.first;
+            }else{
+                return args.first;
+            }
+        }
+    }
+}
+
+class EmptyFn extends Function{
+    @Override
+    public Object run(Node<Object> args) throws Throwable {
+        return null;
+    }
+}
+
+class StringEq extends Function{
+    @Override
+    public Object run(Node<Object> args) throws Throwable {
+        boolean ret=true;
+        Object first=args.first;
+        Node<Object> tmp=args.rest;
+        if (first instanceof String){
+            while (tmp!=null && ret){
+                Object next=tmp.first;
+                tmp=tmp.rest;
+                if (next instanceof String){
+                    if (first.equals(next)){
+                        first=next;
+                    }else{
+                        ret=false;
+                    }
+                }else{
+                    ret=false;
+                }
+            }
+        }else{
+            ret=false;
+        }
+        return ret;
     }
 }
