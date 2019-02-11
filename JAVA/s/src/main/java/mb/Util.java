@@ -91,7 +91,7 @@ public class Util {
 			for(String b:bs) {
 				strs.add(b);
 			}
-			strs.remove(strs.size()-1);//移除最后一个
+			//不需要移除最后一个，因为最后一个不是空格，即使有/也不会有空格
 			for(String r:rs) {
 				if(r.equals("..")) {
 					strs.remove(strs.size()-1);
@@ -135,6 +135,7 @@ public class Util {
 			}
 			
 		}
+		System.out.println(_resource_path);
 		return path_join(_resource_path,path);
 	}
 	/**

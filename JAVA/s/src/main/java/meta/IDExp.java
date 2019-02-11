@@ -9,6 +9,21 @@ public class IDExp extends Exp {
         this.token=token;
         this.value=token.value;
     }
+    private Node<String> ids;
+    public Node<String> getIds() throws RangePathsException {
+        if (ids==null){
+            ids=getIds(token,value);
+        }
+        return ids;
+    }
+    private static Node<String> getIds(Token block, String id_path) throws RangePathsException {
+        if (id_path.charAt(0)=='.'||id_path.charAt(id_path.length()-1)=='.'||id_path.indexOf("..")!=-1){
+            throw block.exception("不是合法的id类型");
+        }else {
+            String[] ids=id_path.split("\\.");
+            return (Node.list(ids));
+        }
+    }
 
     @Override
     public RangePathsException exception(String msg) {

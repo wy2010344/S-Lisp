@@ -112,10 +112,30 @@ public abstract class ReadMacro {
             return exp.asStringExp().value;
         }else if(exp.isIDExp()) {
             try {
-                return ScopeNode.find_1st(scope, exp.asIDExp().value);
+                return ScopeNode.find_1st(scope,exp.asIDExp().value);
             } catch (Exception e) {
+                e.printStackTrace();
                 throw exp.exception(e.getMessage());
             }
+            /*
+            Node<String> ids=exp.asIDExp().getIds();
+            ScopeNode map=scope;
+            Object o=map;
+            while (ids!=null){
+                String id=ids.first;
+                ids=ids.rest;
+                o=ScopeNode.find_1st(map,id);
+                if (ids!=null){
+                    //不是最后一个
+                    if (o==null || o instanceof ScopeNode){
+                        map= (ScopeNode) o;
+                    }else{
+                        throw exp.exception("无法计算"+ids.toString()+","+o.toString()+"不是ScopeNode类型");
+                    }
+                }
+            }
+            return o;
+            */
         }else{
             throw exp.exception("尚未支持的exp");
         }

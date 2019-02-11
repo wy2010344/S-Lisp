@@ -33,35 +33,8 @@ public class UserReadMacro extends ReadMacro {
      * @throws RangePathsException
      */
     public static Object run(ScopeNode scope,Node<Exp> exps) throws RangePathsException {
-        Node<Exp> tmp=exps;
-        Object o=null;
-        while (tmp!=null){
-            Exp exp=tmp.first;
-            tmp=tmp.rest;
-            if (exp.isBracketExp()){
-                BracketExp bracketExp= exp.asBracketExp();
-                Exp first_exp=bracketExp.children.first;
-                Object first= run_read_exp(scope,first_exp);
-                if (first instanceof ReadMacro){
-                    /*只读作用域宏*/
-                    o=((ReadMacro) first).exec(
-                            scope,
-                            bracketExp
-                    );
-                }else if(first instanceof WriteMacro){
-                    /*读写作用域宏*/
-                    scope=((WriteMacro) first).exec(
-                            scope,
-                            bracketExp
-                    );
-                }else{
-                    throw first_exp.exception("不是read或write宏");
-                }
-            }else{
-                o= run_atom(scope,(IDExp) exp);
-            }
-        }
-        return o;
+        QueueRun qr=new QueueRun(scope);
+        return qr.run(exps);
     }
     @Override
     public Object exec(ScopeNode targetScope, BracketExp bracketExp) throws RangePathsException {

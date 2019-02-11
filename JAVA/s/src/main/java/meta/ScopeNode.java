@@ -29,6 +29,7 @@ public class ScopeNode {
                 kvs=kvs.rest;
             }
         }
+        //暂时不处理，当null处理
         if (unfind){
             throw new Exception("未找到定义"+key);
         }else{

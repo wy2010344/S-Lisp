@@ -25,8 +25,8 @@ public class Node<T> {
         }
         return rs;
     }
-    public static Node<Object> list(Object ...ids) {
-        Node<Object> r=null;
+    public static <T> Node<T> list(T ...ids) {
+        Node<T> r=null;
         for(int i=ids.length-1;i>-1;i--){
             r=Node.extend(ids[i],r);
         }

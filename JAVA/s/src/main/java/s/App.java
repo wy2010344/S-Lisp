@@ -11,7 +11,8 @@ public class App {
 			System.out.println(i);
 			System.out.println(args[i]);
 		}
-		String path=mb.Util.resource("../../config/js",App.class);
+		args=new String[]{"exec","smeta"};
+		String path=mb.Util.resource("../../config/js/",App.class);
 		final mb.JSBridge bridge=new mb.JSBridge(path,true) {
 			@Override
 			protected void param(HashMap<String,Object> ini){
@@ -58,6 +59,8 @@ public class App {
 					if("js".equals(args_1)) {
 						//执行js-shell
 						return bridge.run_map(null, "js/shell", log);
+					}else if("smeta".equals(args_1)){
+						return bridge.run_map(null,"smeta/shell",log);
 					}
 				}else
 				if("js".equals(args_0)) {

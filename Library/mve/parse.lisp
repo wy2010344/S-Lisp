@@ -1,71 +1,36 @@
 
 (let 
-	bind {
-		(let (watch value f) args)
-		(if-run (type? value 'function)
-				{
-					(watch 
-						[
-							exp {
-								(value)
-							}
-							after {
-								(f (first args))
-							}
-						]
-					)
-				}
-				{
-					(f value)
-				}
-		)
-	} 
-	bindKV {
-		(let (watch key value f) args)
-		(bind watch value {
-				(f key 
-					(first args)
-				)
-			}
-		)
-	} 
-	bindMap {
+	bindFactory {
 		(let (watch) args)
 		{
-			(let (map f) args)
-			(if-run (exist? map)
-				{
-					(kvs-forEach map 
-						{
-							(let (v k) args)
-							(bindKV watch k v f)
-						}
-					)
-				}
+			(let (value f) args)
+			(if-run (type? value 'function)
+					{
+						(watch 
+							[
+								exp {
+									(value)
+								}
+								after {
+									(f (first args))
+								}
+							]
+						)
+					}
+					{
+						(f value)
+					}
 			)
 		}
 	} 
-	bindEvent {
-		(let (map f) args)
-		(if-run (exist? map)
-				{
-					(kvs-forEach map 
-						{
-							(let (v k) args)
-							(f k v)
-						}
-					)
-				}
-		)
-	} 
 	if-bind {
-		(let (watch) args)
+		(let (bind) args)
 		{
 			(let (value f) args)
 			(if-run 
 				(exist? value)
 				{
-					(bind watch value f)
+					(bind value f)
 				}
 			)
 		}
@@ -221,7 +186,7 @@
 									`绑定locsize`
 									(build-locsize locsize o 
 										{(let (str vf) args)
-											(bind x.watch vf {
+											(x.bind vf {
 													(let (v) args)
 													(p.locsize e str v)
 												}
@@ -249,7 +214,7 @@
 												(str vf) args
 											 	ef (default (kvs-find1st obj str) empty-fun)
 											)
-											(bind x.watch vf {
+											(x.bind vf {
 													(let (v) args)
 													(ef v)
 													(p.locsize e str v)
@@ -279,13 +244,13 @@
 	{
 		(let 
 			(json watch mve k) args
+			bind (bindFactory watch)
 			x [
 				Parse 'Parse
 				watch 'watch 
 				mve 'mve
-				bindEvent 'bindEvent
-				bindMap (bindMap watch)
-				if-bind (if-bind watch)
+				bind 'bind
+				if-bind (if-bind bind)
 			]
 			o [
 				json 'json

@@ -16,18 +16,23 @@ public class Library {
         scope=ScopeNode.extend("if-run",new IfRun(),scope);
         scope=ScopeNode.extend("string-token",new StringToken(),scope);
         /*函数*/
+        scope=ScopeNode.extend("cache",new Cache(),scope);
         scope=ScopeNode.extend("exp-toString",new ExpToString(),scope);
         scope=ScopeNode.extend("exp-isBracket",new ExpIsBracket(),scope);
         scope=ScopeNode.extend("exp-bracketChildren",new ExpBracketChildren(),scope);
         scope=ScopeNode.extend("exp-parse",new ExpParse(),scope);
         scope=ScopeNode.extend("exp-let",new ExpLetMarco(),scope);
         scope=ScopeNode.extend("apply",new Apply(),scope);
-        scope=ScopeNode.extend("list",new List(),scope);
+        scope=ScopeNode.extend("list",new List(false),scope);
+        scope=ScopeNode.extend("xlist",new List(true),scope);
+        scope=ScopeNode.extend("map",new Map(false),scope);
+        scope=ScopeNode.extend("xmap",new Map(true),scope);
         scope=ScopeNode.extend("quote",new Quote(),scope);
         scope=ScopeNode.extend("default",new Default(),scope);
         scope=ScopeNode.extend("log",new Log(),scope);
         scope=ScopeNode.extend("str-join",new StringJoin(),scope);
         scope=ScopeNode.extend("str-eq",new StringEq(),scope);
+        scope=ScopeNode.extend("reduce",new Reduce(),scope);
         scope=ScopeNode.extend("read",new Read(),scope);
         scope=ScopeNode.extend("write",new Write(),scope);
         return scope;
@@ -144,14 +149,6 @@ class ExpToString extends Function {
         }
     }
 }
-
-class List  extends Function {
-    @Override
-    public Object run(Node<Object> args) throws Throwable {
-        return args;
-    }
-}
-
 class Log extends Function {
     @Override
     public Object run(Node<Object> args) throws Throwable {
@@ -300,5 +297,65 @@ class StringEq extends Function{
             ret=false;
         }
         return ret;
+    }
+}
+
+class Reduce extends Function{
+    @Override
+    public Object run(Node<Object> args) throws Throwable {
+        if (args!=null && args.length>2 && args.length<4){
+            Object list_o=args.first;
+            args=args.rest;
+            Object run_o=args.first;
+            args=args.rest;
+            Object init=args==null?null:args.first;
+            if (list_o instanceof Node && run_o instanceof Function){
+                Node<Object> list= (Node<Object>) list_o;
+                Function run= (Function) run_o;
+                while (list!=null){
+                    init=run.run(Node.list(init,list.first));
+                    list=list.rest;
+                }
+                return init;
+            }else{
+                throw new Exception("参数类型不对");
+            }
+        }else{
+            throw new Exception("需要2~3个参数");
+        }
+    }
+}
+
+class Cache extends Function{
+    @Override
+    public Object run(Node<Object> args) throws Throwable {
+        Object value=null;
+        if (args!=null && args.length==1){
+            if (args.length==1) {
+                value = args.first;
+            }else{
+                throw new Exception("最多一个参数");
+            }
+        }
+        return new CacheValue(value);
+    }
+    static class CacheValue extends Function{
+        public CacheValue(Object value){
+            this.value=value;
+        }
+        private Object value;
+        @Override
+        public Object run(Node<Object> args) throws Throwable {
+            if (args==null){
+                return value;
+            }else{
+                if (args.length>1){
+                    throw new Exception("只需要一个参数");
+                }else{
+                    value=args.first;
+                }
+                return null;
+            }
+        }
     }
 }
