@@ -1,26 +1,27 @@
 {
 	(let
-		(DOM) args
+		(Factory) args
 		util (load '../util.lisp)
+		exp (load '../exp.lisp)
 		Parse (load '../parse.lisp)
-		build-children-Factory (load '../build-children.lisp)	
+		build-children-Factory {
+			(let p args)
+			((load '../build-children.lisp)	
+				[
+					key 'p.key
+					Value 'util.Value
+					Watcher 'util.Watcher
+					before 'p.before
+					after 'p.after
+					appendChild 'p.appendChild
+					removeChild 'p.removeChild
+					insertChildBefore 'p.insertChildBefore
+				]
+			)
+		}
+		DOM (Factory build-children-Factory)
 		locsize [
 			width height left top right bottom
-		]
-		build-children-control (build-children-Factory
-			[
-				key children
-				Value 'util.Value
-				appendChild 'DOM.appendChild
-				removeChild 'DOM.removeChild
-				Watcher 'util.Watcher
-			]
-		)
-		`
-			listView需要begin和end的watch
-		`
-		other_build_children [
-			list-view ((load './list-view.lisp) DOM build-children-Factory util)
 		]
 		bindKV {
 			(let (bind key value f) args)
@@ -56,9 +57,9 @@
 					)
 				}
 			)
-		} 
+		}
 	)
-	(util.Exp
+	(exp
 		locsize
 		DOM
 		(Parse
@@ -67,34 +68,12 @@
 				locsize {
 
 				}
-				replaceWith {
-					(log "未实现，请尽量避免replaceWith")
-				}
 				createTextNode {
 					(log "未实现，请尽量避免createTextNode")
 				}
 				buildElement {
 					(let (x o) args)
-					(let e (DOM.createElement o.json.type))
-					(let build-children 
-						(kvs-find1st other_build_children o.json.type)
-					)
-					(let obj 
-						(if-run (exist? build-children)
-							{
-								(build-children e x o)
-							}
-							{
-								(build-children-control e x o)
-							}
-						)
-					)
-					[
-						element 'e
-						k 'obj.k
-						inits 'obj.inits
-						destroys 'obj.destroys
-					]
+					(DOM.build o.json.type x o)
 				}
 				makeUpElement {
 					(let (e x json) args)
@@ -111,15 +90,14 @@
 					`内部字符`
 					(x.if-bind json.text 
 						{
-							(let (v) args)
-							(DOM.text e v)
+							(apply DOM.text (extend e args))
 						}
 					)
 					`内部值`
 					(x.if-bind json.value
 						{
 							(let (v) args)
-							(DOM.value e v)
+							(apply DOM.value (extend e args))
 						}
 					)
 				}

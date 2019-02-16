@@ -22,7 +22,7 @@ namespace gui
             slib.addDef("write", new s.library.Write(encoding));
             slib.addDef("cache", new s.library.Cache());
 
-            target = new gui.mve.MVE(slib, s.Util.exe_path("s/index/index.lisp"));
+            target = new gui.mve.MVE(slib,form, s.Util.exe_path("s/index/index.lisp"));
             form.Controls.Add(target.element);
             target.element.Dock=DockStyle.Fill;
             target.init.exec(null);

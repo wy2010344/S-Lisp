@@ -79,6 +79,47 @@
 			)
 		}
 	}
+
+	ArrayModel {
+		(let 
+			array (cache args)
+			views (cache [])
+		)
+		[
+			list {
+				(array)
+			}
+			addView {
+				(views (extend (first args) (views)))
+			}
+			removeView {
+				(let index (indexOf (views) (first args)))
+				(if-run (< -1 index)
+					{
+						(views (splice (views) index 1))
+					}
+				)
+			}
+
+			insert {
+				(let (index row) args)
+				(array (splice (array) index 0 row))
+				(forEach (views) {
+					(let (view) args)
+					(view.insert index row)
+				})
+			}
+
+			remove {
+				(let (index) args)
+				(array (splice (array) index 1))
+				(forEach (views) {
+					(let (view) args)
+					(view.remove index)
+				})
+			}
+		]
+	}
 	Watcher ({
 		(let uid (cache 0))
 		{
@@ -138,122 +179,7 @@
 
 	Watcher 'Watcher
 
-	Cache 'Cache
+	ArrayModel 'ArrayModel
 
-	Exp {
-		(let (locsize DOM Parse) args)
-		(let ret {
-			(let (user-func) args mve this)
-			(let watchPool (cache []))
-			(let Watch 
-				{
-					(let w (apply Watcher args))
-					(watchPool 
-						(extend w 
-							(watchPool)
-						)
-					)
-					w
-				}
-			)
-			(let Cache 
-				{
-					(Cache Watch (first args))
-				}
-			)
-			(let k (cache []))
-			`用户函数返回`
-			(let user-result 
-				(apply 
-					user-func 
-					[
-						Value 'Value
-						k {
-							(let (str) args)
-							(kvs-find1st (k) str)
-						}
-						Cache 'Cache
-						Watch 'Watch
-						DOM 'DOM
-					]
-				)
-			)
-			`locsize部分`
-			(let me  
-				(reduce 
-					locsize 
-					{
-						(let (init str) args)
-						(let fun (kvs-find1st user-result str))
-						(kvs-extend 
-							str 
-							(if-run (exist? fun)
-								{fun}
-								{(Value 0)}
-							) 
-							init
-						)
-					}
-					[]
-				)
-			)
-			(let me
-				(kvs-reduce user-result.out
-					{
-						(let (init v k) args)
-						(kvs-extend k v init)
-					}
-					me
-				)
-			)
-			(let 
-				(getElement c_k element-init element-destroy) 
-				(Parse 
-					user-result.element
-					`Watch 给内部使用的`
-					{
-						(let w  (apply Watcher args))
-						(watchPool 
-							(extend w 
-								(watchPool)
-							)
-						)
-						w
-					}
-					mve
-					k
-				)
-			)
-			(k c_k)
-			(let 
-				user-init (default user-result.init empty-fun)
-				user-destroy (default user-result.destroy empty-fun)
-			)
-			(kvs-reduce
-				[ 
-					getElement 'getElement
-					init {
-						(element-init)
-						(user-init)
-					}
-					destroy {
-						(user-destroy)
-						(element-destroy)
-						(forEach (watchPool) 
-							{
-								(let (w) args)
-								(w.disable)
-							}
-						)
-					}
-				]
-				{
-					(let (init value k) args)
-					(kvs-extend k value init)
-				}
-				me
-			)
-		})
-		ret
-	}
+	Cache 'Cache
 ]

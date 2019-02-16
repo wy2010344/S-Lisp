@@ -142,6 +142,11 @@ mb.Object={
             init=func(init,obj[k],k,obj);
         }
         return init;
+    },
+    ember:function(me,obj){
+        for(var k in obj){
+            me[k]=obj[k];
+        }
     }
 };
 mb.Array={

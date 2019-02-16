@@ -1,19 +1,12 @@
-
-(log 98)
 {
-    (log 98)
-    (mve {
-        (let me args)
-        (let 
-            a (me.Value 9)
-            array (me.Value 
-                [
-                    a b c d e f
-                ]
-            )
-            width (me.Value 0)
-            height (me.Value 0)
 
+	(mve {
+		(let me args)
+		(let array (me.Value [
+				a b c d e f
+			])
+			width (me.Value 0)
+			height (me.Value 0)
             list-array (me.Value
                 [
                     [left x1 right x2]
@@ -21,49 +14,39 @@
                     [left 34 right 5i]
                 ]
             )
-        )
-        [
-            width 'width
-            height 'height
+            model-array (me.ArrayModel 
+                [left x1 right x2]
+                [left 11 right 12]
+                [left 34 right 5i]
+            )
+		)
+		[
+			width 'width
+			height 'height
+
             element [
                 type div
                 children [
                     [
-                        type list-view
-                        id list-view
+                        type tab
                         attr [
                             Dock Fill
-                            View Details
-                            FullRowSelect true
-                            `CheckBoxes true`
                         ]
-                        columns [
-                            [
-                                type col
-                                text left
-                            ]
-                            [
-                                type col
-                                text right
-                            ]
-                        ]
-                        rows-type kvs
-                        rows [
-                            array 'list-array
+                        pages-type kvs
+                        pages [
+                            model 'model-array
                             repeat {
                                 (let o args)
                                 [
-                                    type row
+                                    type tab-page
                                     text {
-                                        (let x (o.data))
-                                        (str-join [(toString (o.index)) - (toString x.left)])
+                                       (toString (o.index)) 
                                     }
                                     children [
                                         [
-                                            type cell
+                                            type button
                                             text {
-                                                (let x (o.data))
-                                                (toString x.right)
+                                                (str-join [(toString (o.index)) - (toString o.data.left) - (toString o.data.right)])
                                             }
                                         ]
                                     ]
@@ -71,6 +54,81 @@
                             }
                         ]
                     ]
+                    [
+                        type flow
+                        attr [
+                            Dock Bottom
+                            height 30
+                        ]
+                        children [
+                            [
+                                type button
+                                text 增加
+                                event [
+                                    click {
+                                        (model-array.insert 1 [left abc right aewfawef])
+                                    }
+                                ]
+                            ]
+                            [
+                                type button
+                                text 减少
+                                event [
+                                    click {
+                                        (model-array.remove 1)
+                                    }
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+			element32 [
+				type div
+				children [
+					[
+						type list
+						id list-view
+						attr [
+							Dock Fill
+							View Details
+							FullRowSelect true
+						]
+						columns [
+							[
+								type list-column
+								text left
+							]
+							[
+								type list-column
+								text right
+							]
+						]
+
+						rows-type kvs
+						rows [
+							array 'list-array
+							repeat{
+								(let o args)
+								[
+									type list-row
+									text {
+										(let x (o.data))
+										(str-join [ (toString (o.index)) - (toString x.left)])
+									}
+									cells [
+										[
+											type list-cell
+											text {
+                                                (let x (o.data))
+                                                (toString x.right)
+											}
+										]
+									]
+								]
+							}
+						]
+					]
                     [
                         type flow
                         attr [
@@ -123,7 +181,7 @@
                                     click {
                                         (let 
                                             list-view (me.k 'list-view)
-                                            selectedIndexs (me.DOM.list-view-selectedIndexs list-view)
+                                            selectedIndexs (me.DOM.attr list-view 'SelectedIndices)
                                         )
                                         (log selectedIndexs)
                                         (if-run (exist? selectedIndexs)
@@ -148,8 +206,8 @@
                                                     )
                                                 )
                                                 `选择置空`
-                                                (me.DOM.list-view-selectedIndexs list-view [])
-                                                (me.DOM.list-view-checkedIndexs list-view [])`check置空`
+                                                (me.DOM.attr list-view 'SelectedIndices [])
+                                                (me.DOM.attr list-view 'CheckedIndices [])`check置空`
                                             }
                                             {
                                                 (me.DOM.alert "无删除数据")
@@ -160,125 +218,55 @@
                             ]
                         ]
                     ]
-                ]
-            ]
-            element12 [ 
-                type div
-                children [
-                    [
-                        type flow
-                        attr [
-                            Dock Fill
-                            Height {
-                                (- (height) 30)
-                            }
+				]
+			]
+			element1 [
+				type div
+				children [
+					[
+						type flow
+						attr [
+							Dock Fill
+							Height {
+								(- (height) 30)
+							}
                             WrapContents false
                             FlowDirection TopDown
                             AutoScroll true
                             BackColor #FFC10710
-                        ]
-                        children-type kvs
-                        children [
-                            array 'array
-                            repeat {
-                                (let o args)
-                                [
-                                    type button
-                                    attr [
-                                        Width {
-                                            (- (width) 30)
-                                        }
-                                        BackColor #ffeb3b
-                                        Text {
-                                            (str-join 
-                                                [
-                                                    (toString (o.index))
-                                                    (o.data)
-                                                ]
-                                            )
-                                        }
-                                    ]
-                                    event [
-                                        click {
-                                            (array (splice (array) (o.index) 1))
-                                        }
-                                    ]
-                                ]
-                            }
-                        ]
-                    ]
-                    [
-                        type flow
-                        attr [
-                            Dock Bottom
-                            BackColor #66339910
-                            Height 30
-                        ]
-                        children [
-                            [
-                                type button
-                                attr [
-                                    Text { 
-                                        (str-join 
-                                            [
-                                                写字1 
-                                                (toString (a)) 
-                                                xo 
-                                                (toString (len (array)))
-                                            ]
-                                        ) 
-                                    }
-                                ]
-                                event [
-                                    click {
-                                        (log '好 (a))
-                                        (a (+ (a) 1))
-                                    }
-                                ]
-                            ]
-                            [
-                                type input 
-                                id input
-                                attr [
-                                    Text 好
-                                ]
-                            ]
-                            [
-                                type button 
-                                attr [
-                                    Text { 
-                                        (str-join 
-                                            [
-                                                共
-                                                (toString (len (array)))
-                                                条记录
-                                            ]
-                                        )
-                                    }
-                                ]
-                                event [
-                                    click {
-                                        (let
-                                            input (me.k 'input)
-                                            v (me.DOM.value input)
-                                        )
-                                        (if-run (str-eq v "")
-                                            {
-                                                (me.DOM.alert "不允许为空")
-                                            }
-                                            {
-                                                (array  (extend v (array)))
-                                                (me.DOM.value input "")
-                                            }
-                                        )
-                                    }
-                                ]
-                            ]
-
-                        ]
-                    ]
-                ]
-            ]
-        ]
-    })
+						]
+						children-type kvs
+						children [
+							array 'array
+							repeat {
+								(let o args)
+								[
+									type button
+									attr [
+										Width {
+											(- (width) 30)
+										}
+										BackColor #ffeb3b
+									]
+									text {
+										(str-join
+											[
+												(toString (o.index))
+												(o.data)
+											]
+										)
+									}
+									event [
+										click {
+											(array (splice (array) (o.index) 1))
+										}
+									]
+								]
+							}
+						]
+					]
+				]
+			]
+		]
+	})
 }

@@ -50,11 +50,6 @@
 			}
 		)
 	}
-	`供后面inits和destroys使用`
-	forEach-run {
-		(let (array) args)
-		{(forEach array call)}
-	}
 	add-k {
 		(let (k id obj) args)
 		(if-run (exist? id)
@@ -77,7 +72,7 @@
 {
 	(let (locsize p) args)
 	`对函数`
-	(let Parse-fun 
+	(let ParseFun 
 		{
 			`
 			[
@@ -101,18 +96,15 @@
 					after {
 						(let (element) args)
 						(let newObj 
-							(x.mve 
-								{ 
-									[ element 'element] 
-								}
-							)
+							((x.mve {[ element 'element]}) o.e)
 						)
 						(let obj (change))
 						(change newObj)
 						(if-run (exist? obj)
 							{
 								`非第一次生成`
-								(p.replaceWith 
+								(o.e.replaceChild 
+									o.e 
 									(obj.getElement)
 									(newObj.getElement)
 								)
@@ -139,7 +131,7 @@
 		}
 	)
 	`对列表`
-	(let Parse {
+	(let ParseObject {
 			`
 			[
 				watch 
@@ -159,91 +151,91 @@
 				(x o) args
 				json (default o.json "")
 			)
-			(if-run (type? json 'function)
+			(if-run (type? json 'list)
 				{
-					`函数节点`
-					(let 
-						pf (Parse-fun x o) 
-						obj (pf.change)
-					)
-					[
-						element (obj.getElement)
-						k 'o.k
-						inits 'pf.inits
-						destroys 'pf.destroys
-					]
-				}
-				{
-					(if-run (type? json 'list)
+					`列表情况，对应js中字典`
+					(if-run (type? json.type 'string)
 						{
-							`列表情况，对应js中字典`
-							(if-run (type? json.type 'string)
-								{
-									(let 
-										obj (p.buildElement x o)
-										e obj.element
-									)
-									`绑定locsize`
-									(build-locsize locsize o 
-										{(let (str vf) args)
-											(x.bind vf {
-													(let (v) args)
-													(p.locsize e str v)
-												}
-											)
+							(let 
+								obj (p.buildElement x o)
+								e obj.element
+							)
+							`绑定locsize`
+							(build-locsize locsize o 
+								{(let (str vf) args)
+									(x.bind vf {
+											(let (v) args)
+											(p.locsize e str v)
 										}
 									)
-									(p.makeUpElement e x o.json)
-									[
-										element 'e
-										k (add-k obj.k json.id e)
-										inits 'o.inits
-										destroys 'o.destroys
-									]
-								}
-								{
-									`自定义组件`
-									(let 
-										obj (json.type json.params)
-										e (obj.getElement)
-									)
-									`绑定locsize`
-									(build-locsize locsize json
-										{
-											(let 
-												(str vf) args
-											 	ef (default (kvs-find1st obj str) empty-fun)
-											)
-											(x.bind vf {
-													(let (v) args)
-													(ef v)
-													(p.locsize e str v)
-												}
-											)
-										}
-									)
-									(p.makeUpElement e x o.json)
-									[
-										element 'e
-										k (add-k o.k json.id obj)
-										inits (extend obj.init o.inits)
-										destroys (extend obj.destroy o.destroys)
-									]
 								}
 							)
+							(p.makeUpElement e x o.json)
+							[
+								element 'e
+								k (add-k obj.k json.id e)
+								inits 'o.inits
+								destroys 'o.destroys
+							]
 						}
-						{	
-							`值节点`
-							(p.createTextNode x o)
+						{
+							`自定义组件`
+							(let 
+								obj ((json.type json.params) o.e)
+								e (obj.getElement)
+							)
+							`绑定locsize`
+							(build-locsize locsize json
+								{
+									(let 
+										(str vf) args
+									 	ef (default (kvs-find1st obj str) empty-fun)
+									)
+									(x.bind vf {
+											(let (v) args)
+											(ef v)
+											(p.locsize e str v)
+										}
+									)
+								}
+							)
+							(p.makeUpElement e x o.json)
+							[
+								element 'e
+								k (add-k o.k json.id obj)
+								inits (extend obj.init o.inits)
+								destroys (extend obj.destroy o.destroys)
+							]
 						}
 					)
+				}
+				{
+					`值节点`
+					(p.createTextNode x o)
 				}
 			)
 		}
 	)
+	(let Parse {
+		(let (x o) args)
+		(if-run (type? o.json 'function)
+			{
+				(let vm (ParseFun x o))
+				[
+					element (kvs-path-run (vm.change) [getElement])
+					k 'o.k
+					inits 'vm.inits
+					destroys 'vm.destroys
+				]
+			}
+			{
+				(ParseObject x o)
+			}
+		)
+	})
 	{
 		(let 
-			(json watch mve k) args
+			(e json watch mve k) args
 			bind (bindFactory watch)
 			x [
 				Parse 'Parse
@@ -253,6 +245,7 @@
 				if-bind (if-bind bind)
 			]
 			o [
+				e 'e
 				json 'json
 				k [] `无副作用的处理`
 				inits [] 
@@ -262,23 +255,23 @@
 		(if-run (type? o.json 'function)
 			{
 				`function`
-				(let vm (Parse-fun x o))
+				(let vm (ParseFun x o))
 				(list
 					{
 						(kvs-path-run (vm.change) [getElement])
 					}
 					[]
-					(forEach-run vm.inits)
-					(forEach-run vm.destroys)
+					vm.inits
+					vm.destroys
 				)
 			}
 			{
-				(let vm (Parse x o))
+				(let vm (ParseObject x o))
 				(list
 					{vm.element}
 					vm.k
-					(forEach-run vm.inits)
-					(forEach-run vm.destroys)
+					vm.inits
+					vm.destroys
 				)
 			}
 		)
