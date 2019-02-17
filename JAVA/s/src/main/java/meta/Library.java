@@ -12,6 +12,8 @@ public class Library {
         scope=ScopeNode.extend("fn-n",new Lambda(true,false),scope);
         scope=ScopeNode.extend("fn-n-x",new Lambda(true,true),scope);
         scope=ScopeNode.extend("fn-x",new Lambda(false,true),scope);
+        scope=ScopeNode.extend("fn-m",new LambdaMap(false),scope);
+        scope=ScopeNode.extend("fn-m-x",new LambdaMap(true),scope);
         scope=ScopeNode.extend("if",new If(),scope);
         scope=ScopeNode.extend("if-run",new IfRun(),scope);
         scope=ScopeNode.extend("string-token",new StringToken(),scope);

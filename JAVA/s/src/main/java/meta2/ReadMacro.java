@@ -24,7 +24,12 @@ public abstract class ReadMacro {
         }else if(exp.type==ExpType.StringExp){
             o=exp.value;
         }else if(exp.type==ExpType.IDExp){
-            o=ScopeNode.find_1st(scope,exp.value);
+            try {
+                o=ScopeNode.find_1st(scope,exp.value);
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw exp.exception(e.getMessage());
+            }
         }
         return o;
     }

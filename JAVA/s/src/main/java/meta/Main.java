@@ -11,8 +11,8 @@ public class Main {
             ScopeNode scope=Library.buildScope();
             Object o=Load.run(scope,path);
             if (o!=null){
-                if (o instanceof UserFunction){
-                    System.out.println(((UserFunction) o).run(null));
+                if (o instanceof Lambda.UserFunction){
+                    System.out.println(((Lambda.UserFunction) o).run(null));
                 }else{
                     System.out.println(o.toString());
                 }
