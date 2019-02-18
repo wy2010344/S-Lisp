@@ -1,9 +1,9 @@
 
 (let update {
-	(let (views index) args)
+	(let (update-index views index) args)
 	(reduce views {
 		(let (init view) args)
-		(view.row.index init)
+		(update-index view init)
 		(+ init 1)
 	} index)
 })
@@ -21,7 +21,7 @@
 				)
 				(if-run (exist? right)
 					{
-						(update right (+ (len left) 1))
+						(update p.update-index right (+ (len left) 1))
 						(p.insertChildBefore view (first right))
 					}
 					{
@@ -38,7 +38,7 @@
 					left (slice-to (views) index)
 					(view ...right) (slice-from (views) index)
 				)
-				(update right (len left))
+				(update p.update-index right (len left))
 				(views (combine-two left right))
 				(p.destroy view)
 				(p.removeChild view)

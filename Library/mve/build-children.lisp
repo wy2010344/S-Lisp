@@ -14,30 +14,9 @@
 		after 可选
 		`
 		(p) args
+		childOperate (load './childOperate.lisp)
 		buildArray (load './buildArray.lisp)
 		buildModel (load './buildModel.lisp)
-
-	    build {
-			`下面调入`
-			(let (e repeat mve getO) args)
-			{
-				`最终调入`
-				(let 
-					o (apply getO args)
-					fn (mve { 
-								[element {
-										(apply repeat o)
-									}
-								]
-							}
-						)
-				)
-				[ 
-					row 'o
-					obj (fn e)
-				]
-			}
-		}
 		type-key (str-join ['p.key - type])
 		p-before (default p.before empty-fun)
 		p-after (default p.after empty-fun)
@@ -45,8 +24,12 @@
 			(let (row i) args)
 			[
 				data (p.Value row)
-				index (p.Value i)
+				index 'i
 			]
+		}
+		updateArrayData {
+			(let (view data) args)
+			(view.row.data data)
 		}
 		getOModel {
 			(let (row i) args)
@@ -54,6 +37,10 @@
 				data 'row
 				index (p.Value i)
 			]
+		}
+		updateModelIndex {
+			(let (view index) args)
+			(view.row.index index)
 		}
 	)
 	{
@@ -73,11 +60,11 @@
 							(bc-after bc-destroy) 
 								(buildArray 
 									[
-										build (build e children.repeat x.mve getOArray)
+										build (childOperate.build e children.repeat x.mve getOArray)
 										no_cache 'p.no_cache
 										after {
 											(let (view) args)
-											(let init view.obj.init)
+											(let init (childOperate.getInit view))
 											(if-run (isInit)
 												{(init)}
 												{
@@ -85,14 +72,8 @@
 												}
 											)
 										}
-										update-data {
-											(let (view v) args)
-											(view.row.data v)
-										}
-										destroy {
-											(let (view) args)
-											(view.obj.destroy)
-										}
+										update-data 'updateArrayData
+										destroy 'childOperate.destroy
 										appendChild {
 											(let (view) args)
 											(p.appendChild e.pel (view.obj.getElement))
@@ -144,8 +125,11 @@
 							{
 								(let bm 
 									(buildModel [
-										build (build e children.repeat x.mve getOModel)
+										build (childOperate.build e children.repeat x.mve getOModel)
 										model 'children.model
+										update-index 'updateModelIndex
+										init 'childOperate.init
+										destroy 'childOperate.destroy
 										insertChildBefore {
 											(let (new_view old_view) args)
 											(p.insertChildBefore e.pel (new_view.obj.getElement) (old_view.obj.getElement))
@@ -157,14 +141,6 @@
 										appendChild {
 											(let (view) args)
 											(p.appendChild e.pel (view.obj.getElement))
-										}
-										init {
-											(let (view) args)
-											(view.obj.init)
-										}
-										destroy {
-											(let (view) args)
-											(view.obj.destroy)
 										}
 									])
 								)
