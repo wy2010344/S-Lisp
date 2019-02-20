@@ -26,7 +26,7 @@ public abstract class Exp {
         Node<Exp> r_children=null;
         while (blocks.size()!=0 && exp==null) {
             Token block = blocks.remove(0);
-            switch (block.getBlockType()) {
+            switch (block.getType()) {
                 case MRBracketBlock:
                     //遇到]，结束列表
                     exp=new ListExp(left,Node.reverse(r_children),block,r_children);
@@ -74,7 +74,7 @@ public abstract class Exp {
         Node<Exp> r_children=null;
         while (blocks.size()!=0 && exp==null) {
             Token block = blocks.remove(0);
-            switch (block.getBlockType()) {
+            switch (block.getType()) {
                 case SRBracketBlock:
                     //遇到)，结束函数调用
                     Node<Exp> children=Node.reverse(r_children);
@@ -127,7 +127,7 @@ public abstract class Exp {
         Node<Exp> r_children=null;
         while (blocks.size()!=0 && exp==null){
             Token block = blocks.remove(0);
-            switch (block.getBlockType()){
+            switch (block.getType()){
                 case SRBracketBlock:
                     //遇到)，结束Let表达式
                     exp=new LetExp(left,Node.reverse(r_children),block,r_children);
@@ -152,7 +152,7 @@ public abstract class Exp {
             if (exp==null) {
                 if (blocks.size() > 0) {
                     block = blocks.remove(0);
-                    switch (block.getBlockType()) {
+                    switch (block.getType()) {
                         case LLBracketBlock:
                             r_children=parseFunction(r_children, blocks, block);
                             break;
@@ -199,7 +199,7 @@ public abstract class Exp {
         Node<Exp> r_children=null;
         while (blocks.size()!=0 && exp==null){
             Token block=blocks.remove(0);
-            switch (block.getBlockType()){
+            switch (block.getType()){
                 case LRBracketBlock:
                     //遇到}，退出函数
                     check_function(r_children);
@@ -214,7 +214,7 @@ public abstract class Exp {
                     break;
                 case SLBracketBlock:
                     Token first=blocks.get(0);
-                    if (first.getBlockType()== Token.TokenType.IdBlock && "let".equals(first.getContent())){
+                    if (first.getType()== TokenType.IdBlock && "let".equals(first.getContent())){
                         //let表达式
                         blocks.remove(0);//移除let本身
                         LetExp letExp=parseLetBody(block,blocks);
@@ -249,7 +249,7 @@ public abstract class Exp {
             /*文件内，允许结束*/
             if (exp==null){
                 check_function(r_children);
-                return new FunctionExp(left,Node.reverse(r_children),new Token(Token.TokenType.LRBracketBlock,0,"}"),r_children);
+                return new FunctionExp(left,Node.reverse(r_children),new Token(TokenType.LRBracketBlock,0,"}"),r_children);
             }else{
                 throw exp.exception("过多的结束符号");
             }
@@ -271,7 +271,7 @@ public abstract class Exp {
         Node<Exp> r_children=null;
         while (blocks.size()!=0 && exp==null) {
             Token block = blocks.remove(0);
-            switch (block.getBlockType()) {
+            switch (block.getType()) {
                 case SRBracketBlock:
                     if (r_children!=null) {
                         Node<Exp> tmp = r_children.Rest();
@@ -306,7 +306,7 @@ public abstract class Exp {
         return exp;
     }
     public static FunctionExp run(List<Token> blocks) throws RangePathsException {
-        return parseFunctionBody(new Token(Token.TokenType.LLBracketBlock,0,"{"),blocks,true);
+        return parseFunctionBody(new Token(TokenType.LLBracketBlock,0,"{"),blocks,true);
     }
     private static  void check_function(Node<Exp> r_children) {
         if (r_children!=null){

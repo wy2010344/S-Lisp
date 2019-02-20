@@ -4,7 +4,6 @@ import mb.RangePathsException;
 import s.Node;
 import st1.bean.*;
 import st1.exp.*;
-import sun.reflect.generics.scope.Scope;
 
 public class TypeCheck {
 
