@@ -20,11 +20,11 @@ namespace gui.mve
         }
         TabReplaceChild tabReplaceChild = new TabReplaceChild();
 
-        public override object build(s.Node<object> x, s.Node<object> o)
+        public override CommonReturn<TabControl> run(s.Node<object> x, s.Node<object> o)
         {
             TabControl tab = new TabControl();
             s.Node<Object> obj = u.exec_buildChild(build_children, tab, tabReplaceChild, x, o);
-            return build(tab, getK(obj), getInits(obj), getDestroys(obj));
+            return new CommonReturn<TabControl>(tab, getK(obj), getInits(obj), getDestroys(obj));
         }
     }
     class TabAppendChild : EAppendChild<TabControl, TabPage>

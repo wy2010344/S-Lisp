@@ -31,7 +31,7 @@ namespace gui.mve
         ColumnReplaceChild columnReplaceChild = new ColumnReplaceChild();
         RowReplaceChild rowReplaceChild = new RowReplaceChild();
 
-        public override object build(s.Node<object> x, s.Node<object> o)
+        public override CommonReturn<ListView> run(s.Node<object> x, s.Node<object> o)
         {
             ListView lv = new ListView();
             s.Node<Object> obj = u.exec_buildChild(buildColumns, lv, columnReplaceChild, x, o);
@@ -39,14 +39,15 @@ namespace gui.mve
             o = s.Node<Object>.kvs_extend("destroys", getDestroys(obj), o);
             o = s.Node<Object>.kvs_extend("k", getK(obj), o);
             obj = u.exec_buildChild(buildRows, lv, rowReplaceChild, x, o);
-            return build(lv, getK(obj), getInits(obj), getDestroys(obj));
+            return new CommonReturn<ListView>(lv, getK(obj), getInits(obj), getDestroys(obj));
         }
 
-        public override object attr(ListView c, string key, s.Node<object> rest)
+
+        public override Object attr_gs(ListView c, string key, object value)
         {
             if (key == "SelectedIndices")
             {
-                if (rest == null)
+                if (value == null)
                 {
                     s.Node<Object> cs = null;
                     for (int i = c.SelectedIndices.Count; i > 0; i--)
@@ -57,7 +58,7 @@ namespace gui.mve
                 }
                 else
                 {
-                    s.Node<Object> cs = rest.First() as s.Node<Object>;
+                    s.Node<Object> cs = value as s.Node<Object>;
                     c.SelectedIndices.Clear();
                     while (cs != null)
                     {
@@ -68,7 +69,7 @@ namespace gui.mve
             }
             else if (key == "CheckedIndices")
             {
-                if (rest == null)
+                if (value == null)
                 {
                     s.Node<Object> cs = null;
                     for (int i = c.CheckedIndices.Count; i > 0; i--)
@@ -79,7 +80,7 @@ namespace gui.mve
                 }
                 else
                 {
-                    s.Node<Object> cs = rest.First() as s.Node<Object>;
+                    s.Node<Object> cs = value as s.Node<Object>;
                     foreach (ListViewItem lvi in c.CheckedItems)
                     {
                         lvi.Checked = false;
@@ -90,15 +91,16 @@ namespace gui.mve
                         c.Items[index].Checked = true;
                     }
                 }
-            }else if (key == "View")
+            }
+            else if (key == "View")
             {
-                if (rest == null)
+                if (value == null)
                 {
                     return c.View;
                 }
                 else
                 {
-                    String view = rest.First() as String;
+                    String view = value as String;
                     if (view == "Details")
                     {
                         c.View = View.Details;
@@ -123,7 +125,7 @@ namespace gui.mve
             }
             else
             {
-                return base.attr(c,key, rest);
+                return base.attr_gs(c, key, value);
             }
             return null;
         }

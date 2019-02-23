@@ -9,33 +9,27 @@ namespace gui.mve
     {
         public EButton(U u) : base(u) {
         }
-        public override object build(s.Node<object> x, s.Node<object> o)
+        public override CommonReturn<Button> run(s.Node<object> x, s.Node<object> o)
         {
             Button button = new Button();
             s.Node<Object> obj=u.exec_buildChild_Control(button, x, o);
-            return build(button,getK(obj),getInits(obj),getDestroys(obj));
+            return new CommonReturn<Button>(button,getK(obj),getInits(obj),getDestroys(obj));
         }
-        public override object action(Button c, string key, s.Node<object> rest)
+        public override void action_gs(Button c, string key, s.Function fun)
         {
             if (key == "click")
             {
-                s.Function click = rest.First() as s.Function;
-                c.Click += new EventHandler(new SEventHandle(click).run);
+                c.Click += new EventHandler(new SEventHandle(fun).run);
             }
-            return null;
         }
 
-        public override object text(Button c,s.Node<object> rest)
+        public override Object text(Button c)
         {
-            if (rest == null)
-            {
-                return c.Text;
-            }
-            else
-            {
-                c.Text = rest.First() as String;
-                return null;
-            }
+            return c.Text;
+        }
+        public override void text(Button c, string value)
+        {
+            c.Text = value;
         }
     }
 }

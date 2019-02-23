@@ -12,24 +12,21 @@ namespace gui.mve
         {
         }
 
-        public override object build(s.Node<object> x, s.Node<object> o)
+        public override CommonReturn<TabPage> run(s.Node<object> x, s.Node<object> o)
         {
             TabPage tp = new TabPage();
             s.Node<Object> obj = u.exec_buildChild_Control(tp, x, o);
-            return build(tp, getK(obj), getInits(obj), getDestroys(obj));
+            return new CommonReturn<TabPage>(tp, getK(obj), getInits(obj), getDestroys(obj));
         }
 
-        public override object text(TabPage c, s.Node<object> rest)
+        public override object text(TabPage c)
         {
-            if (rest == null)
-            {
-                return c.Text;
-            }
-            else
-            {
-                c.Text = rest.First() as String;
-            }
-            return null;
+            return c.Text;
+        }
+
+        public override void text(TabPage c, string value)
+        {
+            c.Text = value;
         }
     }
 }

@@ -24,7 +24,7 @@
 			width 'width
 			height 'height
 
-            element [
+            element1 [
                 type div
                 children [
                     [
@@ -83,7 +83,7 @@
                     ]
                 ]
             ]
-			element32 [
+			element [
 				type div
 				children [
 					[
@@ -114,7 +114,7 @@
 									type list-row
 									text {
 										(let x (o.data))
-										(str-join [ (toString (o.index)) - (toString x.left)])
+										(str-join [ (toString o.index) - (toString x.left)])
 									}
 									cells [
 										[
@@ -251,14 +251,14 @@
 									text {
 										(str-join
 											[
-												(toString (o.index))
+												(toString o.index)
 												(o.data)
 											]
 										)
 									}
 									event [
 										click {
-											(array (splice (array) (o.index) 1))
+											(array (splice (array) o.index 1))
 										}
 									]
 								]

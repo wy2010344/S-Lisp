@@ -1,7 +1,7 @@
 {
 	(let 
 		util (load './util.lisp)
-		(locsize DOM Parse) args
+		(DOM Parse) args
 		`供后面inits和destroys使用`
 		forEach-run {
 			(forEach (first args) call)
@@ -44,25 +44,6 @@
 						Watch 'Watch
 						DOM 'DOM
 					]
-				)
-			)
-			`locsize部分`
-			(let me  
-				(reduce 
-					locsize 
-					{
-						(let (init str) args)
-						(let fun (kvs-find1st user-result str))
-						(kvs-extend 
-							str 
-							(if-run (exist? fun)
-								{fun}
-								{(util.Value 0)}
-							) 
-							init
-						)
-					}
-					[]
 				)
 			)
 			(let me

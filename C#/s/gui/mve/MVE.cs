@@ -40,10 +40,10 @@ namespace gui.mve
             Build build = new Build(build_children_factory);
             return s.Node<Object>.list(
                 "build",build,
-                "attr",new SetAttr(build,"attr"),
-                "event", new SetAttr(build, "event"),
-                "text", new SetAttr(build, "text"),
-                "value", new SetAttr(build, "value"),
+                "attr",new Attr(build,"attr"),
+                "event", new Attr(build, "event"),
+                "text", new Attr(build, "text"),
+                "value", new Attr(build, "value"),
                 "alert",new DOMAlert(),
                 "confirm",new DOMConfirm()
             );
@@ -161,9 +161,9 @@ namespace gui.mve
             }
         }
     }
-    class SetAttr : s.LibFunction
+    class Attr : s.LibFunction
     {
-        public SetAttr(Build build,String type)
+        public Attr(Build build,String type)
         {
             this.build = build;
             this.type = type;
@@ -251,6 +251,20 @@ namespace gui.mve
         }
     }
 
+    public class CommonReturn<T>
+    {
+        public CommonReturn(T t,s.Node<Object> k,s.Node<Object> inits,s.Node<Object> destroys)
+        {
+            this.element = t;
+            this.k = k;
+            this.inits = inits;
+            this.destroys = destroys;
+        }
+        public readonly T element;
+        public readonly s.Node<Object> k;
+        public readonly s.Node<Object> inits;
+        public readonly s.Node<Object> destroys;
+    }
     public abstract class E<T>
     {
         protected U u;
@@ -258,12 +272,35 @@ namespace gui.mve
         {
             this.u = u;
         }
-
-        public s.Node<Object> build(Object element,Object k,Object inits,Object destroys)
+        public s.Node<Object> build(s.Node<Object> x, s.Node<Object> o)
         {
-            return s.Node<Object>.list("element",element,"k",k,"inits",inits,"destroys",destroys);
+            CommonReturn<T> cr=run(x,o);
+            s.Function if_bind=s.Node<Object>.kvs_find1st(x, "if-bind") as s.Function;
+            s.Function bind = s.Node<Object>.kvs_find1st(x, "bind") as s.Function;
+            s.Node<Object> json=s.Node<Object>.kvs_find1st(o,"json") as s.Node<Object>;
+            if_bind.exec(s.Node<Object>.list(s.Node<Object>.kvs_find1st(json,"text"),new SetText<T>(this,cr.element)));
+            if_bind.exec(s.Node<Object>.list(s.Node<Object>.kvs_find1st(json,"value"),new SetValue<T>(this,cr.element)));
+            s.Node<Object> attrs=s.Node<Object>.kvs_find1st(json, "attr") as s.Node<Object>;
+            while (attrs != null)
+            {
+                String key = attrs.First() as String;
+                attrs = attrs.Rest();
+                Object value = attrs.First();
+                attrs = attrs.Rest();
+                bind.exec(s.Node<Object>.list(value, new SetAttr<T>(this, cr.element,key)));
+            }
+            s.Node<Object> events = s.Node<Object>.kvs_find1st(json, "event") as s.Node<Object>;
+            while (events != null)
+            {
+                String key = events.First() as String;
+                events = events.Rest();
+                s.Function value = events.First() as s.Function;
+                events = events.Rest();
+                action_gs(cr.element, key, value);
+            }
+            return s.Node<Object>.list("element",cr.element,"k",cr.k,"inits",cr.inits,"destroys",cr.destroys);
         }
-        public abstract Object build(s.Node<Object> x, s.Node<Object> o);
+        public abstract CommonReturn<T> run(s.Node<Object> x, s.Node<Object> o);
         public static s.Node<Object> getK(s.Node<Object> o)
         {
             return s.Node<Object>.kvs_find1st(o,"k") as s.Node<Object>;
@@ -277,13 +314,22 @@ namespace gui.mve
         {
             return s.Node<Object>.kvs_find1st(o, "destroys") as s.Node<Object>;
         }
-        public virtual Object attr(T c, String key, s.Node<Object> rest)
+        public Object attr(T c, String key, s.Node<Object> rest)
+        {
+            Object value = null;
+            if (rest != null)
+            {
+                value = rest.First() as Object;
+            }
+            return attr_gs(c, key, value);
+        }
+        public virtual Object attr_gs(T c, String key, Object value)
         {
             Type Ts = c.GetType();
             System.Reflection.PropertyInfo info = Ts.GetProperty(key);
             if (info != null)
             {
-                if (rest == null)
+                if (value == null)
                 {
                     Object o = info.GetValue(c, null);
                     if (o is Color)
@@ -293,13 +339,12 @@ namespace gui.mve
                 }
                 else
                 {
-                    Object o = rest.First();
                     if (info.PropertyType == typeof(Color))
                     {
-                        String color = rest.First() as String;
+                        String color = value as String;
                         if (color.StartsWith("#"))
                         {
-                            o = System.Drawing.ColorTranslator.FromHtml(color);
+                            value = System.Drawing.ColorTranslator.FromHtml(color);
                         }
                         else if (color.StartsWith("rgba"))
                         {
@@ -310,41 +355,129 @@ namespace gui.mve
                             if (cs.Length == 4)
                             {
 
-                                o = Color.FromArgb((int)(double.Parse(cs[3]) * 255 / 100), int.Parse(cs[0]), int.Parse(cs[1]), int.Parse(cs[2]));
+                                value = Color.FromArgb((int)(double.Parse(cs[3]) * 255 / 100), int.Parse(cs[0]), int.Parse(cs[1]), int.Parse(cs[2]));
                             }
                             else if (cs.Length == 3)
                             {
-                                o = Color.FromArgb(int.Parse(cs[0]), int.Parse(cs[1]), int.Parse(cs[2]));
+                                value = Color.FromArgb(int.Parse(cs[0]), int.Parse(cs[1]), int.Parse(cs[2]));
                             }
                         }
                     }
                     else
                     {
-                        o = Convert.ChangeType(o, info.PropertyType);
+                        value = Convert.ChangeType(value, info.PropertyType);
                     }
-                    info.SetValue(c, o, null);
+                    info.SetValue(c, value, null);
                 }
-            }
-            else
-            {
-                Console.WriteLine("Œ¥’“µΩ∏√ Ù–‘");
             }
             return null;
         }
-        public virtual Object action(T c, String key, s.Node<Object> rest)
+        public Object action(T c, String key, s.Node<Object> rest)
+        {
+            if (rest != null)
+            {
+                action_gs(c, key, rest.First() as s.Function);
+            }
+            return null;
+        }
+        public virtual void action_gs(T c, String key, s.Function fun)
         {
             throw new Exception("The method or operation is not implemented.");
         }
-        public virtual Object text(T c,s.Node<Object> rest)
+        public Object text(T c,s.Node<Object> rest)
+        {
+            if (rest == null)
+            {
+                return text(c);
+            }
+            else
+            {
+                text(c, rest.First() as String);
+                return null;
+            }
+        }
+        public virtual void text(T c, String value)
         {
             throw new Exception("The method or operation is not implemented.");
         }
-        public virtual Object value(T c, s.Node<Object> rest)
+        public virtual Object text(T c)
+        {
+            throw new Exception("The method or operation is not implemented.");
+        }
+        public Object value(T c, s.Node<Object> rest)
+        {
+            if (rest == null)
+            {
+                return value(c);
+            }
+            else
+            {
+                value(c, rest.First() as String);
+                return null;
+            }
+        }
+        public virtual void value(T c,String value)
+        {
+            throw new Exception("The method or operation is not implemented.");
+        }
+        public virtual Object value(T c)
         {
             throw new Exception("The method or operation is not implemented.");
         }
     }
 
+    class SetText<T>:s.LibFunction
+    {
+        public SetText(E<T> e,T t)
+        {
+            this.e = e;
+            this.t = t;
+        }
+        private E<T> e;
+        private T t;
+        public override object exec(s.Node<object> args)
+        {
+            String value = args.First() as String;
+            e.text(t,value);
+            return null;
+        }
+    }
+    class SetValue<T> : s.LibFunction
+    {
+        public SetValue(E<T> e, T t)
+        {
+            this.e = e;
+            this.t = t;
+        }
+        private E<T> e;
+        private T t;
+        public override object exec(s.Node<object> args)
+        {
+            String value = args.First() as String;
+            e.value(t,value);
+            return null;
+        }
+    }
+
+
+    class SetAttr<T> : s.LibFunction
+    {
+        public SetAttr(E<T> e, T t,String key)
+        {
+            this.e = e;
+            this.t = t;
+            this.key = key;
+        }
+        private E<T> e;
+        private T t;
+        private String key;
+        public override object exec(s.Node<object> args)
+        {
+            Object value = args.First();
+            e.attr_gs(t,key, value);
+            return null;
+        }
+    }
 
     public abstract class EAppendChild<P, T> : s.LibFunction
         where P : class
@@ -488,17 +621,17 @@ namespace gui.mve
             : base(u)
         {
         }
-        public override object attr(T c, string key, s.Node<object> rest)
+        public override Object attr_gs(T c, string key, Object value)
         {
             if (key == "Dock")
             {
-                if (rest == null)
+                if (value == null)
                 {
                     return c.Dock;
                 }
                 else
                 {
-                    String v = rest.First() as String;
+                    String v = value as String;
                     if (v == "Bottom")
                     {
                         c.Dock = DockStyle.Bottom;
@@ -528,7 +661,7 @@ namespace gui.mve
             }
             else
             {
-                return base.attr(c, key, rest);
+                return base.attr_gs(c, key, value);
             }
         }
     }

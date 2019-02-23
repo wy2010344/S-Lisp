@@ -14,9 +14,6 @@
 				removeChild 'DOM.removeChild
 			]
 		)
-		locsize [
-			width height left top right bottom
-		]
 		bindKV {
 			(let (bind key value f) args)
 			(bind value {
@@ -56,22 +53,50 @@
 			(let (pel old_el new_el) args)
 			(DOM.replaceWith old_el new_el)
 		}
+		makeUpElement {
+			(let (e x json) args)
+			`attr属性`
+			(bindMap x.bind json.attr 
+				{
+					(apply DOM.attr (extend e args))
+				}
+			)
+			`style属性`
+			(bindMap x.bind json.style
+				{
+					(apply DOM.style (extend e args))
+				}
+			)
+			`动作`
+			(bindEvent json.event
+				{
+					(apply DOM.event (extend e args))
+				}
+			)
+			`内部字符`
+			(x.if-bind json.text 
+				{
+					(apply DOM.text (extend e args))
+				}
+			)
+			`内部值`
+			(x.if-bind json.value
+				{
+					(apply DOM.value (extend e args))
+				}
+			)
+			`innerHTML`
+			(x.if-bind json.html
+				{
+					(apply DOM.html (extend e args))
+				}
+			)
+		}
 	)
 	(exp
-		locsize
 		DOM
-		(Parse 
-			locsize
+		(Parse
 			[
-				locsize {
-					(let (el key value) args)
-					(DOM.style el key 
-						(if value 
-							(str-join ['value px])
-							""
-						)
-					)
-				}
 				createTextNode {
 					(let (x o) args)
 					[
@@ -89,51 +114,13 @@
 					(let obj (build-children 
 						[pel 'e replaceChild 'replaceChild] x o)
 					)
+					(makeUpElement e x o.json)
 					[
 						element 'e
 						k 'obj.k
 						inits 'obj.inits
 						destroys 'obj.destroys
 					]
-				}
-				makeUpElement {
-					(let (e x json) args)
-					`attr属性`
-					(bindMap x.bind json.attr 
-						{
-							(apply DOM.attr (extend e args))
-						}
-					)
-					`style属性`
-					(bindMap x.bind json.style
-						{
-							(apply DOM.style (extend e args))
-						}
-					)
-					`动作`
-					(bindEvent json.event
-						{
-							(apply DOM.event (extend e args))
-						}
-					)
-					`内部字符`
-					(x.if-bind json.text 
-						{
-							(apply DOM.text (extend e args))
-						}
-					)
-					`内部值`
-					(x.if-bind json.value
-						{
-							(apply DOM.value (extend e args))
-						}
-					)
-					`innerHTML`
-					(x.if-bind json.html
-						{
-							(apply DOM.html (extend e args))
-						}
-					)
 				}
 			]
 		)

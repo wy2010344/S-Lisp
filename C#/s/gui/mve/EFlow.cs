@@ -12,24 +12,24 @@ namespace gui.mve
             : base(u)
         {
         }
-        public override object build(s.Node<object> x, s.Node<object> o)
+        public override CommonReturn<FlowLayoutPanel> run(s.Node<object> x, s.Node<object> o)
         {
             FlowLayoutPanel p = new FlowLayoutPanel();
             s.Node<Object> obj = u.exec_buildChild_Control(p, x, o);
-            return build(p, getK(obj), getInits(obj), getDestroys(obj));
+            return new CommonReturn<FlowLayoutPanel>(p, getK(obj), getInits(obj), getDestroys(obj));
         }
 
-        public override object attr(FlowLayoutPanel c, string key, s.Node<object> rest)
+        public override Object attr_gs(FlowLayoutPanel c, string key, Object value)
         {
             if (key == "FlowDirection")
             {
-                if (rest == null)
+                if (value == null)
                 {
                     return c.FlowDirection;
                 }
                 else
                 {
-                    String d = rest.First() as String;
+                    String d = value as String;
                     if (d == "LeftToRight")
                     {
                         c.FlowDirection = FlowDirection.LeftToRight;
@@ -52,7 +52,7 @@ namespace gui.mve
             }
             else
             {
-                return base.attr(c, key, rest);
+                return base.attr_gs(c, key, value) ;
             }
         }
     }

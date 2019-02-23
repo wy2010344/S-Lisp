@@ -12,22 +12,20 @@ namespace gui.mve
         {
         }
 
-        public override object build(s.Node<object> x, s.Node<object> o)
+        public override CommonReturn<TextBox> run(s.Node<object> x, s.Node<object> o)
         {
             TextBox t = new TextBox();
-            return build(t, getK(o), getInits(o), getDestroys(o));
+            return new CommonReturn<TextBox>(t, getK(o), getInits(o), getDestroys(o));
         }
-        public override object value(TextBox c, s.Node<object> rest)
+
+        public override object value(TextBox c)
         {
-            if (rest == null)
-            {
-                return c.Text;
-            }
-            else
-            {
-                c.Text = rest.First() as String;
-                return null;
-            }
+            return c.Text;
+        }
+
+        public override void value(TextBox c, string value)
+        {
+            c.Text = value;
         }
     }
 }

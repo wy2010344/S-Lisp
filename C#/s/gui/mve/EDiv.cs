@@ -10,15 +10,11 @@ namespace gui.mve
             : base(u)
         {
         }
-        public override object build(s.Node<object> x, s.Node<object> o)
+        public override CommonReturn<Panel> run(s.Node<object> x, s.Node<object> o)
         {
             Panel p = new Panel();
             s.Node<Object> obj = u.exec_buildChild_Control(p, x, o);
-            return build(p, getK(obj), getInits(obj), getDestroys(obj));
-        }
-        public override object action(Panel c, string key, s.Node<object> rest)
-        {
-            throw new Exception("The method or operation is not implemented.");
+            return new CommonReturn<Panel>(p, getK(obj), getInits(obj), getDestroys(obj));
         }
     }
 }

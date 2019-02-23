@@ -11,23 +11,19 @@ namespace gui.mve
             : base(u)
         {
         }
-        public override object build(s.Node<object> x, s.Node<object> o)
+        public override CommonReturn<ColumnHeader> run(s.Node<object> x, s.Node<object> o)
         {
             ColumnHeader header = new ColumnHeader();
-            return build(header, getK(o), getInits(o), getDestroys(o));
+            return new CommonReturn<ColumnHeader>(header, getK(o), getInits(o), getDestroys(o));
         }
 
-        public override object text(ColumnHeader c, s.Node<object> rest)
+        public override object text(ColumnHeader c)
         {
-            if (rest == null)
-            {
-                return c.Text;
-            }
-            else
-            {
-                c.Text = rest.First() as String;
-            }
-            return null;
+            return c.Text;
+        }
+        public override void text(ColumnHeader c, string value)
+        {
+            c.Text = value;
         }
     }
 }

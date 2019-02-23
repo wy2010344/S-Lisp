@@ -18,24 +18,21 @@ namespace gui.mve
                 )) as s.Function;
         }
         CellReplaceChild cellReplaceChild = new CellReplaceChild();
-        public override object build(s.Node<object> x, s.Node<object> o)
+        public override CommonReturn<ListViewItem> run(s.Node<object> x, s.Node<object> o)
         {
             ListViewItem lvi = new ListViewItem();
             s.Node<Object> obj = u.exec_buildChild(build_children, lvi, cellReplaceChild, x, o);
-            return build(lvi, getK(obj), getInits(obj), getDestroys(obj));
+            return new CommonReturn<ListViewItem>(lvi, getK(obj), getInits(obj), getDestroys(obj));
         }
 
-        public override object text(ListViewItem c, s.Node<object> rest)
+        public override object text(ListViewItem c)
         {
-            if (rest == null)
-            {
-                return c.Text;
-            }
-            else
-            {
-                c.Text = rest.First() as String;
-            }
-            return null;
+            return c.Text;
+        }
+
+        public override void text(ListViewItem c, string value)
+        {
+            c.Text = value;
         }
     }
 

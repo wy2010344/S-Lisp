@@ -35,21 +35,6 @@
 			)
 		}
 	}
-	build-locsize {
-		(let (locsize json fun) args)
-		(forEach 
-			locsize 
-			{
-				(let 
-					(str) args
-					vf (kvs-find1st json str)
-				)
-				(if-run (exist? vf)
-					(fun str vf)
-				)
-			}
-		)
-	}
 	add-k {
 		(let (k id obj) args)
 		(if-run (exist? id)
@@ -70,7 +55,7 @@
 	}
 )
 {
-	(let (locsize p) args)
+	(let (p) args)
 	`对函数`
 	(let ParseFun 
 		{
@@ -160,17 +145,6 @@
 								obj (p.buildElement x o)
 								e obj.element
 							)
-							`绑定locsize`
-							(build-locsize locsize o 
-								{(let (str vf) args)
-									(x.bind vf {
-											(let (v) args)
-											(p.locsize e str v)
-										}
-									)
-								}
-							)
-							(p.makeUpElement e x o.json)
 							[
 								element 'e
 								k (add-k obj.k json.id e)
@@ -181,25 +155,9 @@
 						{
 							`自定义组件`
 							(let 
-								obj ((json.type json.params) o.e)
+								obj ((json.type json) o.e)
 								e (obj.getElement)
 							)
-							`绑定locsize`
-							(build-locsize locsize json
-								{
-									(let 
-										(str vf) args
-									 	ef (default (kvs-find1st obj str) empty-fun)
-									)
-									(x.bind vf {
-											(let (v) args)
-											(ef v)
-											(p.locsize e str v)
-										}
-									)
-								}
-							)
-							(p.makeUpElement e x o.json)
 							[
 								element 'e
 								k (add-k o.k json.id obj)

@@ -41,8 +41,10 @@ namespace gui
                 int w=sc.DisplayRectangle.Size.Width;
             }
             int w1 = target.element.Width;
+            /*
             target.width.exec(s.Node<Object>.extend(target.element.ClientSize.Width, null));
             target.height.exec(s.Node<Object>.extend(target.element.ClientSize.Height, null));
+            */
         }
 
         void form_FormClosing(object sender, System.Windows.Forms.FormClosingEventArgs e)

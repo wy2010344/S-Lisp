@@ -12,24 +12,22 @@ namespace gui.mve
         {
         }
 
-        public override object build(s.Node<object> x, s.Node<object> o)
+        public override CommonReturn<ListViewItem.ListViewSubItem> run(s.Node<object> x, s.Node<object> o)
         {
             ListViewItem.ListViewSubItem lvsi = new ListViewItem.ListViewSubItem();
 
-            return build(lvsi, getK(o), getInits(o), getDestroys(o));
+            return new CommonReturn<ListViewItem.ListViewSubItem>(lvsi, getK(o), getInits(o), getDestroys(o));
         }
 
-        public override object text(ListViewItem.ListViewSubItem c, s.Node<object> rest)
+        public override Object text(ListViewItem.ListViewSubItem c)
         {
-            if (rest == null)
-            {
-                return c.Text;
-            }
-            else
-            {
-                c.Text = rest.First() as String;
-            }
-            return null;
+            return c.Text;
+        }
+
+        
+        public override void text(ListViewItem.ListViewSubItem c, string value)
+        {
+            c.Text = value;
         }
     }
 }
