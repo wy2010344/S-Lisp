@@ -25,6 +25,8 @@
 				(load './better/kvs-path.lisp)
 				(load './better/pip.lisp)
 				(load './better/split.lisp)
+				(load './better/chain.lisp)
+				(load './better/chain-plus.lisp)
 			)
 		(cls fun)
 			(reduce-right

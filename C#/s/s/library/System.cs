@@ -595,7 +595,8 @@ namespace s.library
                         }
                         else
                         {
-                            //最�?                            r = Node<Object>.extend(str.Substring(last_i), r);
+                            //最后
+                            r = Node<Object>.extend(str.Substring(last_i), r);
                             last_i = new_i;
                         }
                     }
@@ -1165,6 +1166,83 @@ namespace s.library
             
         }
 			            
+
+        class ChainFun:Function{
+            private static ChainFun _ini_=new ChainFun();
+            public static ChainFun instance(){return _ini_;}
+            public override string ToString(){return "{(let (o vs ) args ) }";}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_Better;}
+            public override object exec(Node<object> args){
+                
+				Object o=args.First();
+				args=args.Rest();
+				Node<Object> vs=args.First() as Node<Object>;
+				while(vs!=null){
+					Object v=vs.First();
+					vs=vs.Rest();
+					if(v is Node<Object> || v==null){
+						//求函数 
+						Function fun=o as Function;
+						o=fun.exec(o as Node<Object>);
+					}else
+					if(v is String){
+						Node<Object> kvs=o as Node<Object>;
+						String key=v as String;
+						o=Node<Object>.kvs_find1st(kvs,key);
+					}else{
+						throw new Exception("不是合法的类型 ");
+					}
+				}
+				return o;
+			
+            }
+            
+        }
+			            
+
+        class Chain_plusFun:Function{
+            private static Chain_plusFun _ini_=new Chain_plusFun();
+            public static Chain_plusFun instance(){return _ini_;}
+            public override string ToString(){return "{(let (o vs ) args ) (loop {(let (v ...vs ) args ) (if-run (type? v 'list ) {} {(if-run (type? v 'string ) {(if-run (str-eq v '. ) {} {} ) } {} ) } ) } vs ) }";}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_Better;}
+            public override object exec(Node<object> args){
+                
+                Object o = args.First();
+				args=args.Rest();
+				Node<Object> vs=args.First() as Node<Object>;
+				while(vs!=null){
+                    Object v=vs.First();
+					vs=vs.Rest();
+					if(v is Node<Object> || v==null){
+						//求函数 
+						Function fun=o as Function;
+						o=fun.exec(o as Node<Object>);
+					}else
+                    if(v is String){
+                    	Node<Object> kvs = o as Node<Object>;
+                    	String op=v as String;
+						String key=vs.First() as String;
+	                    vs = vs.Rest();
+						if(op=="."){
+							//kvs访问
+	                        o = Node<Object>.kvs_find1st(kvs, key);
+						}else if(op=="->"){
+							//原型链式访问
+						    Node<Object> param=vs.First() as Node<Object>;
+	                        vs=vs.Rest();
+	                        Function fun = Node<Object>.kvs_find1st(kvs, key) as Function;
+	                        o = fun.exec(Node<Object>.extend(kvs, param));
+						}else{
+							throw new Exception("未找到合法的operator");
+						}
+					}
+				}
+                return o;
+			
+            }
+            
+        }
+			            
         public static Node<Object> library(){
             Node<Object> m = null;
             
@@ -1222,6 +1300,8 @@ namespace s.library
         m=Node<Object>.kvs_extend("slice-from",Slice_fromFun.instance(),m);
         m=Node<Object>.kvs_extend("slice-to",Slice_toFun.instance(),m);
         m=Node<Object>.kvs_extend("offset",OffsetFun.instance(),m);
+        m=Node<Object>.kvs_extend("chain",ChainFun.instance(),m);
+        m=Node<Object>.kvs_extend("chain-plus",Chain_plusFun.instance(),m);
             return m;
         }
     }

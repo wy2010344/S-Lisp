@@ -286,6 +286,7 @@
 	}
 	`条件执行`
 	if-run 'if-run
+	`本质上是获得kvs-find1st`
 	switch {
 		(let (str kvs default-fun) args)
 		(let o (kvs-find1st kvs str))
