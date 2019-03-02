@@ -27,6 +27,8 @@
 				(load './better/split.lisp)
 				(load './better/chain.lisp)
 				(load './better/chain-plus.lisp)
+				(load './better/infix.lisp)
+				(load './better/extension.lisp)
 			)
 		(cls fun)
 			(reduce-right

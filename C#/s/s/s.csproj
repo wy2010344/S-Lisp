@@ -36,6 +36,7 @@
     <Compile Include="Code.cs" />
     <Compile Include="Exp.cs" />
     <Compile Include="Function.cs" />
+    <Compile Include="library\ArrayList.cs" />
     <Compile Include="library\Cache.cs" />
     <Compile Include="library\db\Append.cs" />
     <Compile Include="library\db\Reduce_Until.cs" />

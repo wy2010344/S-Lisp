@@ -21,6 +21,7 @@ namespace gui
             slib.addDef("read", new s.library.Read(line_split, encoding));
             slib.addDef("write", new s.library.Write(encoding));
             slib.addDef("cache", new s.library.Cache());
+            slib.addDef("ArrayList", new s.library.ArrayList());
 
             target = new gui.mve.MVE(slib,form, s.Util.exe_path("s/index/index.lisp"));
             form.Controls.Add(target.element);

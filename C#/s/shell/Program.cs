@@ -16,6 +16,8 @@ namespace shell
                 S b = new S(line_split, encoding);
                 b.addDef("read", new Read(line_split, encoding));
                 b.addDef("write", new Write(encoding));
+                b.addDef("ArrayList", new s.library.ArrayList());
+
                 //(b.run(@"C:\Users\miki\Desktop\f.s-shell") as Function).exec(null);
                 if (args.Length == 0)
                 {

@@ -38,6 +38,15 @@
 	                        vs=vs.Rest();
 	                        Function fun = Node<Object>.kvs_find1st(kvs, key) as Function;
 	                        o = fun.exec(Node<Object>.extend(kvs, param));
+						}else if(op==\"extend\"){
+							Node<Object> param=vs.First() as Node<Object>;
+							vs=vs.Rest();
+							o=Node<Object>.extend(o,param);
+						}else if(op==\"to\"){
+							Node<Object> param=o as Node<Object>;
+							Function fun=vs.First() as Function;
+							vs=vs.Rest();
+							o=fun.exec(param);
 						}else{
 							throw new Exception(\"未找到合法的operator\");
 						}

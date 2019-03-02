@@ -1232,12 +1232,67 @@ namespace s.library
 	                        vs=vs.Rest();
 	                        Function fun = Node<Object>.kvs_find1st(kvs, key) as Function;
 	                        o = fun.exec(Node<Object>.extend(kvs, param));
+						}else if(op=="extend"){
+							Node<Object> param=vs.First() as Node<Object>;
+							vs=vs.Rest();
+							o=Node<Object>.extend(o,param);
+						}else if(op=="to"){
+							Node<Object> param=o as Node<Object>;
+							Function fun=vs.First() as Function;
+							vs=vs.Rest();
+							o=fun.exec(param);
 						}else{
 							throw new Exception("未找到合法的operator");
 						}
 					}
 				}
                 return o;
+			
+            }
+            
+        }
+			            
+
+        class InfixFun:Function{
+            private static InfixFun _ini_=new InfixFun();
+            public static InfixFun instance(){return _ini_;}
+            public override string ToString(){return "{}";}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_Better;}
+            public override object exec(Node<object> args){
+                
+				Object o=args.First();
+				args=args.Rest();
+				while(args!=null){
+					Function fun=args.First() as Function;
+					args=args.Rest();
+					Object right=args.First();
+					args=args.Rest();
+					o=fun.exec(Node<Object>.list(o,right));
+				}
+				return o;
+			
+            }
+            
+        }
+			            
+
+        class ExtensionFun:Function{
+            private static ExtensionFun _ini_=new ExtensionFun();
+            public static ExtensionFun instance(){return _ini_;}
+            public override string ToString(){return "{}";}
+            public override FunctionType Function_type(){return Function.FunctionType.Fun_Better;}
+            public override object exec(Node<object> args){
+                
+				Object o=args.First();
+				args=args.Rest();
+				while(args!=null){
+					Function fun=args.First() as Function;
+					args=args.Rest();
+					Node<Object> list=args.First() as Node<Object>;
+					args=args.Rest();
+					o=fun.exec(Node<Object>.extend(o,list));
+				}
+				return o;
 			
             }
             
@@ -1302,6 +1357,8 @@ namespace s.library
         m=Node<Object>.kvs_extend("offset",OffsetFun.instance(),m);
         m=Node<Object>.kvs_extend("chain",ChainFun.instance(),m);
         m=Node<Object>.kvs_extend("chain-plus",Chain_plusFun.instance(),m);
+        m=Node<Object>.kvs_extend("infix",InfixFun.instance(),m);
+        m=Node<Object>.kvs_extend("extension",ExtensionFun.instance(),m);
             return m;
         }
     }

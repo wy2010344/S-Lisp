@@ -85,7 +85,7 @@ public class JSBridge {
         HashMap<String,Object> ini=new HashMap<String,Object>();
         ini.put("server_path",server_path);
         ini.put("engine_name", engine.getFactory().getEngineName());
-        ini.put("me",new Helper());
+        ini.put("me",new Helper(this));
     	ini.put("jsx_path",jsx_file.getPath());
         param(ini);
         Bindings scriptParams = engine.createBindings();
@@ -199,7 +199,15 @@ public class JSBridge {
 		return Logger.DefaultLogger.getLogger(name);
 	}
     public static class Helper{
-    	public Character charAt(String string,int index) {
+		private final JSBridge jsBridge;
+		public Helper(JSBridge jsBridge) {
+			this.jsBridge=jsBridge;
+		}
+
+		public Logger getLogger(String name){
+			return jsBridge.getLogger(name);
+		}
+		public Character charAt(String string, int index) {
     		return string.charAt(index);
     	}
         public File fileFromPath(String path){
@@ -216,8 +224,8 @@ public class JSBridge {
         public String readTxt(File file){
             return readTxt(file.getPath());
         }
-        public String readTxt(String path )  
-        {  
+        public String readTxt(String path )
+        {
             try {
                 return Util.readTxt(path, "\r\n","UTF-8");
             } catch (IOException e1) {
