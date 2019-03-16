@@ -19,6 +19,8 @@ public class JSBridge {
     
     JSMethod method;/*编译后的方法*/
     boolean first_run=true;//编译事件
+
+	private Logger log;
     /**
      * @param path 最后不需要有分割符
      * @param from_cache
@@ -38,9 +40,9 @@ public class JSBridge {
     	/*engine*/
         ScriptEngineManager manager=new ScriptEngineManager();
 		engine=manager.getEngineByName("JavaScript");
-        System.out.println(engine.getFactory().getEngineName()); 
-        /*主动、第一次生成方法*/
-        reloadMethod();
+		log=getLogger("mb.JSBridge");
+		log.info(engine.getFactory().getEngineName());
+        /*主动、第一次生成方法，可能要后期调用*/
     }
     public HashMap<String,Object> run_map(HashMap<String,Object> request,String act,Logger log){
         if(request==null) {
@@ -125,9 +127,16 @@ public class JSBridge {
     	}else {
     		msg.append("加载method失败");
     	}
-        System.out.println(msg.toString());
+    	log.info(msg.toString());
     }
-    
+	void print_e(String message,StringBuilder sb){
+		log.error(message);
+		sb.append(message);
+	}
+    void print_e(String message,StringBuilder sb,Throwable e){
+		log.error(Util.loadAllErr(e));
+		print_e(message,sb);
+	}
     String load_from_package(Bindings scriptParams,StringBuilder msg){
 		try {
 			String txt = Util.readTxt(server_path+"/mb/"+"lib.js","\r\n","UTF-8");
@@ -139,17 +148,17 @@ public class JSBridge {
 			        return content;
 				}catch(ScriptException e) {
 					e.printStackTrace();
-					msg.append("执行mb.compile.save失败");
+					print_e("执行mb.compile.save失败",msg,e);
 				}
 			} catch (ScriptException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-				msg.append("执行lib.js文件失败");
+				print_e("执行lib.js文件失败",msg,e);
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			msg.append("读取lib.js文件失败");
+			print_e("读取lib.js文件失败",msg);
 		}
 		return null;
     }
@@ -182,12 +191,12 @@ public class JSBridge {
 			}catch (ScriptException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-				msg.append("执行编译后脚本失败!");
+				print_e("执行编译后脚本失败!",msg,e);
 			}
 		} catch (ScriptException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			msg.append("编译脚本失败!");
+			print_e("编译脚本失败!",msg,e);
 		}
 		return null;
     }
@@ -218,7 +227,7 @@ public class JSBridge {
             	mb.Util.saveTxt(path, content, "UTF-8");
             }catch(Exception ex){
                 ex.printStackTrace();
-                System.out.println("保存"+path+"出错:"+ex.getMessage());
+                jsBridge.log.error("保存"+path+"出错:"+ex.getMessage());
             }
         }
         public String readTxt(File file){
@@ -231,7 +240,7 @@ public class JSBridge {
             } catch (IOException e1) {
                 // TODO Auto-generated catch block
                 e1.printStackTrace();
-                System.out.println("加载"+path+"出错:"+e1.getMessage());
+				jsBridge.log.error("加载"+path+"出错:"+e1.getMessage());
                 return null;
             }
         }

@@ -1,7 +1,5 @@
 ({
-    data:{},
     success:function(map){
-        
 	    var request=(function(){
 	        var get=function(key){
 	            return map.get("request").get(key);

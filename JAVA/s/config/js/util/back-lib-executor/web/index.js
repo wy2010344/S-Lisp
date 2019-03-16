@@ -1,6 +1,5 @@
 ({
-    delay:true,
-    success:function(){
+    success:function(prun){
 	    var parseJSON=function(str){
 	        return JSON.parse(str.replace(/&quot;/g,"\""));
 	    };
@@ -18,7 +17,7 @@
 	        //从servlet直接调用到这里。
 	        var req=map.get("request");
 	        var res=map.get("response");
-	        var servlet=mb.servlet(req,res);
+	        var servlet=prun(req,res);
 	        var url_prefix=""+map.get("url_prefix");
 	        
 	        var log_prefix="js";
@@ -79,8 +78,6 @@
 	            var isWrite=false;
 	            var write=function(txt){
 	                isWrite=true;
-	                res.setHeader("Content-type", "text/html;charset=UTF-8");
-	                res.setCharacterEncoding("utf-8");
 	                w.append(txt);
 	            };
 	            var writeJSON=function(obj){

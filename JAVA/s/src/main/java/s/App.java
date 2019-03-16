@@ -11,7 +11,7 @@ public class App {
 			System.out.println(i);
 			System.out.println(args[i]);
 		}
-		args=new String[]{"exec","smeta"};
+		//args=new String[]{"exec","smeta"};
 		String path=mb.Util.resource("../../config/js/",App.class);
 		final mb.JSBridge bridge=new mb.JSBridge(path,true) {
 			@Override

@@ -1,5 +1,10 @@
 ({
-    success:function(){
-    
+	data:{
+        map:"util/back-lib-executor/map/index.js"
+	},
+    success:function(mb){
+    	mb.executor={
+    		map:lib.map
+    	};
     }
 });

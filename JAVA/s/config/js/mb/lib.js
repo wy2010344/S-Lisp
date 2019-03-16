@@ -270,6 +270,23 @@ mb.readText=function(pathOrFile){
 mb.saveText=function(path,content){
     ini.get("me").saveText(path,content);
 };
+
+mb.json_config=function(path,init){
+    var File=Java.type("java.io.File");
+    var config_file=new File(path);
+    var config_value=init;
+    if(config_file.exists()){
+        config_value=JSON.parse(mb.readText(config_file))
+    }
+    return function(){
+        if (arguments.length==0) {
+            return config_value;
+        }else{
+            config_value=arguments[0];
+            mb.saveText(config_file,JSON.stringify(config_value));
+        }
+    };
+};
 mb.load=(function(){
     var base_path=ini.get("server_path");
     var cache={};
@@ -489,9 +506,8 @@ mb.compile=(function(){
         ret.push("("+(function(){
             return mb.Java_new("mb.JSBridge.JSMethod",[],{
                 run:function(map){
-                    var url="act/"+map.get("type")+"/index.js";
-                    var act=mb.getLib(url);
-                    if(act!=null){
+                    var act=mb.executor[map.get("type")];
+                    if(act){
                         act(map);
                     }else{
                         mb.log("未找到处理模块！"+url);

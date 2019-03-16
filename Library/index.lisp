@@ -286,6 +286,47 @@
 	}
 	`条件执行`
 	if-run 'if-run
+
+	`将多个函数串联成一个`
+	comnination {
+		(let fs args)
+		{
+			(apply pip (extend args fs))
+		}
+	}
+
+	`柯西化(n v)`
+	cauchy {
+		(let (n fun) args cauchy this)
+		{
+		}
+		(if-run (= 0 n)
+			{
+
+			}
+			{
+
+			}
+		)
+	}
+	`转换成一个函数，函数会infix后续的，但后续的参数会被计算出来`
+	to-infix {
+		(let fs args)
+		{
+			(let (v) args)
+			(apply infix (extend v fs))
+		}
+	}
+	`转换成一个函数，函数会extension后续的，但后续的参数会被计算出来`
+	to-extension {
+		(let fs args)
+		{
+			(let (v) args)
+			(apply extension (extend v fs))
+		}
+	}
+
+
 	`本质上是获得kvs-find1st`
 	switch {
 		(let (str kvs default-fun) args)

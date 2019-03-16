@@ -168,7 +168,6 @@ public class Util {
 	public static String readTxt(File file,String lineSplit,String charsetName) throws FileNotFoundException, IOException{
 	    return readTxt(new FileInputStream(file),lineSplit,charsetName);
 	}
-	
 	public static void saveTxt(String path,String content,String charset) throws IOException {
         FileOutputStream fout=new FileOutputStream(path);
         fout.write(content.getBytes(charset));
