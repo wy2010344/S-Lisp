@@ -73,22 +73,20 @@ public class SecurityImage {
      * @return ByteArrayInputStream 图片流
      */
     public static InputStream getImageAsInputStream(String securityCode)throws Exception {
-        BufferedImage image = createImage(securityCode);
-        return convertImageToStream(image);
+        return new ByteArrayInputStream(getImageAsBytes(securityCode));
     }
 
     /**
-     * 将BufferedImage转换成ByteArrayInputStream
      *
-     * @param image
-     *            图片
-     * @return ByteArrayInputStream 流
+     * @param securityCode
+     * @return
+     * @throws Exception
      */
-    private static InputStream convertImageToStream(BufferedImage image) throws Exception{
+    public static byte[] getImageAsBytes(String securityCode)throws Exception {
+        BufferedImage image = createImage(securityCode);
         ByteArrayOutputStream bs = new ByteArrayOutputStream();
         ImageOutputStream imOut = ImageIO.createImageOutputStream(bs);
         ImageIO.write(image, "jpg", imOut);
-        InputStream is = new ByteArrayInputStream(bs.toByteArray());
-        return is;
+        return bs.toByteArray();
     }
 }

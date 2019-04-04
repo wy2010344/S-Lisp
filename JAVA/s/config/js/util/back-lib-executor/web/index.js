@@ -14,10 +14,7 @@
 	        /**
 	         * 新式的调用JS
 	         */
-	        //从servlet直接调用到这里。
-	        var req=map.get("request");
-	        var res=map.get("response");
-	        var servlet=prun(req,res);
+	        var servlet=prun(map);
 	        var url_prefix=""+map.get("url_prefix");
 	        
 	        var log_prefix="js";
@@ -27,18 +24,18 @@
 	        var log=ini.get("me").getLogger(log_prefix);
 	        
 	        var request=(function(){
-	            var url=decodeURI((""+req.getRequestURI()));
+	            var url=decodeURI((""+servlet.getUrl()));
 	            var act=url.substring(url.indexOf(url_prefix)+url_prefix.length,url.length);
 	            map.put("log",log);
 	            var me={
 	                getAct:function(){
 	                    return act;
 	                },
-	                original:req,
+	                original:servlet.original,
 	                session:servlet.session //不同项目不同实现
 	            };
 	            me.p_str=function(key){
-	                var v=req.getParameter(key);
+	                var v=servlet.p_str(key);
 	                if(v){
 	                    return ""+v;
 	                }else{
@@ -47,7 +44,7 @@
 	            };
 	            me.p_strs=function(key){
 	                //返回多维数组
-	                var vs=req.getParameterValues(key);
+	                var vs=servlet.p_strs(key);
 	                var ret=[];
 	                for(var i=0;i<vs.length;i++){
 	                    ret.push(""+vs[i]);
@@ -74,11 +71,10 @@
 	        })();
 	        
 	        var response=(function(){
-	            var w=res.getWriter();
 	            var isWrite=false;
 	            var write=function(txt){
 	                isWrite=true;
-	                w.append(txt);
+	                servlet.send(txt);
 	            };
 	            var writeJSON=function(obj){
 	                write(JSON.stringify(obj));
@@ -122,9 +118,9 @@
 	         * request还带有session，可以查询操作员、权限
 	         * web本身是无状态的
 	         */
-	        var doServlet=function(servlet,str){
+	        var doServlet=function(route,str){
 	            var will=true;
-	            servlet(request,response);
+	            route(request,response);
 	            if(response.isWrite()){
 	                will=false;
 	            }
@@ -149,20 +145,20 @@
 	                /**
 	                 * //先查找代表目录的文件，如果有，一般都不用继续查找，因为它是文件夹不是叶子文件。
 	                 */
-	                var servlet=mb.getLib(substr+"/_.js",webPackageDeal);
-	                if(servlet){
+	                var route=mb.getLib(substr+"/_.js",webPackageDeal);
+	                if(route){
 	                    /**
 	                     * 可能是过滤器，作为枝节点，但并无处理，转由下一个处理。
 	                     */
-	                    will=doServlet(servlet);
+	                    will=doServlet(route);
 	                }else{
 	                    /**
 	                     * 叶子结点，如果有与文件夹同名的怎么办？有点该着被同名文件拦截了的味道，本来同名文件和文件夹并不冲突，因为有js后缀，同外文件更应该作为根结点。
 	                     */
-	                    servlet=mb.getLib(substr+".js",webPackageDeal);
-	                    if(servlet){
+	                    route=mb.getLib(substr+".js",webPackageDeal);
+	                    if(route){
 	                        has=true;
-	                        will=doServlet(servlet);
+	                        will=doServlet(route);
 	                    }
 	                }
 	            }

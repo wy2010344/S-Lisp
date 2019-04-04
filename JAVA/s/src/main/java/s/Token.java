@@ -70,9 +70,20 @@ public class Token {
     public static List<Token> run(final String in) throws RangePathsException {
         return run(in,TokenWalker.empty);
     }
+
+    static RangePathsException balance_more_throw(int flag, String in, String type) throws RangePathsException {
+        return new RangePathsException(flag,in.length()-1,"过多的"+type);
+    }
+    static RangePathsException balance_less_throw(String in,int balance,String type){
+        return new RangePathsException(in.length()-1,in.length()-1,"缺少"+type+balance+"个");
+    }
     public static List<Token> run(final String in,final TokenWalker waker) throws RangePathsException {
         final List<Token> blocks=new ArrayList<Token>();
         int flag=0;
+
+        int l_balance=0;
+        int m_balance=0;
+        int s_balance=0;
         while (flag<in.length()){
             char c=in.charAt(flag);
             if (Character.isWhitespace(c)){
@@ -104,26 +115,41 @@ public class Token {
             }else if (c=='{'){
                 waker.when_LL(flag);
                 blocks.add(new Token(TokenType.LLBracketBlock,flag,"{"));
+                l_balance++;
                 flag++;
             }else if(c=='['){
                 waker.when_ML(flag);
                 blocks.add(new Token(TokenType.MLBracketBlock,flag,"["));
+                m_balance++;
                 flag++;
             }else if(c=='('){
                 waker.when_SL(flag);
                 blocks.add(new Token(TokenType.SLBracketBlock,flag,"("));
+                s_balance++;
                 flag++;
             }else if(c=='}'){
                 waker.when_LR(flag);
                 blocks.add(new Token(TokenType.LRBracketBlock,flag,"}"));
+                l_balance--;
+                if (l_balance<0){
+                    throw balance_more_throw(flag,in,"}");
+                }
                 flag++;
             }else if(c==']'){
                 waker.when_MR(flag);
                 blocks.add(new Token(TokenType.MRBracketBlock,flag,"]"));
+                m_balance--;
+                if (m_balance<0){
+                    throw balance_more_throw(flag,in,"]");
+                }
                 flag++;
             }else if(c==')'){
                 waker.when_SR(flag);
                 blocks.add(new Token(TokenType.SRBracketBlock,flag,")"));
+                s_balance--;
+                if (s_balance<0){
+                    throw balance_more_throw(flag,in,")");
+                }
                 flag++;
             }else{
                 /*其它块*/
@@ -162,6 +188,18 @@ public class Token {
                 blocks.add(new Token(type,begin,string));
             }
         }
-        return blocks;
+        if (l_balance==0){
+            if (m_balance==0){
+                if (s_balance==0){
+                    return blocks;
+                }else{
+                    throw balance_less_throw(in,s_balance,")");
+                }
+            }else {
+                throw balance_less_throw(in,m_balance,"]");
+            }
+        }else{
+            throw balance_less_throw(in,l_balance,"}");
+        }
     }
 }

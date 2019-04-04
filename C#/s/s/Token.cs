@@ -167,10 +167,23 @@ namespace s
             }
             return tokens;
         }
+
+        static LocationException balance_more_throw(Code code, String type)
+        {
+            return new LocationException(code.currentLoc(), "过多的" + type);
+        }
+
+        static LocationException balance_less_throw(Code code,int balance,String type)
+        {
+            return new LocationException(code.currentLoc(),"缺少"+type+balance+"个");
+        }
         public static Node<Token> run(String txt, char lineSplit)
         {
             Code code = new Code(txt, lineSplit);
             Node<Token> tokens = null;
+            int l_balance = 0;
+            int m_balance = 0;
+            int s_balance = 0;
             while (code.noEnd())
             {
                 char c = code.current();
@@ -179,12 +192,39 @@ namespace s
                     code.shift();
                 }else if (isQuoteLeft(c))
                 {
-                    String cs=""+c;
+                    String cs = "" + c;
+                    if (c == '{') { l_balance++; }
+                    else if (c == '[') { m_balance++; }
+                    else if (c == '(') { s_balance++; }
                     tokens = Node<Token>.extend(new Token(cs,cs, TokenType.Token_BracketLeft, code.currentLoc()), tokens);
                     code.shift();
                 }else if (isQuoteRight(c))
                 {
-                    String cs=""+c;
+                    String cs = "" + c;
+                    if (c == '}')
+                    {
+                        l_balance--;
+                        if (l_balance < 0)
+                        {
+                            throw balance_more_throw(code, "]");
+                        }
+                    }
+                    else if (c == ']')
+                    {
+                        m_balance--;
+                        if (m_balance < 0)
+                        {
+                            throw balance_more_throw(code, "]");
+                        }
+                    }
+                    else if (c == ')')
+                    {
+                        s_balance--;
+                        if (s_balance < 0)
+                        {
+                            throw balance_more_throw(code, ")");
+                        }
+                    }
                     tokens = Node<Token>.extend(new Token(cs,cs, TokenType.Token_BracketRight, code.currentLoc()), tokens);
                     code.shift();
                 }else if(c=='"')
@@ -204,7 +244,28 @@ namespace s
                     tokens = tokenize_ID(code, code.currentLoc(), tokens);
                 }
             }
-            return tokens;
+            if (l_balance == 0)
+            {
+                if (m_balance == 0)
+                {
+                    if (s_balance == 0)
+                    {
+                        return tokens;
+                    }
+                    else
+                    {
+                        throw balance_less_throw(code,s_balance, ")");
+                    }
+                }
+                else
+                {
+                    throw balance_less_throw(code,m_balance, "]");
+                }
+            }
+            else
+            {
+                throw balance_less_throw(code,l_balance, "}");
+            }
         }
     }
 }
